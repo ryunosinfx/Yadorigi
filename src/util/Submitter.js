@@ -11,9 +11,11 @@ export class Submitter {
 			input.value = value;
 			form.appendChild(input);
 		}
-
+		form.submit();
 		if (form.parentNode) {
-			form.parentNode.removeChild(form);
+			setTimeout(() => {
+				form.parentNode.removeChild(form);
+			}, 100);
 		}
 	}
 }
