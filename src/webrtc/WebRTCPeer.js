@@ -148,7 +148,11 @@ export class WebRTCPeer {
 			console.error('setRemoteDescription(answer) ERROR: ', err);
 		}
 	}
-	send(msg) {}
+	send(msg) {
+		if (this.dataChannel) {
+			this.dataChannel.send(msg);
+		}
+	}
 	close() {
 		if (this.peer) {
 			if (this.peer.iceConnectionState !== 'closed') {
