@@ -6,7 +6,8 @@ module.exports = {
 	//  context: __dirname,
 	entry: {
 		bundle: './src/main.js',
-		worker: './src/worker.js'
+		worker: './src/worker.js',
+		tests: './src/gs/tests.js'
 	},
 	// [
 	//   './src/main.js','./src/worker.js', './index.css'

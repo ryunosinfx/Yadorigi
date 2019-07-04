@@ -1,1 +1,7 @@
 https://script.google.com/macros/s/AKfycbwOJPCfhO43goukWXHPWYsOIv6R-KEkfp1ZbicmrOZa8CoeIAM/exec
+
+API一覧
+    ・画像投稿
+    ・画像取得
+    ・最終更新ハッシュ取得
+    ・次の画像取得
