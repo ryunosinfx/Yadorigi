@@ -153,6 +153,11 @@ function doGet(fuga) {
 							output.append(record1.data);
 							output.setMimeType(ContentService.MimeType.XML);
 							break;
+						case 'hash':
+							let record3 = this.service.getNext(group, fileName);
+							output.append(record3.hash);
+							output.setMimeType(ContentService.MimeType.TEXT);
+							break;
 						case 'last':
 							let record2 = this.service.getLatest(group);
 							output.append(record2.data);
