@@ -1,3 +1,6 @@
+import { Hasher } from '../util/Hasher';
+import { Base64Util } from '../util/Base64Util';
+import { TimeUtil } from '../util/TimeUtil';
 const pngHeader = 'data:image/png;base64,';
 export class YadorigiImageProsessor {
 	build(imageList, senderDeviceName, sdp, expireOffset, userId) {
@@ -10,5 +13,11 @@ export class YadorigiImageProsessor {
 		];
 	}
 	//ユーザーIDのハッシュとデバイス名ハッシュをキー
-	createFileName(userId, senderDeviceName) {}
+	createFileName(userId, senderDeviceName) {
+		//512 25612864
+		const userIdHash = Base64Util.ab2Base64Url(Hasher.sha512(userId)); //64
+		const senderDeviceNameHash = Base64Util.ab2Base64Url(Hasher.sha512(senderDeviceName)); //64
+		const fileName = userIdHash + '.' + senderDeviceNameHash + '.' + TimeUtil.getNowUnixtime() + '.svg';
+		return fileName;
+	}
 }

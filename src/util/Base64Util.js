@@ -13,6 +13,9 @@ export class Base64Util {
 	static ab2Base64(arrayBuffer) {
 		return window.btoa(arrayBuffer);
 	}
+	static ab2Base64Url(arrayBuffer) {
+		return Base64Util.toBase64Url(window.btoa(arrayBuffer));
+	}
 	static toBase64Url(base64) {
 		return base64
 			? base64

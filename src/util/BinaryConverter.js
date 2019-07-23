@@ -1,4 +1,6 @@
-export default class BinaryConverter {
+const te = new TextEncoder('utf-8');
+const td = new TextDecoder('utf-8');
+export class BinaryConverter {
 	static binaryString2ArrayBuffer(binaryString) {
 		return BinaryConverter.binaryString2Uint8Array(binaryString).buffer;
 	}
@@ -12,7 +14,27 @@ export default class BinaryConverter {
 		const base64 = btoa(BinaryConverter.arrayBuffer2BinaryString(buffer));
 		return 'data:' + type + ';base64,' + base64;
 	}
-
+	static stringToU8A(str) {
+		return te.encode(str);
+	}
+	static u8aToString(u8a) {
+		return td.decode(u8a);
+	}
+	static joinU8as(u8as) {
+		let sumLength = 0;
+		const u8asCount = u8as.length;
+		for (let i = 0; i < u8asCount; i++) {
+			sumLength += u8as[i].byteLength;
+		}
+		const united = new Uint8Array(sumLength);
+		let offset = 0;
+		for (let i = 0; i < u8asCount; i++) {
+			const u8a = u8as[i];
+			whole.set(u8a, offset);
+			united += u8a.byteLength;
+		}
+		return united;
+	}
 	static binaryString2Uint8Array(binaryString) {
 		const list = binaryString.split('');
 		const rawLength = binaryString.length;
