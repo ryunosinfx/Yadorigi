@@ -8,14 +8,11 @@ function create(hoge) {
 	return new YadorigiWebRTCSignalingServer(hoge);
 }
 
-function set(fuga) {
-	throw new Error('このメソッドは直接呼び出せません。createメソッドをコールし取得したインスタンスより呼び出してください。');
-}
 function doPost(event) {
 	let server = new YadorigiWebRTCSignalingServer();
 	return server.doPost(event);
 }
-function doGet(fuga) {
+function doGet(event) {
 	let server = new YadorigiWebRTCSignalingServer();
 	return server.doGet(event);
 }
@@ -152,6 +149,11 @@ function doGet(fuga) {
 							let record1 = this.service.getNext(group, fileName);
 							output.append(record1.data);
 							output.setMimeType(ContentService.MimeType.XML);
+							break;
+						case 'hash':
+							let record3 = this.service.getNext(group, fileName);
+							output.append(record3.hash);
+							output.setMimeType(ContentService.MimeType.TEXT);
 							break;
 						case 'last':
 							let record2 = this.service.getLatest(group);

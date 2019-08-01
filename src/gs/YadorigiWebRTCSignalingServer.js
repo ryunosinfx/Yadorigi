@@ -8,14 +8,11 @@ function create(hoge) {
 	return new YadorigiWebRTCSignalingServer(hoge);
 }
 
-function set(fuga) {
-	throw new Error('このメソッドは直接呼び出せません。createメソッドをコールし取得したインスタンスより呼び出してください。');
-}
 function doPost(event) {
 	let server = new YadorigiWebRTCSignalingServer();
 	return server.doPost(event);
 }
-function doGet(fuga) {
+function doGet(event) {
 	let server = new YadorigiWebRTCSignalingServer();
 	return server.doGet(event);
 }
