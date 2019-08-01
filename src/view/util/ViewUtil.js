@@ -1,5 +1,9 @@
 import { TextUtil } from '../../util/TextUtil';
+const DIV = 'div';
 export class ViewUtil {
+	static addHiddenDiv(parent, attrs = {}) {
+		return ViewUtil.add(parent, DIV, attrs, { display: 'none' });
+	}
 	static add(parent, tagName, attrs = {}, styles = {}) {
 		const elm = document.createElement(tagName);
 		for (let key in attrs) {

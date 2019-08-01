@@ -1,10 +1,10 @@
 import { WebRTCConnecter } from './WebRTCConnecter';
 export class YadorigiSignalingAdapter {
-	constructor(password, userId, deviceName, group) {
+	constructor(password, userId, deviceName, groupName) {
 		this.password = password;
 		this.userId = userId;
 		this.deviceName = deviceName;
-		this.group = group;
+		this.groupName = groupName;
 		this.WebRTCConnecter = new WebRTCConnecter();
 	}
 	async init() {

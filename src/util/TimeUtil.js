@@ -24,4 +24,7 @@ export class TimeUtil {
 	static getNowUnixtime() {
 		return new Date().getTime();
 	}
+	static getNowUnixTimeAtUTC() {
+		return new Date().getTime();
+	}
 }
