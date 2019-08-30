@@ -53,4 +53,7 @@ export class ViewUtil {
 	static toggleClass(elm, className) {
 		elm.classList.toggle(className);
 	}
+	static getBodyElm() {
+		return document.getElementsByTagName('body')[0];
+	}
 }

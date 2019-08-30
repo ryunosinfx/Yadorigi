@@ -15,10 +15,14 @@ export class BinaryConverter {
 		return 'data:' + type + ';base64,' + base64;
 	}
 	static stringToU8A(str) {
-		return te.encode(str);
+		const u8a = te.encode(str);
+		return u8a;
+	}
+	static abToString(ab) {
+		return td.decode(new Uint16Array(ab));
 	}
 	static u8aToString(u8a) {
-		return td.decode(u8a);
+		return td.decode(new Uint8Array(u8a.buffer));
 	}
 	static joinU8as(u8as) {
 		let sumLength = 0;

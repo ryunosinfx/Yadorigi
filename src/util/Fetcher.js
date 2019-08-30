@@ -1,6 +1,19 @@
+import {} from '../view/util/IframeController';
 export class Fetcher {
 	constructor(headerKeys) {
 		this.headerKeys = headerKeys;
+	}
+	async psotAsSubmit(path, data, isCors) {
+		let submitData = data;
+		if (data && typeof data === 'object') {
+			submitData = Object.keys(data)
+				.map(key => key + '=' + encodeURIComponent(data[key]))
+				.join('&');
+		}
+		return await this.exec(path, submitData, true, 'application/x-www-form-urlencoded', isCors);
+	}
+	async post(path, data, contentType, isCors) {
+		return await this.exec(path, data, true, contentType, isCors);
 	}
 	async exec(path, data = {}, isPost = false, contentType = 'application/json\'', isCORS = false) {
 		const requestData = {
