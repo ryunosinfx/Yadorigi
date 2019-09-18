@@ -19,7 +19,7 @@ export class BinaryConverter {
 		return u8a;
 	}
 	static abToString(ab) {
-		return td.decode(new Uint16Array(ab));
+		return td.decode(new Uint8Array(ab));
 	}
 	static u8aToString(u8a) {
 		return td.decode(new Uint8Array(u8a.buffer));
@@ -124,5 +124,12 @@ export class BinaryConverter {
 				return promise;
 			}
 		};
+	}
+	static convertU8aToU16a(u8a) {
+		const len = u8a.length;
+		if (len % 2 > 0) {
+			throw new RangeError('Uint8Arrayの長さが2の倍数ではありません。');
+		}
+		return new Uint16Array(u8a.buffer);
 	}
 }

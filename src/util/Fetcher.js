@@ -12,6 +12,10 @@ export class Fetcher {
 		}
 		return await this.exec(path, submitData, true, 'application/x-www-form-urlencoded', isCors);
 	}
+	async postJsonCors(path, data) {
+		return this.post(path, data, 'application/json', true);
+	}
+
 	async post(path, data, contentType, isCors) {
 		return await this.exec(path, data, true, contentType, isCors);
 	}
@@ -40,6 +44,9 @@ export class Fetcher {
 	async getJson(path, data = {}, isPost = false, contentType = 'application/json\'', isCORS = false) {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
 		return await res.json();
+	}
+	async getTextCors(path, data = {}, isPost = false, contentType = 'application/json\'') {
+		return await this.getText(path, path, isPost);
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json\'', isCORS = false) {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);

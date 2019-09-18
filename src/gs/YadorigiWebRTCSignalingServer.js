@@ -132,7 +132,6 @@ function doGet(event) {
 				}
 			},
 			doGet: function(event) {
-				let mimeTypeSVG = 'image/svg+xml';
 				let parram = event.parameter;
 				let command = parram ? parram.command : null;
 				let fileName = parram ? parram.fileName : null;
@@ -164,9 +163,7 @@ function doGet(event) {
 							console.log('Sorry, we are out of ' + command + '.');
 					}
 				}
-			},
-			addData: function(key) {},
-			loadData: function(key) {}
+			}
 		};
 
 		return ServerClass;

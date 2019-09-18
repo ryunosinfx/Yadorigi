@@ -1,4 +1,5 @@
 import { BinaryConverter } from './BinaryConverter';
+import { Deflater } from './Deflater';
 
 export class Base64Util {
 	constructor() {}
@@ -11,6 +12,22 @@ export class Base64Util {
 		});
 
 		return hexCodes.join('');
+	}
+	static objToJsonBase64Url(obj, isWithDefrate) {
+		const json = JSON.stringify(obj);
+		const u8a = BinaryConverter.stringToU8A(json);
+		const ab = isWithDefrate ? Deflater.deflate(u8a) : u8a.buffer;
+		console.log('objToJsonBase64Url');
+		console.log(ab);
+		return Base64Util.ab2Base64Url(ab);
+	}
+	static jsonBase64UrlToObj(base64url, isWithInfrate) {
+		const ab = Base64Util.base64UrlToAB(base64url);
+		console.log('jsonBase64UrlToObj');
+		console.log(ab);
+		const abInfrated = isWithInfrate ? Deflater.inflate(ab) : ab;
+		const str = BinaryConverter.abToString(abInfrated);
+		return JSON.parse(str);
 	}
 	static ab2Base64(abInput) {
 		const ab = abInput.buffer ? abInput.buffer : abInput;
