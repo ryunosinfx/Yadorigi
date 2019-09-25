@@ -8,20 +8,26 @@ import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
 const expireMunits = 30;
 export class YadorigiFileProsessor {
 	constructor() {}
-	async build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, expireOffset = expireMunits) {
+	async buildOffer(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, expireOffset = expireMunits) {
+		return await this.build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, true, expireOffset);
+	}
+	async buildAnswer(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, offerSdp, expireOffset = expireMunits) {
+		return await this.build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, false, expireOffset, offerSdp);
+	}
+	async build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, isOffer = true, expireOffset = expireMunits, offerSdp) {
 		const expireTime = TimeUtil.getNowUnixTimeAtUTC() + expireOffset * 60 * 1000;
-		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, sdp, expireTime, userId, groupName);
+		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp);
 		const encryptedObj = await Cryptor.encodeAES256GCM(u8a, passphraseText);
 		const data = Base64Util.objToJsonBase64Url(encryptedObj);
 		const newImageList = this.maintainImageList(imageList, hash, fileName, expireOffset);
 		const recordObj = { fileName, hash, data, imageList: newImageList };
 		return this.convertObjToJsonDefratedBase64Url(recordObj);
 	}
-	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName) {
+	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp) {
 		const payload = { senderDeviceName, sdp, expireTime, userId, groupName };
 		const text = JSON.stringify(payload);
-		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(text));
-		const fileName = await this.createFileName(groupName, userId, senderDeviceName);
+		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(text + (isOffer ? '' : offerSdp)));
+		const fileName = await this.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 		const u8a = BinaryConverter.stringToU8A(text);
 		return [u8a, hash, fileName];
 	}
@@ -50,19 +56,42 @@ export class YadorigiFileProsessor {
 		return TimeUtil.getNowUnixTimeAtUTC() + expireOffset * 60 * 1000;
 	}
 	//////////////////////////////////////////////////
-	async parse(passphraseText, dataBase64url, isOffer = true) {
+	async parseOffer(passphraseText, dataBase64url) {
+		return await this.parse(passphraseText, dataBase64url, true);
+	}
+	async parseAnswer(passphraseText, dataBase64url, offerSdp) {
+		return await this.parse(passphraseText, dataBase64url, false, offerSdp);
+	}
+	async parse(passphraseText, dataBase64url, isOffer = true, offerSdp) {
 		const obj = this.convertJsonDefratedBase64UrlToObj(dataBase64url);
 		const { fileName, hash, data, imageList } = obj;
-		console.log('parse:');
+		console.log('parse offerSdp:' + offerSdp);
 		console.log(obj);
 		const encryptedObj = Base64Util.jsonBase64UrlToObj(data);
 		const u8a = await Cryptor.decodeAES256GCM(encryptedObj, passphraseText);
-		const parsed = this.parsePayload(u8a);
+		const parsed = await this.parsePayload(u8a, isOffer, offerSdp);
+		console.log('parse parsed.hash:' + parsed.hash + '/hash:' + hash);
 		if (parsed.hash === hash) {
 			const { senderDeviceName, sdp, expireTime, userId, groupName } = parsed.payload;
-			const trueFileName = await this.createFileName(groupName, userId, senderDeviceName, isOffer);
+			const trueFileName = await this.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
+			console.log(
+				'parse trueFileName:' +
+					trueFileName +
+					'/fileName:' +
+					fileName +
+					'/expireTime:' +
+					expireTime +
+					'/' +
+					TimeUtil.getNowUnixTimeAtUTC() +
+					'/' +
+					(expireTime - TimeUtil.getNowUnixTimeAtUTC()) +
+					'/' +
+					(fileName === trueFileName)
+			);
+			console.log(trueFileName);
+			console.log(fileName);
 			if (fileName === trueFileName && expireTime > TimeUtil.getNowUnixTimeAtUTC()) {
-				return { fileName, sdp, hash, imageList, roupName, userId, senderDeviceName };
+				return { fileName, sdp, hash, imageList, groupName, userId, senderDeviceName };
 			}
 			return { fileName, spd: null, hash, imageList };
 		}
@@ -74,10 +103,12 @@ export class YadorigiFileProsessor {
 		const jsonString = BinaryConverter.abToString(infratedU8a.buffer);
 		return JSON.parse(jsonString);
 	}
-	async parsePayload(u8a) {
+	async parsePayload(u8a, isOffer, offerSdp) {
 		const jsonPaload = BinaryConverter.u8aToString(u8a);
-		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(jsonPaload));
+		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(jsonPaload + (isOffer ? '' : offerSdp)));
+		console.log('AAAparse jsonString:' + jsonPaload);
 		const payload = JSON.parse(jsonPaload);
+		console.log('parse hash:' + hash + '/offerSdp:' + offerSdp);
 		return { hash, payload };
 	}
 	createFileNameOffer(groupName, userId, senderDeviceName) {
@@ -87,12 +118,12 @@ export class YadorigiFileProsessor {
 		return this.createFileName(groupName, userId, senderDeviceName, false);
 	}
 	//ユーザーIDのハッシュとデバイス名ハッシュをキー
-	async createFileName(groupName, userId, senderDeviceName, isOffer = true) {
+	async createFileName(groupName, userId, senderDeviceName, isOffer = true, expireTime) {
 		//512 25612864
 		const userIdHash = Base64Util.ab2Base64Url(await Hasher.sha512(userId)); //64
 		const groupNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(groupName)); //64
 		const senderDeviceNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(senderDeviceName)); //64
-		const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + TimeUtil.getNowUnixtime() + '.' + (isOffer ? 'offer' : 'ans');
+		const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + expireTime + '.' + (isOffer ? 'offer' : 'ans');
 		return fileName;
 	}
 	parseFromFileName(fileName) {
