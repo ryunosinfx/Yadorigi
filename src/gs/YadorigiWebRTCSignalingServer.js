@@ -34,7 +34,7 @@ function doGet(event) {
 			this.createTime = Date.now();
 			this.index = null;
 		}
-		this.rowIndex = { A: 'group', B: 'fileName', C: 'data', D: 'hash', E: 'createTime' };
+		// this.rowIndex = { A: 'group', B: 'fileName', C: 'data', D: 'hash', E: 'createTime' };
 	};
 	Recode.prototype = {
 		toArray() {

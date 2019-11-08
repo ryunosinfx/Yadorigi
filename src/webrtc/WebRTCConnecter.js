@@ -1,10 +1,15 @@
+import { WebRTCPeer } from './WebRTCPeer';
 export class WebRTCConnecter {
 	constructor() {
 		this.WebRTCPeer = new WebRTCPeer();
 	}
 	async init() {
+		console.log('--init--0----------WebRTCConnecter--------------------------------------');
 		this.WebRTCPeer.close();
-		return this.WebRTCPeer.makeOffer();
+		console.log('--init--1----------WebRTCConnecter--------------------------------------');
+		const result = await this.WebRTCPeer.makeOffer();
+		console.log('--init--2----------WebRTCConnecter--------------------------------------result:' + result);
+		return result;
 	}
 	setOnOpne(callback) {
 		this.WebRTCPeer.onOpen = event => {

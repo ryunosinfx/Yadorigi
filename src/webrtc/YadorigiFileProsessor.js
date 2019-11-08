@@ -21,13 +21,13 @@ export class YadorigiFileProsessor {
 		const data = Base64Util.objToJsonBase64Url(encryptedObj);
 		const newImageList = this.maintainImageList(imageList, hash, fileName, expireOffset);
 		const recordObj = { fileName, hash, data, imageList: newImageList };
-		return this.convertObjToJsonDefratedBase64Url(recordObj);
+		return { hash, fileName, payload: this.convertObjToJsonDefratedBase64Url(recordObj) };
 	}
 	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp) {
 		const payload = { senderDeviceName, sdp, expireTime, userId, groupName };
 		const text = JSON.stringify(payload);
 		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(text + (isOffer ? '' : offerSdp)));
-		const fileName = await this.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
+		const fileName = await YadorigiSdpFileRecord.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 		const u8a = BinaryConverter.stringToU8A(text);
 		return [u8a, hash, fileName];
 	}
@@ -73,7 +73,7 @@ export class YadorigiFileProsessor {
 		console.log('parse parsed.hash:' + parsed.hash + '/hash:' + hash);
 		if (parsed.hash === hash) {
 			const { senderDeviceName, sdp, expireTime, userId, groupName } = parsed.payload;
-			const trueFileName = await this.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
+			const trueFileName = await YadorigiSdpFileRecord.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 			console.log(
 				'parse trueFileName:' +
 					trueFileName +
@@ -111,38 +111,6 @@ export class YadorigiFileProsessor {
 		console.log('parse hash:' + hash + '/offerSdp:' + offerSdp);
 		return { hash, payload };
 	}
-	createFileNameOffer(groupName, userId, senderDeviceName) {
-		return this.createFileName(groupName, userId, senderDeviceName, true);
-	}
-	createFileNameAnswer(groupName, userId, senderDeviceName) {
-		return this.createFileName(groupName, userId, senderDeviceName, false);
-	}
-	//ユーザーIDのハッシュとデバイス名ハッシュをキー
-	async createFileName(groupName, userId, senderDeviceName, isOffer = true, expireTime) {
-		//512 25612864
-		const userIdHash = Base64Util.ab2Base64Url(await Hasher.sha512(userId)); //64
-		const groupNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(groupName)); //64
-		const senderDeviceNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(senderDeviceName)); //64
-		const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + expireTime + '.' + (isOffer ? 'offer' : 'ans');
-		return fileName;
-	}
-	parseFromFileName(fileName) {
-		const splited = fileName.split('.');
-		if (splited.length === 5) {
-			const parsed = {
-				groupNameHash: splited[0],
-				userIdHash: splited[1],
-				senderDeviceNameHash: splited[2],
-				time: splited[3],
-				isOffer: splited[3] === 'offer' ? true : splited[3] === 'ans' ? false : null
-			};
-			if (parsed.isOffer === null) {
-				return null;
-			}
-			return parsed;
-		}
-		return null;
-	}
 	///////////////////////////////////////////////////////////////////////
 	getParsedAnswerFileNameList(imageList, isOffer = true) {
 		return this.getParsedOfferFileNameList(imageList, false);
@@ -164,12 +132,31 @@ export class YadorigiFileProsessor {
 			if (ysdp.isExpired()) {
 				continue;
 			}
-			const parsed = this.parseFromFileName(ysdp.fileName);
+			const parsed = YadorigiSdpFileRecord.parseFromFileName(ysdp.fileName);
 			if (!parsed) {
 				continue;
 			}
 			parsedList.push(parsed);
 		}
 		return parsedList;
+	}
+	//////////////////////////////////////////////////////////////////
+	findOffer(imageList) {
+		let result = null;
+		if (imageList && Array.isArray(imageList)) {
+			const newList = [];
+			for (let row of imageList) {
+				//画像ファイル名、画像ハッシュ、有効期限
+				const ysdp = new YadorigiSdpFileRecord(row);
+				if (ysdp.isExpired()) {
+					continue;
+				}
+				newList.unshift(ysdp);
+			}
+			for (let ysdp of newList) {
+				const fileName = ysdp.fileName;
+			}
+		}
+		return result;
 	}
 }

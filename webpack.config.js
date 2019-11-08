@@ -11,7 +11,7 @@ module.exports = {
 		worker: './src/worker.js',
 		tests: './src/gs/tests.js',
 
-		test: ['./test/util/Cryptor.test.js', './test/util/Deflater.test.js', './test/webrtc/YadorigiFileProsessor.test.js']
+		test: ['./test/util/Cryptor.test.js', './test/util/Deflater.test.js', './test/webrtc/YadorigiFileProsessor.test.js', './test/webrtc/YadorigiSignalingAdupter.test.js']
 	},
 	// [
 	//   './src/main.js','./src/worker.js', './index.css'
