@@ -1,10 +1,10 @@
 import { DummyFetcher } from './DummyFetcher';
 import { DummySpreadsheetApp } from '../mocs/DummySpreadsheetApp';
-import gs from '../../src/gs/YadorigiWebRTCSignalingServer';
+import { DummyContentService } from '../mocs/DummyContentService';
 global.SpreadsheetApp = DummySpreadsheetApp;
-const server = new gs.YadorigiWebRTCSignalingServer();
+global.ContentService = DummyContentService;
 const headerKeys = [];
-const dummyFetcher = new DummyFetcher(headerKeys, server);
+const dummyFetcher = new DummyFetcher(headerKeys);
 export class YadorigiServerMoc {
 	static setMocToAdupter(yadorigiSignalingAdapter) {
 		const yadorigiSignalingConnector = yadorigiSignalingAdapter.YadorigiSignalingConnector;

@@ -136,7 +136,7 @@ function doGet(event) {
 				let command = parram ? parram.command : null;
 				let fileName = parram ? parram.fileName : null;
 				let group = parram ? parram.group : null;
-				let output = ContentService.createTextOutput();
+				let output = ContentService.createTextOutput('', this);
 				if (command && group) {
 					switch (command) {
 						case 'get':

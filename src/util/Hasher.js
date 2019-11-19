@@ -1,3 +1,4 @@
+import { Base64Util } from './Base64Util';
 export class Hasher {
 	static async sha256(message, stretchCount = 1) {
 		return await Hasher.digest(message, 'SHA-256', stretchCount);
@@ -17,6 +18,6 @@ export class Hasher {
 		for (let i = 0; i < stretchCount; i++) {
 			result = await window.crypto.subtle.digest(algo, result);
 		}
-		return result;
+		return Base64Util.ab2Base64Url(result);
 	}
 }

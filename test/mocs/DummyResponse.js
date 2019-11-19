@@ -1,6 +1,11 @@
 export class DummyResponse {
-	constructor() {}
-	async toJSON() {
-		return 'a';
+	constructor(result) {
+		this.result = result;
+	}
+	async json() {
+		return this.result ? this.result.value : '';
+	}
+	async text() {
+		return this.result ? this.result.value : '';
 	}
 }

@@ -147,7 +147,7 @@ export class YadorigiSignalingAdapter {
 	/////////////////////////////////////////////////////////////////////////////
 	async createOffer() {
 		const offerSdp = this.getSdp();
-		const imageList = offerData.imageList;
+		const imageList = [];
 		const offerFile = await this.YadorigiFileProsessor.buildOffer(this.passphraseText, imageList, this.deviceName, offerSdp, this.userId, this.groupName, 30);
 		return offerFile;
 	}

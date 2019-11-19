@@ -28,6 +28,9 @@ export class Fetcher {
 		};
 		if (isPost) {
 			requestData.body = typeof data === 'object' ? JSON.stringify(data) : data;
+		} else {
+			const json = typeof data === 'object' ? JSON.stringify(data) : data;
+			path += 'q=' + encodeURIComponent(json);
 		}
 
 		myHeaders = new Headers({
@@ -46,7 +49,7 @@ export class Fetcher {
 		return await res.json();
 	}
 	async getTextCors(path, data = {}, isPost = false, contentType = 'application/json\'') {
-		return await this.getText(path, path, isPost);
+		return await this.getText(path, data, isPost);
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json\'', isCORS = false) {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
