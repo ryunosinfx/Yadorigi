@@ -1,12 +1,13 @@
 export class WebRTCPeer {
 	constructor() {
 		this.peer = null;
+		this.isOpend = false;
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
-			console.log('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
+			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			const peer = new RTCPeerConnection({});
-			console.log('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
+			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = evt => {
 				console.log('-- peer.ontrack()vevt:' + evt);
 			};
@@ -57,7 +58,7 @@ export class WebRTCPeer {
 			peer.ondatachannel = evt => {
 				this.dataChannelSetup(evt.channel);
 			};
-			console.log('--prepareNewConnection--2----------WebRTCPeer--------------------------------------');
+			console.warn('--prepareNewConnection--2----------WebRTCPeer--------------------------------------');
 			if (isWithDataChannel) {
 				peer.createDataChannel('chat' + Date.now());
 			}
@@ -88,11 +89,13 @@ export class WebRTCPeer {
 
 		dataChannel.onopen = event => {
 			dataChannel.send('dataChannel Hello World!');
+			this.isOpend = true;
 			this.onOpen(event);
 		};
 
 		dataChannel.onclose = () => {
 			console.log('The Data Channel is Closed');
+			this.isOpend = false;
 			this.onClose();
 		};
 		this.dataChannel = dataChannel;
@@ -125,18 +128,22 @@ export class WebRTCPeer {
 		}
 	}
 	async setOfferAndAswer(sdp) {
-		const offer = new RTCSessionDescription({
-			type: 'offer',
-			sdp: text
-		});
-		if (this.peer) {
-			console.error('peerConnection alreay exist!');
-		}
-		this.peer = await this.prepareNewConnection(false);
+		console.warn('setOfferAndAswer sdp ' + sdp);
+		console.warn(sdp);
 		try {
+			const offer = new RTCSessionDescription({
+				type: 'offer',
+				sdp: sdp
+			});
+			if (this.peer) {
+				console.error('peerConnection alreay exist!');
+			}
+			this.peer = await this.prepareNewConnection(true);
+			console.warn('setOfferAndAswer this.peer ' + this.peer);
 			await this.peer.setRemoteDescription(offer);
+			console.warn('setOfferAndAswer offer ' + offer);
 			console.log('setRemoteDescription(answer) succsess in promise');
-			return await makeAnswer();
+			return await this.makeAnswer();
 		} catch (err) {
 			console.error('setRemoteDescription(offer) ERROR: ', err);
 		}
@@ -145,7 +152,7 @@ export class WebRTCPeer {
 	async setAnswer(sdp) {
 		const answer = new RTCSessionDescription({
 			type: 'answer',
-			sdp: text
+			sdp: sdp
 		});
 		if (!this.peer) {
 			console.error('peerConnection NOT exist!');
@@ -154,6 +161,7 @@ export class WebRTCPeer {
 		try {
 			await this.peer.setRemoteDescription(answer);
 			console.log('setRemoteDescription(answer) succsess in promise');
+			alert('OpenSuccess!');
 			return true;
 		} catch (err) {
 			console.error('setRemoteDescription(answer) ERROR: ', err);

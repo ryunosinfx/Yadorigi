@@ -13,4 +13,7 @@ export class DummyDataRange {
 		}
 		return this.matrix.length - 1;
 	}
+	logMatrix() {
+		console.log(this.matrix);
+	}
 }

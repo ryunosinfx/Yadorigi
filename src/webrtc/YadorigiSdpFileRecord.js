@@ -16,8 +16,13 @@ export class YadorigiSdpFileRecord {
 				this.hash = obj.hash;
 				this.expireDate = obj.expireDate;
 			} catch (e) {
+				console.warn(fileName);
 				console.error(e);
 			}
+		} else if (typeof fileName === 'object') {
+			this.fileName = fileName.fileName;
+			this.hash = fileName.hash;
+			this.expireDate = fileName.expireDate;
 		}
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,9 +39,9 @@ export class YadorigiSdpFileRecord {
 	static async createFileName(groupName, userId, senderDeviceName, isOffer = true, expireTime) {
 		//ユーザーIDのハッシュとデバイス名ハッシュをキー
 		//512 25612864
-		const userIdHash = Base64Util.ab2Base64Url(await Hasher.sha512(userId)); //64
-		const groupNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(groupName)); //64
-		const senderDeviceNameHash = Base64Util.ab2Base64Url(await Hasher.sha512(senderDeviceName)); //64
+		const userIdHash = await Hasher.sha512(userId); //64
+		const groupNameHash = await Hasher.sha512(groupName); //64
+		const senderDeviceNameHash = await Hasher.sha512(senderDeviceName); //64
 		const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + expireTime + '.' + (isOffer ? 'offer' : 'ans');
 		return fileName;
 	}
@@ -54,17 +59,19 @@ export class YadorigiSdpFileRecord {
 	}
 	static parseFromFileName(fileName) {
 		const splited = fileName.split('.');
+		console.log('YadorigiSdpFileRecord splited:' + splited + '/' + splited.length);
 		if (splited.length === 5) {
 			const parsed = {
 				groupNameHash: splited[0],
 				userIdHash: splited[1],
 				senderDeviceNameHash: splited[2],
 				time: splited[3],
-				isOffer: splited[3] === 'offer' ? true : splited[3] === 'ans' ? false : null
+				isOffer: splited[4] === 'offer' ? true : splited[4] === 'ans' ? false : null
 			};
 			if (parsed.isOffer === null) {
 				return null;
 			}
+			parsed.fileName = fileName;
 			return parsed;
 		}
 		return null;
@@ -72,7 +79,7 @@ export class YadorigiSdpFileRecord {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	isExpired() {
 		const current = TimeUtil.getNowUnixTimeAtUTC();
-		if (this.expireDate && this.expireDate > current - expireSpan) {
+		if (this.expireDate && this.expireDate < current - expireSpan) {
 			return true;
 		}
 		return false;

@@ -1,22 +1,17 @@
 import { DummyResponse } from './DummyResponse';
 import { DummyContentService } from '../mocs/DummyContentService';
 import { DummyGsEvent } from './DummyGsEvent';
+import { UrlUtil } from '../../src/util/UrlUtil';
 import gs from '../../src/gs/YadorigiWebRTCSignalingServer';
 export class DummyFetcher {
 	constructor(headerKeys) {
 		this.headerKeys = headerKeys;
 	}
-	async psotAsSubmit(path, data, isCors) {
-		let submitData = data;
-		if (data && typeof data === 'object') {
-			submitData = Object.keys(data)
-				.map(key => key + '=' + encodeURIComponent(data[key]))
-				.join('&');
-		}
-		return await this.exec(path, submitData, true, 'application/x-www-form-urlencoded', isCors);
+	async postAsSubmit(path, data, isCors) {
+		return await this.exec(path, data, true, 'application/x-www-form-urlencoded', isCors);
 	}
 	async postJsonCors(path, data) {
-		return this.post(path, data, 'application/json', true);
+		return await this.post(path, data, 'application/json', true);
 	}
 
 	async post(path, data, contentType, isCors) {
@@ -29,8 +24,16 @@ export class DummyFetcher {
 			cache: 'no-cache',
 			credentials: 'same-origin'
 		};
+		const isObj = typeof data === 'object';
 		if (isPost) {
-			requestData.body = typeof data === 'object' ? JSON.stringify(data) : data;
+			requestData.body = data;
+		} else if (contentType === 'application/json') {
+			const json = isObj ? JSON.stringify(data) : data;
+			path += '?q=' + encodeURIComponent(json);
+		} else if (isObj) {
+			requestData.body = data;
+		} else {
+			path += '?q=' + encodeURIComponent(data);
 		}
 
 		// myHeaders = new Headers({
@@ -46,6 +49,7 @@ export class DummyFetcher {
 			server.doGet(event);
 		}
 		const promise = event.getPromise();
+		console.log('DummyFetcher exec promise:' + promise);
 		const result = await promise;
 
 		const res = new DummyResponse(result);
@@ -56,15 +60,24 @@ export class DummyFetcher {
 		return await res.blob();
 	}
 	async getJson(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
+		console.log('DummyFetcher getJson A path:' + path);
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
-		return await res.json();
+		const result = await res.json();
+		console.log('DummyFetcher getJson B result:' + result);
+		return result;
 	}
-	async getTextCors(path, data = {}, isPost = false, contentType = 'application/json') {
-		return await this.getText(path, path, isPost);
+	async getTextCors(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded') {
+		console.log('DummyFetcher getTextCors A path:' + path);
+		const result = await this.getText(path, data, isPost, contentType);
+		console.log('DummyFetcher getTextCors B result:' + result);
+		return result;
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
+		console.log('DummyFetcher getText A path:' + path);
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
-		return await res.text();
+		const result = await res.text();
+		console.log('DummyFetcher getText B result:' + result);
+		return result;
 	}
 	createEvent() {}
 }

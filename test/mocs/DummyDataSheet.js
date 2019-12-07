@@ -6,19 +6,25 @@ export class DummyDataSheet {
 		this.dataRange = new DummyDataRange();
 	}
 	getDataRange() {
-		console.log('DummySpreadsheetApp getActiveSpreadsheet');
+		console.log('DummyDataSheet getDataRange');
+		this.show();
 		return this.dataRange;
 	}
 	appendRow(row) {
-		console.log('DummySpreadsheetApp appendRow!');
-		if ((!Array, isArray(row))) {
+		console.log('DummyDataSheet appendRow!!!!!!!');
+		if (!Array.isArray(row)) {
 			console.error(row);
 			return;
 		}
-		this.dataRange.getValues.push(row);
+		this.dataRange.getValues().push(row);
+		this.show();
 	}
 	deleteRows(index, rowCount) {
-		console.log('DummySpreadsheetApp deleteRows');
-		this.dataRange.getValues.splice(index, rowCount);
+		console.log('DummyDataSheet deleteRows');
+		this.dataRange.getValues().splice(index, rowCount);
+		this.show();
+	}
+	show() {
+		this.dataRange.logMatrix();
 	}
 }

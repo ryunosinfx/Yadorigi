@@ -34,8 +34,18 @@ export class ViewUtil {
 			elm.style[styleKey] = value;
 		}
 	}
+	static setOnClick(elm, callback) {
+		return ViewUtil.setEventHandler(elm, 'click', callback);
+	}
+	static setOnChange(elm, callback) {
+		return ViewUtil.setEventHandler(elm, 'change', callback);
+	}
+	static setOnInput(elm, callback) {
+		return ViewUtil.setEventHandler(elm, 'input', callback);
+	}
 	static setEventHandler(elm, eventName, callback) {
 		elm.addEventListener(eventName, callback);
+		return callback;
 	}
 	static text(elm, newOne) {
 		if (newOne) {

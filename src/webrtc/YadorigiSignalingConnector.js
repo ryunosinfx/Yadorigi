@@ -14,9 +14,9 @@ export class YadorigiSignalingConnector {
 	 */
 	async putSpd(groupNameHash, fileName, hash, payload) {
 		console.log('--putSpd--0----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
-		const data = { groupName: groupNameHash, fileName, hash, payload };
+		const data = { group: groupNameHash, fileName, hash, data: payload };
 		console.log('--putSpd--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
-		this.Fetcher.postJsonCors(this.endPoint, data);
+		await this.Fetcher.postAsSubmit(this.endPoint, data);
 		console.log('--putSpd--2----------YadorigiSignalingConnector--------------------------------------hash:' + hash);
 	}
 	async getSpd(groupNameHash, fileName) {

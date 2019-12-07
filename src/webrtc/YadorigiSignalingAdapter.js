@@ -44,7 +44,7 @@ export class YadorigiSignalingAdapter {
 	close() {
 		this.WebRTCConnecter.close();
 	}
-	buildImage(imageList, spd) {
+	buildImage(imageList, sdp) {
 		return [];
 	}
 	async startConnect(targetDeviceName) {
@@ -54,60 +54,85 @@ export class YadorigiSignalingAdapter {
 		let count = 0;
 		let isPutOffer = true;
 		let isOfferPuted = false;
-		while (count < 100) {
+		while (count < 10) {
 			console.log('--startConnect--3----------YadorigiSignalingAdapter--------------------------------------count:' + count);
 			const result = await this.oneLoop(targetDeviceNameHash, isPutOffer, isOfferPuted);
 			console.log('--startConnect--4----------YadorigiSignalingAdapter--------------------------------------result:' + result);
-
 			isOfferPuted = result.isOfferPuted;
 			console.log('--startConnect--5----------YadorigiSignalingAdapter--------------------------------------isOfferPuted:' + isOfferPuted);
+			// alert(count);
+			count++;
 		}
+		alert('end!');
 	}
 	async oneLoop(targetDeviceNameHash, isPutOffer = false, isOfferPuted = false) {
+		console.log('--oneLoop--0----------YadorigiSignalingAdapter--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
 		const lastOne = await this.getLastOneFSS();
+		console.log('--oneLoop--1----------YadorigiSignalingAdapter--------------------------------------lastOne:' + lastOne);
 		if (!lastOne || !lastOne.imageList) {
+			console.log('--oneLoop--11----------YadorigiSignalingAdapter--------------------------------------lastOne:' + lastOne);
 			///一番乗り
 			const offerData = await this.createOffer();
 			await this.putFileFSS(offerData.fileName, offerData.hash, offerData.payload);
-			await ProcessUtil.wait(waitms);
+			await ProcessUtil.waitRandom();
 			return { isOfferPuted: true };
 		}
+		console.log('--oneLoop--2----------YadorigiSignalingAdapter--------------------------------------isPutOffer:' + isPutOffer + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 		const imageList = lastOne.imageList;
 		const offerFileName = this.getOfferFileNameLast(imageList, targetDeviceNameHash);
 		if (!offerFileName && isPutOffer) {
-			const offerData = await this.createOffer();
+			console.log(
+				'--oneLoop--21----------YadorigiSignalingAdapter----------------------------------NO OFFER FILE----offerFileName:' + offerFileName + ' /targetDeviceNameHash:' + targetDeviceNameHash
+			);
+			const offerData = await this.createOffer(imageList);
 			await this.putFileFSS(offerData.fileName, offerData.hash, offerData.payload);
-			await ProcessUtil.wait(waitms);
+			await ProcessUtil.waitRandom();
 			return { isOfferPuted: true };
 		} else if (offerFileName) {
-			const offerFile = this.getSdpFileFSS(offerFileName);
-			if (offerFile && offerFile.spd) {
+			console.log('--oneLoop--22----------YadorigiSignalingAdapter--------------------------------------offerFileName:' + offerFileName + ' /targetDeviceNameHash:' + targetDeviceNameHash);
+			const offerFile = await this.getSdpFileFSS(offerFileName);
+			console.log('--oneLoop--221----------YadorigiSignalingAdapter--------------------------------------offerFile:' + offerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash);
+			console.log(offerFile);
+			console.log('--oneLoop--2210----------YadorigiSignalingAdapter--------------------------------------offerFile.sdp:' + offerFile.sdp + ' /targetDeviceNameHash:' + targetDeviceNameHash);
+			if (offerFile && offerFile.sdp) {
+				console.log('--oneLoop--2211----------YadorigiSignalingAdapter--------------------------------------offerFile.sdp:' + offerFile.sdp + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 				// Anserを置く有る場合
 				const answerFile = await this.createAnswer(offerFile);
+				console.log('--oneLoop--2212----------YadorigiSignalingAdapter--------------------------------------answerFile:' + answerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 				await this.putFileFSS(answerFile.fileName, answerFile.hash, answerFile.payload);
-				await ProcessUtil.wait(waitms);
+				console.log('--oneLoop--2213----------YadorigiSignalingAdapter--------------------------------------answerFile:' + answerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash);
+				await ProcessUtil.waitRandom();
 				return { isOfferPuted: false, isAnswerPutted: true };
 			}
+			console.log('--oneLoop--222----------YadorigiSignalingAdapter--------------------------------------offerFile:' + offerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 			return { isOfferPuted: false };
 		} else if (isOfferPuted) {
+			console.log('--oneLoop--23----------YadorigiSignalingAdapter--------------------------------------lastOne:' + lastOne + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 			const answerFileName = this.getAnswerFileNameLast(imageList, targetDeviceNameHash);
 			const answerFile = await this.getSdpFileFSS(answerFileName);
-			if (answerFile && answerFile.spd) {
-				await this.connect(answerFile.spd);
+			if (answerFile && answerFile.sdp) {
+				await this.connect(answerFile.sdp);
 				return { isOfferPuted: false, isAnswerPutted: true };
 			}
 		}
+		console.log('--oneLoop--4----------YadorigiSignalingAdapter--------------------------------------lastOne:' + lastOne + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 		return { isPutOffer: true };
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////
 	getOfferFileNameLast(imageList, targetDeviceNameHash) {
+		console.log('--getOfferFileNameLast--0----------YadorigiSignalingAdapter--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
 		const result = this.YadorigiFileProsessor.getParsedOfferFileNameList(imageList);
 		// this.userId = userId;
 		// this.deviceName = deviceName;
 		// this.groupName = groupName;
+		console.log('--getOfferFileNameLast--1s----------YadorigiSignalingAdapter--------------------------------------result:' + result);
+		console.log(result);
 		if (result && Array.isArray(result) && result.length > 0) {
 			const offerRegex = YadorigiSdpFileRecord.createOfferFileNameRegex(this.groupNameHash, this.userIdHash, targetDeviceNameHash);
+			console.log('--getOfferFileNameLast--2----------YadorigiSignalingAdapter--------------------------------------offerRegex:' + offerRegex);
 			for (let row of result.reverse()) {
+				console.log('--getOfferFileNameLast--3----------YadorigiSignalingAdapter--------------------------------------row.fileName:' + row.fileName);
+				console.log(row);
 				if (offerRegex.test(row.fileName)) {
 					return row.fileName;
 				}
@@ -135,34 +160,45 @@ export class YadorigiSignalingAdapter {
 	///////////////////////////////////////////////////////////////////////////
 	async getLastOneFSS() {
 		const dataBase64url = await this.YadorigiSignalingConnector.getLastOne(this.groupNameHash);
-		return await this.firlParse(dataBase64url);
+		console.log('--YadorigiSignalingAdapter--getLastOneFSS dataBase64url:' + dataBase64url + '/' + typeof dataBase64url);
+		return await this.parseFile(dataBase64url);
 	}
 	async getSdpFileFSS(fileName) {
+		console.log('--YadorigiSignalingAdapter--getSdpFileFSS fileName:' + fileName + '/');
 		const dataBase64url = await this.YadorigiSignalingConnector.getSpd(this.groupNameHash, fileName);
-		return await this.firlParse(dataBase64url);
+		console.log('--YadorigiSignalingAdapter--getSdpFileFSS dataBase64url:' + dataBase64url + '/' + typeof dataBase64url);
+		return await this.parseFile(dataBase64url);
 	}
 	async putFileFSS(fileName, hash, payload) {
+		console.log('--YadorigiSignalingAdapter--putFileFSS fileName:' + fileName);
+		console.log('--YadorigiSignalingAdapter--putFileFSS hash:' + hash);
+		console.log('--YadorigiSignalingAdapter--putFileFSS payload:' + payload);
 		await this.YadorigiSignalingConnector.putSpd(this.groupNameHash, fileName, hash, payload);
 	}
 	/////////////////////////////////////////////////////////////////////////////
-	async createOffer() {
+	async createOffer(imageList = []) {
 		const offerSdp = this.getSdp();
-		const imageList = [];
 		const offerFile = await this.YadorigiFileProsessor.buildOffer(this.passphraseText, imageList, this.deviceName, offerSdp, this.userId, this.groupName, 30);
 		return offerFile;
 	}
 	async createAnswer(offerData) {
-		const answerSdp = await this.answer(offerData.spd);
+		console.log('--createAnswer--0----------YadorigiSignalingAdapter--------------------------------------offerData:' + offerData.sdp);
+		const answerSdp = await this.answer(typeof offerData.sdp === 'object' ? offerData.sdp.sdp : offerData.sdp);
+		console.log('--createAnswer--1----------YadorigiSignalingAdapter--------------------------------------offerData:' + offerData);
 		const imageList = offerData.imageList;
-		const answerFile = await this.YadorigiFileProsessor.buildAnswer(this.passphraseText, imageList, this.deviceName, answerSdp, this.userId, this.groupName, offerData.spd, 30);
+		console.log('--createAnswer--2----------YadorigiSignalingAdapter--------------------------------------offerData:' + offerData);
+		const answerFile = await this.YadorigiFileProsessor.buildAnswer(this.passphraseText, imageList, this.deviceName, answerSdp, this.userId, this.groupName, offerData.sdp, 30);
+		console.log('--createAnswer--3----------YadorigiSignalingAdapter--------------------------------------offerData:' + offerData);
 		return answerFile;
 	}
-	async firlParse(dataBase64url) {
+	async parseFile(dataBase64url) {
 		if (!dataBase64url) {
 			return null;
 		}
+		console.log('parseFile dataBase64url:' + dataBase64url);
 		const parsed = await this.YadorigiFileProsessor.parse(this.passphraseText, dataBase64url);
 		if (parsed.sdp) {
+			console.log('parseFile parsed.sdp:' + parsed.sdp);
 			return parsed;
 		}
 	}

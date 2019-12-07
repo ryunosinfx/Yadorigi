@@ -26,16 +26,24 @@ export class YadorigiFileProsessor {
 	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp) {
 		const payload = { senderDeviceName, sdp, expireTime, userId, groupName };
 		const text = JSON.stringify(payload);
-		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(text + (isOffer ? '' : offerSdp)));
+		console.log('YadorigiFileProsessor.createPayload payload:' + payload + '/text:' + text + '/senderDeviceName:' + senderDeviceName);
+		const hash = await Hasher.sha512(text + (isOffer ? '' : offerSdp));
+		// console.log('YadorigiFileProsessor.createPayload ab:' + ab);
+		// const hash = Base64Util.ab2Base64Url(ab);
+		console.log('YadorigiFileProsessor.createPayload hash:' + hash);
 		const fileName = await YadorigiSdpFileRecord.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 		const u8a = BinaryConverter.stringToU8A(text);
+		console.log('YadorigiFileProsessor.createPayload fileName:' + fileName + '/hash:' + hash + '/u8a:' + u8a);
 		return [u8a, hash, fileName];
 	}
 	maintainImageList(imageList, hash, fileName, expireOffset) {
 		const currentList = imageList && Array.isArray(imageList) ? imageList : [];
 		const expireDate = this.createExpireDate(expireOffset);
+		console.log('YadorigiFileProsessor.maintainImageList fileName:' + fileName + '/hash:' + hash + '/expireDate:' + expireDate);
 		const newRow = new YadorigiSdpFileRecord(fileName, hash, expireDate);
 		const newList = [newRow.toObj()];
+		console.log('YadorigiFileProsessor.maintainImageList currentList:' + currentList);
+		console.log(currentList);
 		for (let row of currentList) {
 			//画像ファイル名、画像ハッシュ、有効期限
 			const ysdp = new YadorigiSdpFileRecord(row);
@@ -67,9 +75,16 @@ export class YadorigiFileProsessor {
 		const { fileName, hash, data, imageList } = obj;
 		console.log('parse offerSdp:' + offerSdp);
 		console.log(obj);
+		console.log('parse A:' + passphraseText);
 		const encryptedObj = Base64Util.jsonBase64UrlToObj(data);
+		console.log(encryptedObj);
+		console.log('parse B:' + offerSdp);
 		const u8a = await Cryptor.decodeAES256GCM(encryptedObj, passphraseText);
+		console.log(u8a);
+		console.log('parse C:' + offerSdp);
 		const parsed = await this.parsePayload(u8a, isOffer, offerSdp);
+		console.log(parsed);
+		console.log('parse D:' + parsed + '/parsed:' + typeof parsed);
 		console.log('parse parsed.hash:' + parsed.hash + '/hash:' + hash);
 		if (parsed.hash === hash) {
 			const { senderDeviceName, sdp, expireTime, userId, groupName } = parsed.payload;
@@ -91,6 +106,7 @@ export class YadorigiFileProsessor {
 			console.log(trueFileName);
 			console.log(fileName);
 			if (fileName === trueFileName && expireTime > TimeUtil.getNowUnixTimeAtUTC()) {
+				console.log('parse E:');
 				return { fileName, sdp, hash, imageList, groupName, userId, senderDeviceName };
 			}
 			return { fileName, spd: null, hash, imageList };
@@ -105,7 +121,7 @@ export class YadorigiFileProsessor {
 	}
 	async parsePayload(u8a, isOffer, offerSdp) {
 		const jsonPaload = BinaryConverter.u8aToString(u8a);
-		const hash = Base64Util.ab2Base64Url(await Hasher.sha512(jsonPaload + (isOffer ? '' : offerSdp)));
+		const hash = await Hasher.sha512(jsonPaload + (isOffer ? '' : offerSdp));
 		console.log('AAAparse jsonString:' + jsonPaload);
 		const payload = JSON.parse(jsonPaload);
 		console.log('parse hash:' + hash + '/offerSdp:' + offerSdp);
@@ -119,6 +135,8 @@ export class YadorigiFileProsessor {
 		const list = this.getListAsParsed(imageList);
 		const result = [];
 		for (let parsed of list) {
+			console.log('getParsedOfferFileNameList parsed:' + parsed);
+			console.log(parsed);
 			if (parsed.isOffer === isOffer) {
 				result.push(parsed);
 			}
@@ -127,15 +145,22 @@ export class YadorigiFileProsessor {
 	}
 	getListAsParsed(imageList) {
 		const parsedList = [];
+		console.log('YadorigiFileProsessor.getListAsParsed imageList:' + imageList);
+		console.log(imageList);
 		for (let row of imageList) {
+			console.log(row);
 			const ysdp = new YadorigiSdpFileRecord(row);
+			console.log('YadorigiFileProsessor.getListAsParsed ysdp.isExpired():' + ysdp.isExpired());
 			if (ysdp.isExpired()) {
 				continue;
 			}
+			console.log('YadorigiFileProsessor.getListAsParsed ysdp:' + ysdp);
 			const parsed = YadorigiSdpFileRecord.parseFromFileName(ysdp.fileName);
+			console.log('YadorigiFileProsessor.getListAsParsed A parsed:' + parsed);
 			if (!parsed) {
 				continue;
 			}
+			console.log('YadorigiFileProsessor.getListAsParsed B parsed:' + parsed);
 			parsedList.push(parsed);
 		}
 		return parsedList;
@@ -143,6 +168,8 @@ export class YadorigiFileProsessor {
 	//////////////////////////////////////////////////////////////////
 	findOffer(imageList) {
 		let result = null;
+		console.log('YadorigiFileProsessor.findOffer imageList:' + imageList);
+		console.log(imageList);
 		if (imageList && Array.isArray(imageList)) {
 			const newList = [];
 			for (let row of imageList) {

@@ -27,4 +27,8 @@ export class TimeUtil {
 	static getNowUnixTimeAtUTC() {
 		return new Date().getTime();
 	}
+	static random() {
+		const base = Math.random() * (Date.now() + '').substring(9) * 1;
+		return Math.ceil(base);
+	}
 }

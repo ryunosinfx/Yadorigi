@@ -14,6 +14,7 @@ export class DummyContentService {
 			const textOutput = new DummyTextOutput(resolve);
 			promisMap.set(server, { event, textOutput });
 		});
+		event.setPromise(promise);
 		return event;
 	}
 	static getPromise(server) {
@@ -21,6 +22,7 @@ export class DummyContentService {
 	}
 	static createTextOutput(text, server) {
 		const events = promisMap.get(server);
+		console.log('DummyContentService createTextOutput events:' + events);
 		if (events) {
 			const { event, textOutput } = events;
 			return textOutput;

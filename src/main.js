@@ -4,7 +4,8 @@ export class Main {
 	static run() {
 		window.onload = () => {
 			console.log('');
-			const main = new MainView();
+			const instance = new Main();
+			const main = new MainView(instance);
 			main.build();
 		};
 	}
