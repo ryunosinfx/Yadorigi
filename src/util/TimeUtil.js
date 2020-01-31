@@ -31,4 +31,7 @@ export class TimeUtil {
 		const base = Math.random() * (Date.now() + '').substring(9) * 1;
 		return Math.ceil(base);
 	}
+	static toDate(unixtime) {
+		return new Date(unixtime);
+	}
 }

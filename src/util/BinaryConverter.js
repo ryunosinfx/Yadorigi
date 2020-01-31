@@ -1,6 +1,9 @@
-const te = new TextEncoder('utf-8');
-const td = new TextDecoder('utf-8');
+export const te = new TextEncoder('utf-8');
+export const td = new TextDecoder('utf-8');
 export class BinaryConverter {
+	static getTe() {
+		return te;
+	}
 	static binaryString2ArrayBuffer(binaryString) {
 		return BinaryConverter.binaryString2Uint8Array(binaryString).buffer;
 	}

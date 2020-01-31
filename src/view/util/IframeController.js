@@ -4,7 +4,7 @@ export class IframeController {
 	constructor() {
 		this.iframe = null;
 	}
-	build(id, src, method = 'get', height = 0, width = 0) {
+	build(id, src, height = 0, width = 0) {
 		const iframe = document.createElement('iframe');
 		iframe.setAttribute('id', id);
 		iframe.setAttribute('src', src);
@@ -34,7 +34,7 @@ export class IframeController {
 			this.iframe = null;
 		}
 	}
-	getWin() {
+	getWindow() {
 		if (this.iframe) {
 			return this.iframe.contentWindow;
 		}
@@ -46,5 +46,16 @@ export class IframeController {
 			return win.document;
 		}
 		return null;
+	}
+	getDocOnLoad() {
+		return new Promise(resolve => {
+			const win = this.getWin();
+			if (win) {
+				win.onload = () => {
+					resolve(win.document);
+				};
+			}
+			resolve(null);
+		});
 	}
 }

@@ -4,7 +4,8 @@ export class BookMarkBuilder {
 	static build(src) {
 		if (src) {
 			const compressed = Terser.minify(src);
-			const bookmarklet = `javascript:(${compressed});`;
+			console.log(compressed);
+			const bookmarklet = `javascript:((()=>{${compressed.code}})());`;
 			return bookmarklet;
 		} else {
 			return 'javascript:(alert("empty!"));';
