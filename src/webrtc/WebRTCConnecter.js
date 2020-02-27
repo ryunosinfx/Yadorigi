@@ -12,6 +12,7 @@ export class WebRTCConnecter {
 		this.onErrorCallBack = () => {};
 		//OfferはAnswerを受け取った時点で分かる
 		//AnswerはOfferを受け取った時点で分かる。
+		this.isOpend = false;
 	}
 	async init() {
 		console.log('--init--0----------WebRTCConnecter--------------------------------------');
@@ -30,6 +31,7 @@ export class WebRTCConnecter {
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;
+			this.isOpend = true;
 		};
 		this.WebRTCPeerAnswer.onOpen = () => {
 			if (this.WebRTCPeerOffer.isOpend) {
@@ -41,6 +43,7 @@ export class WebRTCConnecter {
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;
+			this.isOpend = true;
 		};
 		return result;
 	}
@@ -85,7 +88,7 @@ export class WebRTCConnecter {
 		this.WebRTCPeer.send(msg);
 	}
 	getSdp() {
-		return this.WebRTCPeer ? his.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
+		return this.WebRTCPeer ? this.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
 	}
 	async answer(sdp) {
 		const hash = await Hasher.sha512(sdp);
