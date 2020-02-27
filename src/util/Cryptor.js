@@ -3,8 +3,7 @@ import { Base64Util } from './Base64Util';
 import { Deflater } from './Deflater';
 export class Cryptor {
 	constructor() {}
-	static async getKey(passphraseText, saltInput = null, isAB) {
-		const salt = saltInput ? (isAB ? new Uint8Array(saltInput) : BinaryConverter.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
+	static async getKey(passphraseText, salt) {
 		// console.log('getKey salt:' + salt + '/passphraseText:' + passphraseText);
 		const passphrase = BinaryConverter.stringToU8A(passphraseText).buffer;
 		const digest = await crypto.subtle.digest({ name: 'SHA-256' }, passphrase);
@@ -23,6 +22,15 @@ export class Cryptor {
 		);
 		return [key, salt];
 	}
+	getSalt(saltInput, isAB) {
+		const salt = saltInput ? (isAB ? new Uint8Array(saltInput) : BinaryConverter.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
+		return salt;
+	}
+	static async importKeyAESGCM(keyArrayBuffer, usages = ['encrypt', 'decrypt']) {
+		const algorithm = { name: 'AES-GCM' };
+		const result = await crypto.subtle.importKey('raw', keyArrayBuffer, algorithm, true, usages);
+		return result;
+	}
 	static getFixedField() {
 		// 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
 		const value = crypto.getRandomValues(new Uint8Array(12));
@@ -35,12 +43,13 @@ export class Cryptor {
 		// 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
 		return window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
 	}
-	static async encodeStrAES256GCM(inputStr, passphraseText) {
+	static async encodeStrAES256GCM(inputStr, passphraseTextOrKey) {
 		const u8a = BinaryConverter.stringToU8A(inputStr);
-		return await Cryptor.encodeAES256GCM(u8a, passphraseText);
+		return await Cryptor.encodeAES256GCM(u8a, passphraseTextOrKey);
 	}
-	static async encodeAES256GCM(inputU8a, passphraseText) {
-		const [key, salt] = await Cryptor.getKey(passphraseText);
+	static async encodeAES256GCM(inputU8a, passphraseTextOrKey, saltInput = null, isAB) {
+		const salt = this.getSalt(saltInput, isAB);
+		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, salt) : { passphraseTextOrKey };
 		const fixedPart = Cryptor.getFixedField();
 		const invocationPart = Cryptor.getInvocationField();
 		const iv = Uint8Array.from([...fixedPart, ...new Uint8Array(invocationPart.buffer)]);
@@ -61,16 +70,17 @@ export class Cryptor {
 			Base64Util.ab2Base64Url(salt.buffer)
 		]);
 	}
-	static async decodeAES256GCMasStr(encryptedResultJSON, passphraseText) {
-		const decoedU8a = await Cryptor.decodeAES256GCM(encryptedResultJSON, passphraseText);
+	static async decodeAES256GCMasStr(encryptedResultJSON, passphraseTextOrKey) {
+		const decoedU8a = await Cryptor.decodeAES256GCM(encryptedResultJSON, passphraseTextOrKey);
 		return BinaryConverter.u8aToString(decoedU8a);
 	}
-	static async decodeAES256GCM(encryptedResultJSON, passphraseText) {
+	static async decodeAES256GCM(encryptedResultJSON, passphraseTextOrKey) {
 		const [encryptedDataBase64Url, invocationPart, salt] = JSON.parse(encryptedResultJSON);
 		// console.log(salt);
 		// console.log(invocationPart);
 		// console.log(encryptedDataBase64Url);
-		const [key, _] = await Cryptor.getKey(passphraseText, Base64Util.base64UrlToAB(salt), true);
+		// const [key, _] = await Cryptor.getKey(passphraseText, Base64Util.base64UrlToAB(salt), true);
+		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, salt) : { passphraseTextOrKey };
 		// console.log('decodeAES256GCM 1 salt:' + salt);
 		const iv = new Uint8Array(Base64Util.base64UrlToAB(invocationPart));
 		// console.log(iv);
