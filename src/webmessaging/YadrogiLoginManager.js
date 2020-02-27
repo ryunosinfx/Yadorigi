@@ -61,6 +61,9 @@ export class YadrogiLoginManager {
 	static async isLogedIn(userId, passphrase) {
 		const cm = await YadrogiLoginManager.getCoomieManager(userId, passphrase);
 		const base64 = cm.getCookie(KEY);
+		if (!base64) {
+			return null;
+		}
 		const keyHash = await Hasher.sha512(base64, stretchCount);
 		const savedKeyHash = sessionStorage.getItem(keyHash, Date.now());
 		if (keyHash === savedKeyHash) {
