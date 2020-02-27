@@ -7,7 +7,10 @@ import { TimeUtil } from '../util/TimeUtil';
 import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
 const expireMunits = 30;
 export class YadorigiFileProsessor {
-	constructor() {}
+	constructor(key) {
+		// GCMキー
+		this.key = key;
+	}
 	async buildOffer(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, expireOffset = expireMunits) {
 		return await this.build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, true, expireOffset);
 	}
@@ -17,7 +20,7 @@ export class YadorigiFileProsessor {
 	async build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, isOffer = true, expireOffset = expireMunits, offerSdp) {
 		const expireTime = TimeUtil.getNowUnixTimeAtUTC() + expireOffset * 60 * 1000;
 		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp);
-		const encryptedObj = await Cryptor.encodeAES256GCM(u8a, passphraseText);
+		const encryptedObj = await Cryptor.encodeAES256GCM(u8a, this.key ? this.key : passphraseText);
 		const data = Base64Util.objToJsonBase64Url(encryptedObj);
 		const newImageList = this.maintainImageList(imageList, hash, fileName, expireOffset);
 		const recordObj = { fileName, hash, data, imageList: newImageList };
@@ -79,7 +82,7 @@ export class YadorigiFileProsessor {
 		const encryptedObj = Base64Util.jsonBase64UrlToObj(data);
 		console.log(encryptedObj);
 		console.log('parse B:' + offerSdp);
-		const u8a = await Cryptor.decodeAES256GCM(encryptedObj, passphraseText);
+		const u8a = await Cryptor.decodeAES256GCM(encryptedObj, this.key ? this.key : passphraseText);
 		console.log(u8a);
 		console.log('parse C:' + offerSdp);
 		const parsed = await this.parsePayload(u8a, isOffer, offerSdp);
