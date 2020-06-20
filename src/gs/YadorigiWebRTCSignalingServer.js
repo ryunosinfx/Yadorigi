@@ -32,7 +32,7 @@ class Recode {
 }
 class SheetAddressor {
 	constructor() {
-		this.sheet = SpreadsheetApp.getActiveSpreadsheet();
+		this.sheet = globalThis.SpreadsheetApp.getActiveSpreadsheet();
 		this.matrix = this.sheet.getDataRange().getValues(); //受け取ったシートのデータを二次元配列に取得
 	}
 	async addRow(group, fileName, data, hash) {
@@ -182,11 +182,11 @@ class YadorigiWebRTCSignalingServer {
 		return output;
 	}
 }
-const server = new YadorigiWebRTCSignalingServer();
+const server = globalThis.SpreadsheetApp ? new YadorigiWebRTCSignalingServer() : null;
 
 function doPost(event) {
 	try {
-		return server.doPost(event);
+		return sserver ? erver.doPost(event) : '';
 	} catch (e) {
 		console.warn(e);
 		return ContentService.createTextOutput(e + '');
@@ -194,7 +194,7 @@ function doPost(event) {
 }
 function doGet(event) {
 	try {
-		return server.doGet(event ? event : { parameter: { command: 'get', group: 'a', fileName: 'aaa' } });
+		return server ? server.doGet(event ? event : { parameter: { command: 'get', group: 'a', fileName: 'aaa' } }) : '';
 	} catch (e) {
 		console.warn(e);
 		return ContentService.createTextOutput(e + '');
