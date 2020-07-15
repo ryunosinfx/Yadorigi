@@ -5,7 +5,7 @@ export class Fetcher {
 		this.headerKeys = headerKeys;
 	}
 	async postAsSubmit(path, data, isCors = true) {
-		const submitData = this.convertObjToQueryParam(data);
+		const submitData = UrlUtil.convertObjToQueryParam(data);
 		return await this.exec(path, submitData, true, 'application/x-www-form-urlencoded', isCors);
 	}
 	async postJsonCors(path, data) {
@@ -18,9 +18,14 @@ export class Fetcher {
 	async exec(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
 		const requestData = {
 			method: isPost ? 'POST' : 'GET',
-			mode: isCORS ? 'no-cors' : 'cors',
+			mode: isCORS ? 'cors' : 'no-cors',
 			cache: 'no-cache',
-			credentials: 'same-origin'
+			credentials: 'omit',
+			redirect: 'follow',
+			referrer: 'no-referrer',
+			headers: {
+				'Content-Type': contentType,
+			},
 		};
 		const isObj = typeof data === 'object';
 		if (isPost) {
@@ -29,17 +34,13 @@ export class Fetcher {
 			const json = isObj ? JSON.stringify(data) : data;
 			path += '?q=' + encodeURIComponent(json);
 		} else if (isObj) {
-			path += '?' + this.convertObjToQueryParam(data);
+			path += '?' + UrlUtil.convertObjToQueryParam(data);
 		} else {
 			path += '?q=' + encodeURIComponent(data);
 		}
-
-		myHeaders = new Headers({
-			'Content-Type': contentType,
-			'Content-Length': requestData.body ? requestData.body.length.toString() : '0'
-		});
-		const res = await fetch(path, requestData);
-		return res;
+		console.log(path);
+		console.log(requestData);
+		return await fetch(path, requestData);
 	}
 	async getBlob(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
@@ -49,7 +50,7 @@ export class Fetcher {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
 		return await res.json();
 	}
-	async getTextCors(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded') {
+	async getTextCors(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded; charset=utf-8') {
 		return await this.getText(path, data, isPost, contentType, true);
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {

@@ -39,7 +39,7 @@ export class YadorigiLocalSignalingConnector {
 		if (this.isHub) {
 			this.onOpenCallback = callback;
 		} else {
-			this.WebRTCConnecter.setOnOpne(data => {
+			this.WebRTCConnecter.setOnOpne((data) => {
 				this.connected = true;
 				callback(data);
 			});
@@ -49,7 +49,7 @@ export class YadorigiLocalSignalingConnector {
 		if (this.isHub) {
 			this.onCloseeCallback = callback;
 		} else {
-			this.WebRTCConnecter.setOnClose(data => {
+			this.WebRTCConnecter.setOnClose((data) => {
 				this.connected = false;
 				callback(data);
 			});
@@ -169,7 +169,7 @@ export class YadorigiLocalSignalingConnector {
 			this.currentOffer = offer;
 			const responceHash = await Hasher.sha512(this.hubPrefix + this.deviceNameHash + offer.hash, 1000);
 			sessionStorage.setItem(this.hubPrefix + '.' + targetDeviceNameHash, JSON.stringify(offer));
-			await new Promise(async resolve => {
+			await new Promise(async (resolve) => {
 				this.eventMapedFun = async (key, newValue, url) => {
 					if (key === responceHash) {
 						return;
@@ -209,7 +209,7 @@ export class YadorigiLocalSignalingConnector {
 		this.eventMapedFun = callback;
 		this.eventMaped.window.addEventListener(
 			'storage',
-			function(evt) {
+			function (evt) {
 				const key = evt.key;
 				const newValue = evt.newValue;
 				const url = evt.url;
@@ -238,12 +238,14 @@ export class YadorigiLocalSignalingConnector {
 		if (!dataBase64url) {
 			return null;
 		}
-		console.log('parseFile dataBase64url:' + dataBase64url);
+		console.log('parseFile A dataBase64url:' + dataBase64url);
 		const parsed = await this.YadorigiFileProsessor.parse(this.passphraseText, dataBase64url, !offerSdp, offerSdp);
-		if (parsed.sdp) {
+		console.log('parseFile B parsed:' + parsed);
+		if (parsed && parsed.sdp) {
 			console.log('parseFile parsed.sdp:' + parsed.sdp);
 			return parsed;
 		}
+		return null;
 	}
 
 	//////////////////////////////
@@ -254,7 +256,7 @@ export class YadorigiLocalSignalingConnector {
 	async answer(targetDeviceNameHash, sdp) {
 		const webRTCConnecter = new WebRTCConnecter();
 		this.peerMapAtHub[targetDeviceNameHash] = webRTCConnecter;
-		webRTCConnecter.setOnOpne(data => {
+		webRTCConnecter.setOnOpne((data) => {
 			webRTCConnecter.setOnMessage(this.onMessageCallback);
 			webRTCConnecter.setOnError(this.onErrorCallback);
 			webRTCConnecter.setOnClose(this.onCloseeCallback);

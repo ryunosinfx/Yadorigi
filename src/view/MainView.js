@@ -1,9 +1,11 @@
 import { ViewUtil } from './util/ViewUtil';
 import { BookMarkBuilder } from './util/BookMarkBuilder';
 import { TestClass } from './test/TestClass';
+import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView';
 export class MainView {
 	constructor(service) {
 		this.service = service;
+		this.MultiBrowsersConnectionTestView = new MultiBrowsersConnectionTestView(service);
 	}
 	async build() {
 		const frame = ViewUtil.add(null, 'div', {}, { margin: '10px' });
@@ -23,6 +25,7 @@ export class MainView {
 		console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
 		const body = document.getElementsByTagName('body')[0];
 		body.appendChild(frame);
+		this.MultiBrowsersConnectionTestView.build();
 	}
 	getTest1CallBack() {
 		return async () => {
@@ -30,7 +33,7 @@ export class MainView {
 		};
 	}
 	getConvertBookmarkletCallback(ancker) {
-		return async event => {
+		return async (event) => {
 			const textArea = event.target;
 			const bookmarklet = BookMarkBuilder.build(textArea.value);
 			console.log(bookmarklet);

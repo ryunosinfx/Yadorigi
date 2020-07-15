@@ -67,3 +67,20 @@ export class ViewUtil {
 		return document.getElementsByTagName('body')[0];
 	}
 }
+
+export const h1 = 'h1';
+export const h2 = 'h2';
+export const h3 = 'h3';
+export const h4 = 'h4';
+export const h5 = 'h5';
+export const h6 = 'h6';
+export const SPAN = 'span';
+export const div = 'div';
+export const p = 'p';
+export const hr = 'hr';
+export const ul = 'ul';
+export const li = 'li';
+export const A = 'a';
+export const BUTTON = 'button';
+export const TEXTAREA = 'textarea';
+export const INPUT = 'input';

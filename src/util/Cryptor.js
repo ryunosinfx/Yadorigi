@@ -13,7 +13,7 @@ export class Cryptor {
 				name: 'PBKDF2',
 				salt,
 				iterations: 100000,
-				hash: 'SHA-256'
+				hash: 'SHA-256',
 			},
 			keyMaterial,
 			{ name: 'AES-GCM', length: 256 },
@@ -22,7 +22,7 @@ export class Cryptor {
 		);
 		return [key, salt];
 	}
-	getSalt(saltInput, isAB) {
+	static getSalt(saltInput, isAB) {
 		const salt = saltInput ? (isAB ? new Uint8Array(saltInput) : BinaryConverter.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
 		return salt;
 	}
@@ -48,7 +48,7 @@ export class Cryptor {
 		return await Cryptor.encodeAES256GCM(u8a, passphraseTextOrKey);
 	}
 	static async encodeAES256GCM(inputU8a, passphraseTextOrKey, saltInput = null, isAB) {
-		const salt = this.getSalt(saltInput, isAB);
+		const salt = Cryptor.getSalt(saltInput, isAB);
 		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, salt) : { passphraseTextOrKey };
 		const fixedPart = Cryptor.getFixedField();
 		const invocationPart = Cryptor.getInvocationField();
@@ -67,7 +67,7 @@ export class Cryptor {
 			// 暗号化されたデータには、必ず初期ベクトルの
 			// 変動部とパスワードのsaltを添付して返す。
 			Base64Util.ab2Base64Url(iv.buffer),
-			Base64Util.ab2Base64Url(salt.buffer)
+			Base64Util.ab2Base64Url(salt.buffer),
 		]);
 	}
 	static async decodeAES256GCMasStr(encryptedResultJSON, passphraseTextOrKey) {

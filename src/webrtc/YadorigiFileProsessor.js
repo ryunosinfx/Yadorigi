@@ -74,7 +74,11 @@ export class YadorigiFileProsessor {
 		return await this.parse(passphraseText, dataBase64url, false, offerSdp);
 	}
 	async parse(passphraseText, dataBase64url, isOffer = true, offerSdp) {
+		console.log('parse dataBase64url:' + dataBase64url);
 		const obj = this.convertJsonDefratedBase64UrlToObj(dataBase64url);
+		if (!obj) {
+			return null;
+		}
 		const { fileName, hash, data, imageList } = obj;
 		console.log('parse offerSdp:' + offerSdp);
 		console.log(obj);
@@ -117,10 +121,14 @@ export class YadorigiFileProsessor {
 		return { fileName, spd: null, hash, imageList };
 	}
 	convertJsonDefratedBase64UrlToObj(base64Url) {
+		console.log('convertJsonDefratedBase64UrlToObj base64Url:' + base64Url);
 		const ab = Base64Util.base64UrlToAB(base64Url);
+		console.log('convertJsonDefratedBase64UrlToObj ab:' + ab);
 		const infratedU8a = Deflater.inflate(new Uint8Array(ab));
-		const jsonString = BinaryConverter.abToString(infratedU8a.buffer);
-		return JSON.parse(jsonString);
+		console.log('convertJsonDefratedBase64UrlToObj infratedU8a:' + infratedU8a);
+		const jsonString = infratedU8a && infratedU8a.buffer ? BinaryConverter.abToString(infratedU8a.buffer) : null;
+		console.log('convertJsonDefratedBase64UrlToObj jsonString:' + jsonString);
+		return jsonString ? JSON.parse(jsonString) : null;
 	}
 	async parsePayload(u8a, isOffer, offerSdp) {
 		const jsonPaload = BinaryConverter.u8aToString(u8a);
