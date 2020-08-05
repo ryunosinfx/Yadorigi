@@ -57,7 +57,7 @@ export class MultiBrowsersConnectionTestView {
 			data.onErrorCallBack = callback;
 			this.setSendEventListener(textareaIn);
 			MultiBrowsersConnectionTestService.connect(data);
-			alert('aaaa' + JSON.stringify(data));
+			// alert('aaaa' + JSON.stringify(data));
 		};
 	}
 	getConvertBookmarkletCallback(ancker) {

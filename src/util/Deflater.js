@@ -14,13 +14,12 @@ export class Deflater {
 		return pako.deflate(u32a);
 	}
 	static inflate(u8Input) {
-		console.log('inflate u8Input:' + u8Input.byteLength);
-		const u32a = u8Input.byteLength ? new Uint32Array(u8Input) : new Uint32Array(u8Input.buffer);
-		console.log('inflate u32a:' + u32a);
+		console.log('Deflater inflate u8Input:' + u8Input.byteLength);
 		let result = null;
 		try {
-			result = pako.inflate(u8Input, { to: 'string' });
-			console.log('inflate result:' + result);
+			const u32a = u8Input.byteLength ? new Uint32Array(u8Input) : new Uint32Array(u8Input.buffer);
+			result = pako.inflate(u32a);
+			console.log('Deflater inflate result:' + result);
 		} catch (e) {
 			console.log(e);
 		}

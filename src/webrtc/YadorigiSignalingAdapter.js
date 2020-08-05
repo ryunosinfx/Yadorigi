@@ -1,4 +1,5 @@
 import { WebRTCConnecter } from './WebRTCConnecter';
+import { Base64Util } from '../util/Base64Util';
 import { Hasher } from '../util/Hasher';
 import { ProcessUtil } from '../util/ProcessUtil';
 import { YadorigiFileProsessor } from './YadorigiFileProsessor';
@@ -105,7 +106,6 @@ export class YadorigiSignalingAdapter {
 			const offerFile = await this.getSdpFileFSS(offerFileName);
 			console.log('--oneLoop--221----------YadorigiSignalingAdapter--------------------------------------offerFile:' + offerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 			console.log(offerFile);
-			console.log('--oneLoop--2210----------YadorigiSignalingAdapter--------------------------------------offerFile.sdp:' + offerFile.sdp + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 			if (offerFile && offerFile.sdp) {
 				console.log('--oneLoop--2211----------YadorigiSignalingAdapter--------------------------------------offerFile.sdp:' + offerFile.sdp + ' /targetDeviceNameHash:' + targetDeviceNameHash);
 				// Anserを置く有る場合
@@ -172,12 +172,12 @@ export class YadorigiSignalingAdapter {
 	///////////////////////////////////////////////////////////////////////////
 	async getLastOneFSS() {
 		const dataBase64url = await this.YadorigiSignalingConnector.getLastOne(this.groupNameHash);
-		console.log('--YadorigiSignalingAdapter--getLastOneFSS dataBase64url:' + dataBase64url + '/' + typeof dataBase64url);
+		console.log('--YadorigiSignalingAdapter--getLastOneFSS dataBase64url:' + dataBase64url + '/' + typeof dataBase64url + '/this.groupNameHash:' + this.groupNameHash);
 		return await this.parseFile(dataBase64url);
 	}
 	async getSdpFileFSS(fileName) {
 		console.log('--YadorigiSignalingAdapter--getSdpFileFSS fileName:' + fileName + '/');
-		const dataBase64url = await this.YadorigiSignalingConnector.getSpd(this.groupNameHash, fileName);
+		const dataBase64url = await this.YadorigiSignalingConnector.getSdp(this.groupNameHash, fileName);
 		console.log('--YadorigiSignalingAdapter--getSdpFileFSS dataBase64url:' + dataBase64url + '/' + typeof dataBase64url);
 		return await this.parseFile(dataBase64url);
 	}
@@ -185,7 +185,7 @@ export class YadorigiSignalingAdapter {
 		console.log('--YadorigiSignalingAdapter--putFileFSS fileName:' + fileName);
 		console.log('--YadorigiSignalingAdapter--putFileFSS hash:' + hash);
 		console.log('--YadorigiSignalingAdapter--putFileFSS payload:' + payload);
-		await this.YadorigiSignalingConnector.putSpd(this.groupNameHash, fileName, hash, payload);
+		await this.YadorigiSignalingConnector.putSdp(this.groupNameHash, fileName, hash, payload);
 	}
 	/////////////////////////////////////////////////////////////////////////////
 	async createOffer(imageList = []) {
@@ -204,7 +204,7 @@ export class YadorigiSignalingAdapter {
 		return answerFile;
 	}
 	async parseFile(dataBase64url) {
-		if (!dataBase64url) {
+		if (!dataBase64url || !Base64Util.isBase64Url(dataBase64url)) {
 			return null;
 		}
 		console.log('parseFile dataBase64url:' + dataBase64url);

@@ -21,6 +21,8 @@ describe('テストCryptor', () => {
 		console.log('cryptedJSON:' + cryptedJSON);
 		const crypted2 = await Cryptor.decodeAES256GCM(cryptedJSON, passphrase);
 		const u8a2 = BinaryConverter.u8aToString(crypted2);
+		console.log('u8a2:' + u8a2);
+		console.log('planText:' + planText);
 		expect(planText).to.be.equal(u8a2);
 	});
 });

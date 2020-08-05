@@ -12,19 +12,20 @@ export class YadorigiSignalingConnector {
 	 * @param {*} hash payload hash
 	 * @param {*} payload
 	 */
-	async putSpd(groupNameHash, fileName, hash, payload) {
-		console.log('--putSpd--0----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
+	async putSdp(groupNameHash, fileName, hash, payload) {
+		console.log('--putSdp--0----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
 		const data = { group: groupNameHash, fileName, hash, data: payload };
-		console.log('--putSpd--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
+		console.log('--putSdp--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
 		await this.Fetcher.postAsSubmit(this.endPoint, data);
-		console.log('--putSpd--2----------YadorigiSignalingConnector--------------------------------------hash:' + hash);
+		console.log('--putSdp--2----------YadorigiSignalingConnector--------------------------------------hash:' + hash);
+		console.warn('--putSdp--3----------YadorigiSignalingConnector--------------------------------------payload:' + payload);
 	}
-	async getSpd(groupNameHash, fileName) {
-		console.log('--getSpd--0----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
+	async getSdp(groupNameHash, fileName) {
+		console.log('--getSdp--0----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
 		const data = { command: 'get', group: groupNameHash, fileName };
-		console.log('--getSpd--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
+		console.log('--getSdp--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
 		const result = await this.Fetcher.getTextCors(this.endPoint, data);
-		console.log('--getSpd--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
+		console.warn('--getSdp--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
 		return result;
 	}
 	async getLastOne(groupNameHash) {
@@ -32,7 +33,7 @@ export class YadorigiSignalingConnector {
 		const data = { command: 'last', group: groupNameHash };
 		console.log('--getLastOne--1----------YadorigiSignalingConnector--------------------------------------groupNameHash:' + groupNameHash);
 		const result = await this.Fetcher.getTextCors(this.endPoint, data);
-		console.log('--getLastOne--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
+		console.warn('--getLastOne--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
 		return result;
 	}
 	async getNextOne(groupNameHash, fileName) {
@@ -40,8 +41,8 @@ export class YadorigiSignalingConnector {
 		const data = { command: 'last', group: groupNameHash, fileName };
 		console.log('--getNextOne--1----------YadorigiSignalingConnector--------------------------------------fileName:' + fileName);
 		const result = await this.Fetcher.getTextCors(this.endPoint, data);
-		console.log('--getNextOne--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
+		console.warn('--getNextOne--2----------YadorigiSignalingConnector--------------------------------------result:' + result);
 		return result;
 	}
-	async getSpdByName(fileName) {}
+	async getSdpByName(fileName) {}
 }
