@@ -11,15 +11,15 @@ export class YadorigiFileProsessor {
 		// GCMキー
 		this.key = key;
 	}
-	async buildOffer(passphraseText, imageList, senderDeviceName, Sdp, userId, groupName, expireOffset = expireMunits) {
-		return await this.build(passphraseText, imageList, senderDeviceName, Sdp, userId, groupName, true, expireOffset);
+	async buildOffer(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, expireOffset = expireMunits) {
+		return await this.build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, true, expireOffset);
 	}
-	async buildAnswer(passphraseText, imageList, senderDeviceName, Sdp, userId, groupName, offerSdp, expireOffset = expireMunits) {
-		return await this.build(passphraseText, imageList, senderDeviceName, Sdp, userId, groupName, false, expireOffset, offerSdp);
+	async buildAnswer(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, offerSdp, expireOffset = expireMunits) {
+		return await this.build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, false, expireOffset, offerSdp);
 	}
-	async build(passphraseText, imageList, senderDeviceName, Sdp, userId, groupName, isOffer = true, expireOffset = expireMunits, offerSdp) {
+	async build(passphraseText, imageList, senderDeviceName, sdp, userId, groupName, isOffer = true, expireOffset = expireMunits, offerSdp) {
 		const expireTime = TimeUtil.getNowUnixTimeAtUTC() + expireOffset * 60 * 1000;
-		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, Sdp, expireTime, userId, groupName, isOffer, offerSdp);
+		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp);
 		const encryptedObj = await Cryptor.encodeAES256GCM(u8a, this.key ? this.key : passphraseText);
 		const data = Base64Util.objToJsonBase64Url(encryptedObj);
 		console.log('YadorigiFileProsessor.build fileName:' + fileName + '/hash:' + hash + '/data:' + data);
@@ -28,8 +28,8 @@ export class YadorigiFileProsessor {
 		const recordObj = { fileName, hash, data, imageList: newImageList };
 		return { hash, fileName, payload: this.convertObjToJsonDefratedBase64Url(recordObj) };
 	}
-	async createPayload(senderDeviceName, Sdp, expireTime, userId, groupName, isOffer, offerSdp) {
-		const payload = { senderDeviceName, Sdp, expireTime, userId, groupName };
+	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp) {
+		const payload = { senderDeviceName, sdp, expireTime, userId, groupName };
 		const text = JSON.stringify(payload);
 		console.log('YadorigiFileProsessor.createPayload payload:' + payload + '/text:' + text + '/senderDeviceName:' + senderDeviceName);
 		const hash = await Hasher.sha512(text + (isOffer ? '' : offerSdp));
@@ -106,7 +106,7 @@ export class YadorigiFileProsessor {
 		console.log('parse D:' + parsed + '/parsed:' + typeof parsed);
 		console.log('parse parsed.hash:' + parsed.hash + '/hash:' + hash);
 		if (parsed.hash === hash) {
-			const { senderDeviceName, Sdp, expireTime, userId, groupName } = parsed.payload;
+			const { senderDeviceName, sdp, expireTime, userId, groupName } = parsed.payload;
 			const trueFileName = await YadorigiSdpFileRecord.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 			console.log(
 				'parse trueFileName:' +
@@ -126,11 +126,11 @@ export class YadorigiFileProsessor {
 			console.log(fileName);
 			if (fileName === trueFileName && expireTime > TimeUtil.getNowUnixTimeAtUTC()) {
 				console.log('parse E:');
-				return { fileName, Sdp, hash, imageList, groupName, userId, senderDeviceName };
+				return { fileName, sdp, hash, imageList, groupName, userId, senderDeviceName };
 			}
-			return { fileName, Sdp: null, hash, imageList };
+			return { fileName, sdp: null, hash, imageList };
 		}
-		return { fileName, Sdp: null, hash, imageList };
+		return { fileName, sdp: null, hash, imageList };
 	}
 	convertJsonDefratedBase64UrlToObj(base64Url) {
 		console.log('convertJsonDefratedBase64UrlToObj base64Url:' + base64Url);
