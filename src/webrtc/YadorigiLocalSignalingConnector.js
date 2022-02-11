@@ -239,8 +239,10 @@ export class YadorigiLocalSignalingConnector {
 			return null;
 		}
 		console.log('parseFile A dataBase64url:' + dataBase64url);
+		console.log('parseFile A offerSdp:' + offerSdp);
 		const parsed = await this.YadorigiFileProsessor.parse(this.passphraseText, dataBase64url, !offerSdp, offerSdp);
 		console.log('parseFile B parsed:' + parsed);
+		console.log(parsed);
 		if (parsed && parsed.sdp) {
 			console.log('parseFile parsed.sdp:' + parsed.sdp);
 			return parsed;

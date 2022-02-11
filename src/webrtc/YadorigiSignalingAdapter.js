@@ -207,10 +207,12 @@ export class YadorigiSignalingAdapter {
 		if (!dataBase64url || !Base64Util.isBase64Url(dataBase64url)) {
 			return null;
 		}
-		console.log('parseFile dataBase64url:' + dataBase64url);
+		console.log('YadorigiSignalingAdapter parseFile dataBase64url:' + dataBase64url);
 		const parsed = await this.YadorigiFileProsessor.parse(this.passphraseText, dataBase64url);
+		console.log('YadorigiSignalingAdapter parseFile parsed:' + parsed);
+		console.log(parsed);
 		if (parsed && parsed.sdp) {
-			console.log('parseFile parsed.sdp:' + parsed.sdp);
+			console.log('YadorigiSignalingAdapter parseFile parsed.sdp:' + parsed.sdp);
 			return parsed;
 		}
 		return null;

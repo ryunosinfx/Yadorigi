@@ -1,6 +1,4 @@
 import { DummyDataRange } from './DummyDataRange';
-import { isAbsolute } from 'path';
-import { isArray } from 'util';
 export class DummyDataSheet {
 	constructor() {
 		this.dataRange = new DummyDataRange();

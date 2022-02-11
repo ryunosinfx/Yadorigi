@@ -2,15 +2,15 @@ const regex = /[^-_\.0-9a-zA-Z]+/g;
 const duration = 1000 * 60 * 10;
 class Recode {
 	constructor(group, fileName, data, hash) {
-		if (group && typeof group === 'object' && group.length > 0) {
+		if (!group) {
+		} else if (typeof group === 'object' && group.length > 0) {
 			this.group = group[0];
 			this.fileName = group[1];
 			this.data = group[2];
 			this.hash = group[3];
 			this.createTime = group[4];
 			this.index = fileName;
-		} else if (!group) {
-		} else if (group && typeof group === 'object') {
+		} else if (typeof group === 'object') {
 			this.group = group.group;
 			this.fileName = group.fileName;
 			this.data = group.data;
@@ -43,11 +43,11 @@ class SheetAddressor {
 		while (count < 100) {
 			this.sheet.appendRow(record.toArray());
 			this.matrix = this.sheet.getDataRange().getValues(); //受け取ったシートのデータを二次元配列に取得
-			const wwaitTime = Math.floor(Math.random() * 10) * 100;
+			const waitTime = Math.floor(Math.random() * 10) * 100;
 			await new Promise((resolve) => {
 				setTimeout(() => {
 					resolve();
-				}, wwaitTime);
+				}, waitTime);
 			});
 			if (this.findRow(where)) {
 				break;
@@ -74,18 +74,25 @@ class SheetAddressor {
 			const row = this.matrix[i];
 			const colsCount = row.length;
 			let matchCount = 0;
-			for (let j = 0; j < colsCount; j++) {
+			const createTime = (row[4] + '') * 1;
+			if (isDelete && !isNaN(createTime) && createTime < current) {
+				scavengableList.push(i);
+			}
+			if (resultRow) {
+				continue;
+			}
+			for (let j = 0; j < colsCount && j < whereCount; j++) {
 				const colValue = row[j];
 				const condition = where[j];
-				matchCount += (whereCount > j && condition && condition === colValue) || (whereCount > j && !condition) ? 1 : 0;
+				if ((condition && condition === colValue) || !condition) {
+					matchCount++;
+				} else {
+					break;
+				}
 			}
 			if (matchCount === whereCount) {
 				resultRow = row;
 				resultRowIndex = i;
-			}
-			const createTime = (row[4] + '') * 1;
-			if (isDelete && !isNaN(createTime) && createTime < current) {
-				scavengableList.push(i);
 			}
 		}
 		const scvlen = scavengableList.length;

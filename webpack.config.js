@@ -1,9 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
+	mode: 'development',
 	//  context: __dirname,
 	entry: {
 		bundle: './src/main.js',
@@ -29,17 +28,15 @@ module.exports = {
 		rules: [
 			{
 				test: /\.css$/,
-				loader: 'style-loader!css-loader?importLoaders=1&camelCase',
+				use: [
+					{
+						loader: 'style-loader!css-loader?importLoaders=1&camelCase',
+					},
+				],
 			},
 			{
 				test: /\.js$/,
 				exclude: /node_modules/,
-				enforce: 'pre',
-				use: [
-					{
-						loader: 'eslint-loader',
-					},
-				],
 			},
 			{
 				test: /\.wasm$/,
@@ -47,22 +44,25 @@ module.exports = {
 			},
 			{
 				test: /test\.js$/,
-				use: {
-					loader: 'mocha-loader',
-					options: {
-						// mocha.setup(option)に渡すオプションが書ける
-						// https://mochajs.org/#running-mocha-in-the-browser
-					},
-				},
 				exclude: /node_modules/,
 			},
 		],
 	},
 	devServer: {
-		publicPath: '/',
-		contentBase: __dirname + '/',
-		watchContentBase: true,
 		port: 8085,
+		hot: true,
+		open: ['/index.html'],
+		watchFiles: {
+			paths: ['src/**/*.js', 'dist/**/*'],
+			options: {
+				usePolling: false,
+			},
+		},
+		static: {
+			directory: path.join(__dirname, 'dist'),
+			serveIndex: true,
+			watch: false,
+		},
 	},
 	plugins: [
 		new webpack.LoaderOptionsPlugin({
@@ -71,15 +71,6 @@ module.exports = {
 				html: './index.html',
 			},
 		}),
-		new CopyWebpackPlugin(
-			[
-				{
-					from: './wasm/*.wasm',
-					to: './',
-				},
-			],
-			{ debug: 'debug' }
-		),
 		//new webpack.optimize.UglifyJsPlugin(),
 		//new webpack.optimize.AggressiveMergingPlugin(),
 
