@@ -6,7 +6,7 @@ export class ViewUtil {
 	}
 	static add(parent, tagName, attrs = {}, styles = {}) {
 		const elm = document.createElement(tagName);
-		for (let key in attrs) {
+		for (const key in attrs) {
 			if (key === 'text') {
 				continue;
 			}
@@ -28,7 +28,7 @@ export class ViewUtil {
 		}
 	}
 	static setStyles(elm, styles = {}) {
-		for (let key in styles) {
+		for (const key in styles) {
 			const value = styles[key];
 			const styleKey = TextUtil.convertGebavToCamel(key);
 			elm.style[styleKey] = value;
