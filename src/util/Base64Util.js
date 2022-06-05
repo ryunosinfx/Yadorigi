@@ -1,6 +1,6 @@
 import { BinaryConverter } from './BinaryConverter';
 import { Deflater } from './Deflater';
-const base64Regex = /^[0-9a-zA-Z\/+=]+$/;
+const base64Regex = /^[0-9a-zA-Z/+=]+$/;
 const base64UrlRegex = /^[0-9a-zA-Z-_]+$/;
 export class Base64Util {
 	constructor() {}
@@ -59,6 +59,16 @@ export class Base64Util {
 		const base64 = Base64Util.toBase64(base64url);
 		// console.log('[' + base64 + ']' + base64.length);
 		return Base64Util.base64ToAB(base64);
+	}
+	static base64UrlToString(base64url) {
+		const base64 = Base64Util.toBase64(base64url);
+		// console.log('[' + base64 + ']' + base64.length);
+		const ab = Base64Util.base64ToAB(base64);
+		return BinaryConverter.abToString(ab);
+	}
+	static stringToBase64url(str) {
+		const u8a = BinaryConverter.stringToU8A(str);
+		return Base64Util.ab2Base64Url(u8a.buffer);
 	}
 	static toBase64Url(base64) {
 		return base64 ? base64.split('+').join('-').split('/').join('_').split('=').join('') : base64;

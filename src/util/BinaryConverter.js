@@ -15,7 +15,7 @@ export class BinaryConverter {
 	}
 	static arrayBuffer2DataURI(buffer, type = 'application/octet-stream') {
 		const base64 = btoa(BinaryConverter.arrayBuffer2BinaryString(buffer));
-		return 'data:' + type + ';base64,' + base64;
+		return `data:${type};base64,${base64}`;
 	}
 	static stringToU8A(str) {
 		const u8a = te.encode(str);
@@ -37,13 +37,13 @@ export class BinaryConverter {
 		let offset = 0;
 		for (let i = 0; i < u8asCount; i++) {
 			const u8a = u8as[i];
-			whole.set(u8a, offset);
-			united += u8a.byteLength;
+			united.set(u8a, offset);
+			offset += u8a.byteLength;
 		}
 		return united;
 	}
 	static binaryString2Uint8Array(binaryString) {
-		const list = binaryString.split('');
+		// const list = binaryString.split('');
 		const rawLength = binaryString.length;
 		const array = new Uint8Array(new ArrayBuffer(rawLength));
 		for (let i = 0; i < rawLength; i++) {
@@ -53,18 +53,18 @@ export class BinaryConverter {
 	}
 
 	static uint8Array2BinaryString(u8a) {
-		let retList = [];
-		for (let e of u8a) {
+		const retList = [];
+		for (const e of u8a) {
 			retList.push(String.fromCharCode(e));
 		}
 		return retList.join('');
 	}
 
 	static binaryString2DataURI(binaryString, type = 'application/octet-stream') {
-		return 'data:' + type + ';base64,' + btoa(binaryString);
+		return `data:${type};base64,${btoa(binaryString)}`;
 	}
 	static base642DataURI(base64, type = 'application/octet-stream') {
-		return 'data:' + type + ';base64,' + base64;
+		return `data:${type};base64,${base64}`;
 	}
 	static base642binaryString(base64) {
 		return atob(base64);
@@ -101,10 +101,10 @@ export class BinaryConverter {
 	static readBlob(blob) {
 		const reader = new FileReader();
 		const promise = new Promise((resolve, reject) => {
-			reader.onload = eve => {
+			reader.onload = () => {
 				resolve(reader.result);
 			};
-			reader.onerror = eve => {
+			reader.onerror = () => {
 				reject(reader.error);
 			};
 		});
@@ -125,7 +125,7 @@ export class BinaryConverter {
 			asText() {
 				reader.readAsText(blob);
 				return promise;
-			}
+			},
 		};
 	}
 	static convertU8aToU16a(u8a) {
