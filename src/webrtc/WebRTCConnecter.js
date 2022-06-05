@@ -1,7 +1,7 @@
 import { WebRTCPeer } from './WebRTCPeer';
 import { Hasher } from '../util/Hasher';
 export class WebRTCConnecter {
-	constructor() {
+	constructor(logger = console) {
 		this.WebRTCPeerOffer = new WebRTCPeer();
 		this.WebRTCPeerAnswer = new WebRTCPeer();
 		this.WebRTCPeer = null;
@@ -13,15 +13,16 @@ export class WebRTCConnecter {
 		//OfferはAnswerを受け取った時点で分かる
 		//AnswerはOfferを受け取った時点で分かる。
 		this.isOpend = false;
+		this.l = logger;
 	}
 	async init() {
-		console.log('--init--0----------WebRTCConnecter--------------------------------------');
+		this.l.log('--init--0----------WebRTCConnecter--------------------------------------');
 		this.WebRTCPeerOffer.close();
 		this.WebRTCPeerAnswer.close();
-		console.log('--init--1----------WebRTCConnecter--------------------------------------');
+		this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
 		const result = await this.WebRTCPeerOffer.makeOffer();
-		console.log('--init--2----------WebRTCConnecter--------------------------------------result:' + result);
-		this.WebRTCPeerOffer.onOpen = event => {
+		this.l.log(`--init--2----------WebRTCConnecter--------------------------------------result:${result}`);
+		this.WebRTCPeerOffer.onOpen = (event) => {
 			if (this.WebRTCPeerAnswer.isOpend) {
 				this.selectActiveConnection();
 			} else {
@@ -49,7 +50,7 @@ export class WebRTCConnecter {
 	}
 	selectActiveConnection() {
 		const hashList = [];
-		for (let hash in this.peerMap) {
+		for (const hash in this.peerMap) {
 			hashList.push(hash);
 		}
 		if (hashList.length > 1) {
@@ -65,22 +66,22 @@ export class WebRTCConnecter {
 		}
 	}
 	setOnOpne(callback) {
-		this.onOpenCallBack = event => {
+		this.onOpenCallBack = (event) => {
 			callback(event);
 		};
 	}
 	setOnClose(callback) {
-		this.onCloseCallBack = event => {
+		this.onCloseCallBack = (event) => {
 			callback(event);
 		};
 	}
 	setOnMessage(callback) {
-		this.onMessageCallBack = msg => {
+		this.onMessageCallBack = (msg) => {
 			callback(msg);
 		};
 	}
 	setOnError(callback) {
-		this.onErrorCallBack = error => {
+		this.onErrorCallBack = (error) => {
 			callback(error);
 		};
 	}

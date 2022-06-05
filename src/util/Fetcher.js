@@ -1,8 +1,9 @@
 import {} from '../view/util/IframeController';
 import { UrlUtil } from './UrlUtil';
 export class Fetcher {
-	constructor(headerKeys) {
+	constructor(headerKeys, logger = console) {
 		this.headerKeys = headerKeys;
+		this.l = logger;
 	}
 	async postAsSubmit(path, data, isCors = true) {
 		const submitData = UrlUtil.convertObjToQueryParam(data);
@@ -32,14 +33,14 @@ export class Fetcher {
 			requestData.body = isObj ? JSON.stringify(data) : data;
 		} else if (contentType === 'application/json') {
 			const json = isObj ? JSON.stringify(data) : data;
-			path += '?q=' + encodeURIComponent(json);
+			path += `?q=${encodeURIComponent(json)}`;
 		} else if (isObj) {
-			path += '?' + UrlUtil.convertObjToQueryParam(data);
+			path += `?${UrlUtil.convertObjToQueryParam(data)}`;
 		} else {
-			path += '?q=' + encodeURIComponent(data);
+			path += `?q=${encodeURIComponent(data)}`;
 		}
-		console.log(path);
-		console.log(requestData);
+		this.l.log(path);
+		this.l.log(requestData);
 		return await fetch(path, requestData);
 	}
 	async getBlob(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
