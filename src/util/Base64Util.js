@@ -21,7 +21,7 @@ export class Base64Util {
 		return false;
 	}
 	static isBase64Url(value) {
-		if (value && typeof value === 'string' && value.length % 4 === 0 && base64UrlRegex.test(value)) {
+		if (value && typeof value === 'string' && base64UrlRegex.test(value) && value !== 'undefined' && value !== 'null') {
 			return true;
 		}
 		return false;
