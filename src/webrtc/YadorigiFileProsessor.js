@@ -23,20 +23,23 @@ export class YadorigiFileProsessor {
 		const [u8a, hash, fileName] = await this.createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp);
 		const encryptedObj = await Cryptor.encodeAES256GCM(u8a, this.key ? this.key : passphraseText);
 		const data = Base64Util.objToJsonBase64Url(encryptedObj);
-		this.l.log(`YadorigiFileProsessor.build fileName:${fileName}/hash:${hash}/data:${data}`);
+		this.l.log(`YadorigiFileProsessor.build1 fileName:${fileName}/hash:${hash}/data:${data}`);
 
 		const newImageList = this.maintainImageList(imageList, hash, fileName, expireOffset);
+		this.l.log(`YadorigiFileProsessor.build2 fileName:${fileName}/offerSdp:${offerSdp}/newImageList:${newImageList}`);
 		const recordObj = { fileName, hash, data, imageList: newImageList };
+		this.l.log(`YadorigiFileProsessor.build3 recordObj:${JSON.stringify(recordObj)}`);
 		return { hash, fileName, payload: this.convertObjToJsonDefratedBase64Url(recordObj) };
 	}
 	async createPayload(senderDeviceName, sdp, expireTime, userId, groupName, isOffer, offerSdp) {
 		const payload = { senderDeviceName, sdp, expireTime, userId, groupName };
 		const text = JSON.stringify(payload);
-		this.l.log(`YadorigiFileProsessor.createPayload payload:${payload}/text:${text}/senderDeviceName:${senderDeviceName}`);
-		const hash = await Hasher.sha512(text + (isOffer ? '' : offerSdp));
+		this.l.log(`YadorigiFileProsessor.createPayload payload:${payload}/text:${text}/senderDeviceName:${senderDeviceName}/offerSdp:${offerSdp}`);
+		const hashSeed = text + (isOffer ? '' : typeof offerSdp === 'string' ? offerSdp : JSON.stringify(offerSdp));
+		const hash = await Hasher.sha512(hashSeed);
 		// this.l .log('YadorigiFileProsessor.createPayload ab:' + ab);
 		// const hash = Base64Util.ab2Base64Url(ab);
-		this.l.log(`YadorigiFileProsessor.createPayload hash:${hash}`);
+		this.l.log(`YadorigiFileProsessor.createPayload hash:${hash}/hashSeed:${hashSeed}`);
 		const fileName = await YadorigiSdpFileRecord.createFileName(groupName, userId, senderDeviceName, isOffer, expireTime);
 		const u8a = BinaryConverter.stringToU8A(text);
 		this.l.log(`YadorigiFileProsessor.createPayload fileName:${fileName}/hash:${hash}/u8a:${u8a}`);
@@ -60,6 +63,39 @@ export class YadorigiFileProsessor {
 		}
 		return newList;
 	}
+	mergeList(imageListA, imageListB) {
+		const newList = [];
+		const map = {};
+		for (const row of imageListA) {
+			//画像ファイル名、画像ハッシュ、有効期限
+			const ySdp = new YadorigiSdpFileRecord(row);
+			if (ySdp.isExpired()) {
+				continue;
+			}
+			const key = JSON.stringify(ySdp.toObj());
+			if (map[key]) {
+				continue;
+			}
+			map[key] = 1;
+
+			newList.unshift(ySdp.toObj());
+		}
+		for (const row of imageListB) {
+			//画像ファイル名、画像ハッシュ、有効期限
+			const ySdp = new YadorigiSdpFileRecord(row);
+			if (ySdp.isExpired()) {
+				continue;
+			}
+			const key = JSON.stringify(ySdp.toObj());
+			if (map[key]) {
+				continue;
+			}
+			map[key] = 1;
+
+			newList.unshift(ySdp.toObj());
+		}
+		return newList;
+	}
 	convertObjToJsonDefratedBase64Url(obj) {
 		const text = JSON.stringify(obj);
 		const u8a = BinaryConverter.stringToU8A(text);
@@ -71,13 +107,18 @@ export class YadorigiFileProsessor {
 	}
 	//////////////////////////////////////////////////
 	async parseOffer(passphraseText, dataBase64url) {
+		this.l.log(`parseOffer dataBase64url:${dataBase64url}`);
 		return await this.parse(passphraseText, dataBase64url, true);
 	}
 	async parseAnswer(passphraseText, dataBase64url, offerSdp) {
+		this.l.log(`parseAnswer dataBase64url:${dataBase64url}`);
 		return await this.parse(passphraseText, dataBase64url, false, offerSdp);
 	}
 	async parse(passphraseText, dataBase64url, isOffer = true, offerSdp) {
-		this.l.log(`parse dataBase64url:${dataBase64url}`);
+		this.l.log(`parse isOffer:${isOffer}/dataBase64url:${dataBase64url}`);
+		if (!dataBase64url) {
+			return null;
+		}
 		const obj = this.convertJsonDefratedBase64UrlToObj(dataBase64url);
 		this.l.log(`parse obj:${obj}`);
 		if (!obj) {
@@ -99,11 +140,12 @@ export class YadorigiFileProsessor {
 		this.l.log(`parse B1:${keyInfo}`);
 		const u8a = await Cryptor.decodeAES256GCM(encryptedString, keyInfo);
 		this.l.log(u8a);
-		this.l.log(`parse C:${offerSdp}`);
+		const sdpString = offerSdp ? (typeof offerSdp === 'string' ? offerSdp : JSON.stringify(offerSdp)) : '';
+		this.l.log(`parse C:isOffer:${isOffer} offerSdp:${offerSdp}/sdpString:${sdpString}`);
 		if (!u8a) {
 			return null;
 		}
-		const parsed = await this.parsePayload(u8a, isOffer, offerSdp);
+		const parsed = await this.parsePayload(u8a, isOffer, sdpString);
 		this.l.log(parsed);
 		this.l.log(`parse D:${parsed}/parsed:${typeof parsed}`);
 		this.l.log(`parse parsed.hash:${parsed.hash}/hash:${hash}`);
@@ -116,11 +158,13 @@ export class YadorigiFileProsessor {
 			this.l.log(trueFileName);
 			this.l.log(fileName);
 			if (fileName === trueFileName && expireTime > TimeUtil.getNowUnixTimeAtUTC()) {
-				this.l.log('parse E:');
+				this.l.log('parse E:OK PARSED!');
 				return { fileName, sdp, hash, imageList, groupName, userId, senderDeviceName };
 			}
+			this.l.log(`parse F:${fileName !== trueFileName ? 'FILE NAME NOT MATCH!' : expireTime <= TimeUtil.getNowUnixTimeAtUTC() ? 'EXPIRED!' : 'NONE'}`);
 			return { fileName, sdp: null, hash, imageList };
 		}
+		this.l.log('parse G:HASH NOR MATCH!!');
 		return { fileName, sdp: null, hash, imageList };
 	}
 	convertJsonDefratedBase64UrlToObj(base64Url) {
@@ -142,8 +186,8 @@ export class YadorigiFileProsessor {
 		return { hash, payload };
 	}
 	///////////////////////////////////////////////////////////////////////
-	getParsedAnswerFileNameList(imageList, isOffer = true) {
-		this.l.log(`getParsedAnswerFileNameList isOffer:${isOffer}`);
+	getParsedAnswerFileNameList(imageList) {
+		this.l.log(`getParsedAnswerFileNameList imageList:${imageList}`);
 		return this.getParsedOfferFileNameList(imageList, false);
 	}
 	getParsedOfferFileNameList(imageList, isOffer = true) {
@@ -178,6 +222,7 @@ export class YadorigiFileProsessor {
 			this.l.log(`YadorigiFileProsessor.getListAsParsed B parsed:${parsed}`);
 			parsedList.push(parsed);
 		}
+		this.l.log(`YadorigiFileProsessor.getListAsParsed C parsedList:${(parsedList, length)}`);
 		return parsedList;
 	}
 	//////////////////////////////////////////////////////////////////

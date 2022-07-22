@@ -1,10 +1,10 @@
 import { Hasher } from '../util/Hasher';
-import { ProcessUtil } from '../util/ProcessUtil';
+// import { ProcessUtil } from '../util/ProcessUtil';
 import { YadorigiFileProsessor } from './YadorigiFileProsessor';
 import { YadorigiSignalingConnector } from './YadorigiSignalingConnector';
-import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
+// import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
 import { WebRTCConnecter } from './WebRTCConnecter';
-const waitms = 20;
+// const waitms = 20;
 export class YadorigiLocalSignalingConnector {
 	constructor(isHub, passphraseText, userId, key, targetUrl = navigator.userAgent) {
 		this.passphraseText = passphraseText;
@@ -16,7 +16,7 @@ export class YadorigiLocalSignalingConnector {
 		this.isHub = isHub;
 		this.groupName = location.pathname;
 		this.eventMapedFunc = null;
-		this.hubName = navigator.userAgent + '//' + 'HUB';
+		this.hubName = `${navigator.userAgent}//` + 'HUB';
 		this.deviceName = isHub ? this.hubName : targetUrl;
 		this.connected = false;
 		this.peerMapAtHub = {};
@@ -26,14 +26,14 @@ export class YadorigiLocalSignalingConnector {
 		this.connected = false;
 		console.log('--init--0----------YadorigiLocalSignalingConnector--------------------------------------');
 		this.offer = await this.WebRTCConnecter.init();
-		console.log('--init--1----------YadorigiLocalSignalingConnector--------------------------------------this.offer:' + this.offer);
+		console.log(`--init--1----------YadorigiLocalSignalingConnector--------------------------------------this.offer:${this.offer}`);
 		this.userIdHash = await Hasher.sha512(this.userId);
 		console.log('--init--2----------YadorigiLocalSignalingConnector--------------------------------------');
 		this.groupNameHash = await Hasher.sha512(this.groupName);
 		console.log('--init--3----------YadorigiLocalSignalingConnector--------------------------------------');
 		this.deviceNameHash = await Hasher.sha512(this.deviceName);
 		this.passphraseHash = await Hasher.sha512(this.passphraseText);
-		this.hubPrefix = await Hasher.sha512(this.groupNameHash + '.' + this.userIdHash + '.' + this.passphraseHash + '.HUB', 1000);
+		this.hubPrefix = await Hasher.sha512(`${this.groupNameHash}.${this.userIdHash}.${this.passphraseHash}.HUB`, 1000);
 	}
 	setOnOpne(callback) {
 		if (this.isHub) {
@@ -73,7 +73,7 @@ export class YadorigiLocalSignalingConnector {
 		this.WebRTCConnecter.send(msg);
 	}
 	broadCast(msg) {
-		for (let key in this.peerMapAtHub) {
+		for (const key in this.peerMapAtHub) {
 			const webRTCConnecter = this.peerMapAtHub[key];
 			if (webRTCConnecter && webRTCConnecter.isOpend) {
 				webRTCConnecter.send(msg);
@@ -83,9 +83,9 @@ export class YadorigiLocalSignalingConnector {
 	close() {
 		this.WebRTCConnecter.close();
 	}
-	buildImage(imageList, sdp) {
-		return [];
-	}
+	// buildImage(imageList, sdp) {
+	// 	return [];
+	// }
 	async startConnect() {
 		/**
          * 通信手順は
@@ -95,15 +95,15 @@ export class YadorigiLocalSignalingConnector {
 ④返信は、受け取ったキー＋offerのハッシュをキーで
 ⑤アンサーはそれで待ち受け */
 		let count = 0;
-		let isPutOffer = true;
+		const isPutOffer = true;
 		let isOfferPuted = false;
 		const targetDeviceNameHash = await Hasher.sha512(this.userId + Date.now());
 		while (count < 10) {
-			console.log('--startConnect--3----------YadorigiLocalSignalzer--------------------------------------count:' + count);
+			console.log(`--startConnect--3----------YadorigiLocalSignalzer--------------------------------------count:${count}`);
 			const result = await this.oneLoop(targetDeviceNameHash, isPutOffer, isOfferPuted);
-			console.log('--startConnect--4----------YadorigiLocalSignalzer--------------------------------------result:' + result);
+			console.log(`--startConnect--4----------YadorigiLocalSignalzer--------------------------------------result:${result}`);
 			isOfferPuted = result.isOfferPuted;
-			console.log('--startConnect--5----------YadorigiLocalSignalzer--------------------------------------isOfferPuted:' + isOfferPuted);
+			console.log(`--startConnect--5----------YadorigiLocalSignalzer--------------------------------------isOfferPuted:${isOfferPuted}`);
 			// alert(count);
 			if (this.connected) {
 				break;
@@ -125,11 +125,11 @@ export class YadorigiLocalSignalingConnector {
 		//ListenerOnly
 	}
 	createOnSaveEventListenerHub(targetDeviceNameHash) {
-		console.log('--createOnSaveEventListenerHub--1----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
+		console.log(`--createOnSaveEventListenerHub--1----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
 		if (this.eventMapedFun) {
 			return this.eventMapedFun;
 		}
-		console.log('--createOnSaveEventListenerHub--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
+		console.log(`--createOnSaveEventListenerHub--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
 		const func = async (key, newValue, url) => {
 			if (key.indexOf(this.hubPrefix) !== 0) {
 				return;
@@ -144,13 +144,11 @@ export class YadorigiLocalSignalingConnector {
 			if (offer && offer.sdp) {
 				const deviceNameHash = tokens[1];
 				console.log(
-					'--createOnSaveEventListenerHub--2211----------YadorigiLocalSignalzer--------------------------------------offerFile.sdp:' + offer.sdp + ' /targetDeviceNameHash:' + targetDeviceNameHash
+					`--createOnSaveEventListenerHub--2211----------YadorigiLocalSignalzer--------------------------------------offerFile.sdp:${offer.sdp} /targetDeviceNameHash:${targetDeviceNameHash}`
 				);
 				// Anserを置く有る場合
 				const answerFile = await this.createAnswer(deviceNameHash, offer);
-				console.log(
-					'--createOnSaveEventListenerHub--2212----------YadorigiLocalSignalzer--------------------------------------answerFile:' + answerFile + ' /targetDeviceNameHash:' + targetDeviceNameHash
-				);
+				console.log(`--createOnSaveEventListenerHub--2212----------YadorigiLocalSignalzer--------------------------------------answerFile:${answerFile} /targetDeviceNameHash:${targetDeviceNameHash}`);
 				const responceHash = await Hasher.sha512(this.hubPrefix + deviceNameHash + offerFile.hash, 1000);
 
 				sessionStorage.setItem(responceHash, JSON.stringify(answerFile));
@@ -168,7 +166,7 @@ export class YadorigiLocalSignalingConnector {
 			const offer = this.createOffer([], offerSdp);
 			this.currentOffer = offer;
 			const responceHash = await Hasher.sha512(this.hubPrefix + this.deviceNameHash + offer.hash, 1000);
-			sessionStorage.setItem(this.hubPrefix + '.' + targetDeviceNameHash, JSON.stringify(offer));
+			sessionStorage.setItem(`${this.hubPrefix}.${targetDeviceNameHash}`, JSON.stringify(offer));
 			await new Promise(async (resolve) => {
 				this.eventMapedFun = async (key, newValue, url) => {
 					if (key === responceHash) {
@@ -192,11 +190,11 @@ export class YadorigiLocalSignalingConnector {
 		}
 	}
 	createOnSaveEventListenerPeer(targetDeviceNameHash) {
-		console.log('--createOnSaveEventListenerPeer--1----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
+		console.log(`--createOnSaveEventListenerPeer--1----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
 		if (this.eventMapedFun) {
 			return this.eventMapedFun;
 		}
-		console.log('--createOnSaveEventListenerPeer--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:' + targetDeviceNameHash);
+		console.log(`--createOnSaveEventListenerPeer--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
 		const func = async (key, newValue, url) => {};
 		// getAnswer
 		return func;
@@ -224,27 +222,27 @@ export class YadorigiLocalSignalingConnector {
 		return offerFile;
 	}
 	async createAnswer(targetDeviceNameHash, offerData) {
-		this.peerMapAtHub;
-		console.log('--createAnswer--0----------YadorigiLocalSignalzer--------------------------------------offerData:' + offerData.sdp);
+		// this.peerMapAtHub;
+		console.log(`--createAnswer--0----------YadorigiLocalSignalzer--------------------------------------offerData:${offerData.sdp}`);
 		const answerSdp = await this.answer(targetDeviceNameHash, typeof offerData.sdp === 'object' ? offerData.sdp.sdp : offerData.sdp);
-		console.log('--createAnswer--1----------YadorigiLocalSignalzer--------------------------------------offerData:' + offerData);
+		console.log(`--createAnswer--1----------YadorigiLocalSignalzer--------------------------------------offerData:${offerData}`);
 		const imageList = offerData.imageList;
-		console.log('--createAnswer--2----------YadorigiLocalSignalzer--------------------------------------offerData:' + offerData);
+		console.log(`--createAnswer--2----------YadorigiLocalSignalzer--------------------------------------offerData:${offerData}`);
 		const answerFile = await this.YadorigiFileProsessor.buildAnswer(this.passphraseText, imageList, this.deviceName, answerSdp, this.userId, this.groupName, offerData.sdp, 30);
-		console.log('--createAnswer--3----------YadorigiLocalSignalzer--------------------------------------offerData:' + offerData);
+		console.log(`--createAnswer--3----------YadorigiLocalSignalzer--------------------------------------offerData:${offerData}`);
 		return answerFile;
 	}
 	async parseFile(dataBase64url, offerSdp) {
 		if (!dataBase64url) {
 			return null;
 		}
-		console.log('parseFile A dataBase64url:' + dataBase64url);
-		console.log('parseFile A offerSdp:' + offerSdp);
+		console.log(`parseFile A dataBase64url:${dataBase64url}`);
+		console.log(`parseFile A offerSdp:${offerSdp}`);
 		const parsed = await this.YadorigiFileProsessor.parse(this.passphraseText, dataBase64url, !offerSdp, offerSdp);
-		console.log('parseFile B parsed:' + parsed);
+		console.log(`parseFile B parsed:${parsed}`);
 		console.log(parsed);
 		if (parsed && parsed.sdp) {
-			console.log('parseFile parsed.sdp:' + parsed.sdp);
+			console.log(`parseFile parsed.sdp:${parsed.sdp}`);
 			return parsed;
 		}
 		return null;
@@ -266,7 +264,7 @@ export class YadorigiLocalSignalingConnector {
 		});
 		return await webRTCConnecter.answer(sdp);
 	}
-	async connect(sdp) {
-		return await this.WebRTCConnecter.connect(sdp);
-	}
+	// async connect(sdp) {
+	// 	return await this.WebRTCConnecter.connect(sdp);
+	// }
 }

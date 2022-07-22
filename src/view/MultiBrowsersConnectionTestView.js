@@ -1,7 +1,9 @@
-import { ViewUtil, h1, h2, div, hr, SPAN, A, BUTTON, TEXTAREA, INPUT } from './util/ViewUtil';
-import { BookMarkBuilder } from './util/BookMarkBuilder';
+import { ViewUtil, div, hr, SPAN, BUTTON, TEXTAREA, INPUT } from './util/ViewUtil';
+// import { BookMarkBuilder } from './util/BookMarkBuilder';
 import { MultiBrowsersConnectionTestService } from './service/MultiBrowsersConnectionTestService';
-import { TestClass } from './test/TestClass';
+import { TestClass2 } from './test/TestClass2';
+import { SERVER_URL } from './test/TEST_SETTING.js';
+// import { TestClass } from './test/TestClass';
 const v = ViewUtil;
 export class MultiBrowsersConnectionTestView {
 	constructor(service) {
@@ -13,10 +15,11 @@ export class MultiBrowsersConnectionTestView {
 		const row = v.add(frame, div, {}, { margin: '10px' });
 		const col2 = v.add(row, div, {}, { margin: '10px' });
 
-		const button = v.add(frame, BUTTON, { text: 'test1' });
+		const button = v.add(frame, BUTTON, { text: 'test1a' });
+		const button2 = v.add(frame, BUTTON, { text: 'test2a' });
 		const cel1a = v.add(col2, div, {}, { margin: '10px' });
 		v.add(cel1a, SPAN, { text: 'serverUrl:' });
-		const serverUrl = v.add(cel1a, INPUT, { value: 'https://script.google.com/macros/s/AKfycbyEIu-LGf6EuywyQnEq41Tf21tU0iB3DCDkPBygQkukJEVe3Zo/exec' });
+		const serverUrl = v.add(cel1a, INPUT, { value: SERVER_URL });
 		const cel1 = v.add(col2, div, {}, { margin: '10px' });
 		v.add(cel1, SPAN, { text: 'groupId:' });
 		const groupId = v.add(cel1, INPUT, { value: 'a1' });
@@ -38,14 +41,15 @@ export class MultiBrowsersConnectionTestView {
 		const cel5 = v.add(col2, div, {}, { margin: '10px' });
 		v.add(cel5, SPAN, { text: 'output' });
 		const textareaOut = v.add(cel5, TEXTAREA, { text: 'alert("Yadorigi")' });
-		const col1 = v.add(row, div, {}, { margin: '10px' });
+		// const col1 = v.add(row, div, {}, { margin: '10px' });
 		v.setOnClick(button, this.getTest1CallBack({ serverUrl, groupId, userId, pass, deviceName, targetDeviceName }, textareaIn, textareaOut));
+		v.setOnClick(button2, this.getTest2CallBack({ serverUrl, groupId, userId, pass, deviceName, targetDeviceName }, textareaIn, textareaOut));
 		body.appendChild(frame);
 	}
 	getTest1CallBack(dataInputs, textareaIn, textareaOut) {
 		return async () => {
 			const data = {};
-			for (let key in dataInputs) {
+			for (const key in dataInputs) {
 				const elm = dataInputs[key];
 				data[key] = elm.value;
 			}
@@ -60,8 +64,20 @@ export class MultiBrowsersConnectionTestView {
 			// alert('aaaa' + JSON.stringify(data));
 		};
 	}
+	getTest2CallBack() {
+		return async () => {
+			const hash = location.hash;
+			alert(`test2!!${hash}`);
+			if (hash) {
+				TestClass2.TestCall();
+			}
+		};
+	}
 	getConvertBookmarkletCallback(ancker) {
-		return async (event) => {};
+		console.log(ancker);
+		return async (event) => {
+			console.log(event);
+		};
 	}
 	setSendEventListener(elm) {
 		elm.addEventListener('input', (event) => {
@@ -70,12 +86,12 @@ export class MultiBrowsersConnectionTestView {
 		});
 	}
 	send(event) {
-		MultiBrowsersConnectionTestService.send(data);
+		MultiBrowsersConnectionTestService.send(event);
 	}
 	getCallBack(elm, key = '') {
 		return (event) => {
-			console.log(event);
-			elm.value = elm.value + '\n' + event;
+			console.log(`event + ' ' + ${key}`);
+			elm.value = `${elm.value}+ '\n' + ${event}`;
 		};
 	}
 }

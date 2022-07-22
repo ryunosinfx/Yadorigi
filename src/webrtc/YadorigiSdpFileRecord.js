@@ -1,6 +1,6 @@
 import { TimeUtil } from '../util/TimeUtil';
 import { Hasher } from '../util/Hasher';
-import { Base64Util } from '../util/Base64Util';
+// import { Base64Util } from '../util/Base64Util';
 const expireSpan = 24 * 60 * 60 * 1000;
 
 export class YadorigiSdpFileRecord {
@@ -42,7 +42,7 @@ export class YadorigiSdpFileRecord {
 		const userIdHash = await Hasher.sha512(userId); //64
 		const groupNameHash = await Hasher.sha512(groupName); //64
 		const senderDeviceNameHash = await Hasher.sha512(senderDeviceName); //64
-		const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + expireTime + '.' + (isOffer ? 'offer' : 'ans');
+		const fileName = `${groupNameHash}.${userIdHash}.${senderDeviceNameHash}.${expireTime}.${isOffer ? 'offer' : 'ans'}`;
 		return fileName;
 	}
 	static createOfferFileNameRegex(groupNameHash, userIdHash, senderDeviceNameHash) {
@@ -54,19 +54,19 @@ export class YadorigiSdpFileRecord {
 	static createFileNameRegex(groupNameHash, userIdHash, senderDeviceNameHash, isOffer = true) {
 		//ユーザーIDのハッシュとデバイス名ハッシュをキー
 		//512 25612864
-		const fileNameRegex = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.[0-9]+.' + (isOffer ? 'offer' : 'ans');
+		const fileNameRegex = `${groupNameHash}.${userIdHash}.${senderDeviceNameHash}.[0-9]+.${isOffer ? 'offer' : 'ans'}`;
 		return new RegExp(fileNameRegex);
 	}
 	static parseFromFileName(fileName) {
 		const splited = fileName.split('.');
-		console.log('YadorigiSdpFileRecord splited:' + splited + '/' + splited.length);
+		console.log(`YadorigiSdpFileRecord splited:${splited}/${splited.length}`);
 		if (splited.length === 5) {
 			const parsed = {
 				groupNameHash: splited[0],
 				userIdHash: splited[1],
 				senderDeviceNameHash: splited[2],
 				time: splited[3],
-				isOffer: splited[4] === 'offer' ? true : splited[4] === 'ans' ? false : null
+				isOffer: splited[4] === 'offer' ? true : splited[4] === 'ans' ? false : null,
 			};
 			if (parsed.isOffer === null) {
 				return null;

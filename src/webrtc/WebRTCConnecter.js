@@ -34,7 +34,7 @@ export class WebRTCConnecter {
 			this.WebRTCPeer.onError = this.onErrorCallBack;
 			this.isOpend = true;
 		};
-		this.WebRTCPeerAnswer.onOpen = () => {
+		this.WebRTCPeerAnswer.onOpen = (event) => {
 			if (this.WebRTCPeerOffer.isOpend) {
 				this.selectActiveConnection();
 			} else {
