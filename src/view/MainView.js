@@ -4,6 +4,7 @@ import { BookMarkBuilder } from './util/BookMarkBuilder.js';
 import { Logger } from '../util/Logger.js';
 import { TestClass } from './test/TestClass.js';
 import { TestClass2 } from './test/TestClass2.js';
+import { TestClass3 } from './test/TestClass3.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
@@ -21,7 +22,55 @@ export class MainView {
 		const col2 = ViewUtil.add(row, 'div', {}, { margin: '10px' });
 
 		const ancker = ViewUtil.add(col1, 'a', { text: 'Yadorigi Bookmarklet! bookmark me!' });
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE' });
+		const tc3 = new TestClass3();
+
+		const row1 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(row1, 'h4', { text: 'offerSDP' });
+		const col11 = ViewUtil.add(row1, 'div', {}, { margin: '10px' });
+		const buttonMakeOffer = ViewUtil.add(col11, 'button', { text: 'MakeOffer' });
+
+		const col12 = ViewUtil.add(row1, 'div', {}, { margin: '10px' });
+		ViewUtil.setOnClick(buttonMakeOffer, async () => {
+			col12.textContent = JSON.stringify(await tc3.makeOffer());
+		});
+		const row2 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(row2, 'h4', { text: 'answerSDP' });
+		const col21 = ViewUtil.add(row2, 'div', {}, { margin: '10px' });
+		const buttonMakeAnswer = ViewUtil.add(col21, 'button', { text: 'MakeAnswer' });
+		const col22 = ViewUtil.add(row2, 'div', {}, { margin: '10px' });
+		const textareaAns = ViewUtil.add(col22, 'textarea', { text: 'set offer' });
+		const col23 = ViewUtil.add(row2, 'div', {}, { margin: '10px' });
+		ViewUtil.setOnClick(buttonMakeAnswer, async () => {
+			col23.textContent = JSON.stringify(await tc3.makeAnswer(textareaAns.value));
+		});
+		const row3 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(row3, 'h4', { text: 'connect' });
+		const col30 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const buttonCoonect = ViewUtil.add(col30, 'button', { text: 'Connect' });
+		const col301 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const textareaCoonect = ViewUtil.add(col301, 'textarea', { text: 'set answer' });
+		const col303 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		ViewUtil.setOnClick(buttonCoonect, async () => {
+			col303.textContent = JSON.stringify(await tc3.connect(textareaCoonect.value));
+		});
+		const col31 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const buttonSend = ViewUtil.add(col31, 'button', { text: 'send' });
+		const col32 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const textareaMsg = ViewUtil.add(col32, 'textarea', { text: 'set msg' });
+		ViewUtil.setOnClick(buttonSend, async () => {
+			await tc3.sendMessage(textareaMsg.value);
+		});
+		const col33 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		col33.textContent = '--NO-MSG--';
+		tc3.setOnMessage(col33);
+
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Auto Hand Shake' });
 		const button = ViewUtil.add(frame, 'button', { text: 'test1x' });
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Auto Hand Shake' });
 		const textarea = ViewUtil.add(col2, 'textarea', { text: 'alert("Yadorigi")' });
 		const callback = this.getConvertBookmarkletCallback(ancker);
 		ViewUtil.setOnInput(textarea, callback);
@@ -33,8 +82,6 @@ export class MainView {
 		const logArea = ViewUtil.add(frame, 'div', { text: '' });
 		const logger = new Logger(logArea);
 		ViewUtil.setOnClick(button2, this.getTest2CallBack(logger));
-		console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa');
-		console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
 		const body = document.getElementsByTagName('body')[0];
 		body.appendChild(frame);
 		this.MultiBrowsersConnectionTestView.build();
