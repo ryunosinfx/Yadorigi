@@ -29,6 +29,7 @@ export class WebRTCConnecter {
 				this.onOpenCallBack(event);
 				this.WebRTCPeer = this.WebRTCPeerOffer;
 			}
+			this.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;
@@ -41,12 +42,20 @@ export class WebRTCConnecter {
 				this.onOpenCallBack(event);
 				this.WebRTCPeer = this.WebRTCPeerAnswer;
 			}
+			this.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCPeerAnswer--------------------------------------');
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;
 			this.isOpend = true;
 		};
 		return result;
+	}
+
+	async getOfferSdp() {
+		if (await this.init()) {
+			return this.getSdp();
+		}
+		return '';
 	}
 	selectActiveConnection() {
 		const hashList = [];

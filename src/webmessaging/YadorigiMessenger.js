@@ -25,13 +25,13 @@ export class YadorigiMessenger {
 	async post(msg) {
 		const current = Date.now();
 		const encrypted = await Cryptor.encodeStrAES256GCM(msg, this.key);
-		const hash = await Hasher.sha512(encrypted + '/' + current);
+		const hash = await Hasher.sha512(`${encrypted}/${current}`);
 		this.ms.send({ encrypted, hash, current });
 		return this.addQueue(hash);
 	}
 	addQueue(hash) {
-		return new Promise(resolve => {
-			const task = data => {
+		return new Promise((resolve) => {
+			const task = (data) => {
 				resolve(data);
 				delete taskMap[hash];
 			};
@@ -43,7 +43,7 @@ export class YadorigiMessenger {
 		});
 	}
 	getCallBack() {
-		return data => {
+		return (data) => {
 			this.onMessage(data);
 		};
 	}
@@ -57,11 +57,11 @@ export class YadorigiMessenger {
 	async decode(msg) {
 		const current = Date.noe();
 		try {
-			let data = typeof msg === 'string' ? JSON.parse(msg) : msg;
-			if (!data || !data.encrypted || !data.hash || isNaN((data.current + '') * 1) || data.current - current > 1000) {
+			const data = typeof msg === 'string' ? JSON.parse(msg) : msg;
+			if (!data || !data.encrypted || !data.hash || isNaN(`${data.current}` * 1) || data.current - current > 1000) {
 				return false;
 			}
-			const hash = await Hasher.sha512(encrypted + '/' + current);
+			const hash = await Hasher.sha512(`${data.encrypted}/${current}`);
 			if (hash !== data.hash) {
 				return false;
 			}

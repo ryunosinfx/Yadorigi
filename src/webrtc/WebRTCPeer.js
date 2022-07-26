@@ -6,6 +6,7 @@ export class WebRTCPeer {
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
 			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
+			// const peer = new RTCPeerConnection(null, { optional: [{ RtpDataChannels: true }] });
 			const peer = new RTCPeerConnection({});
 			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
@@ -56,9 +57,11 @@ export class WebRTCPeer {
 				}
 			};
 			peer.ondatachannel = (evt) => {
+				console.warn(`--ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
 				this.dataChannelSetup(evt.channel);
+				console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
-			console.warn('--prepareNewConnection--2----------WebRTCPeer--------------------------------------');
+			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
 				peer.createDataChannel(`chat${Date.now()}`);
 			}
@@ -104,7 +107,6 @@ export class WebRTCPeer {
 		console.log(`---sending sdp ---${sessionDescription.sdp}`);
 	}
 	async makeOffer() {
-		console.log('--makeOffer--0----------WebRTCPeer--------------------------------------');
 		console.log('--makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
 		console.log('--makeOffer--2----------WebRTCPeer--------------------------------------');
