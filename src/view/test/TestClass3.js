@@ -20,6 +20,17 @@ export class TestClass3 {
 		console.log(sdp);
 		return await this.w.connect(sdp.sdp);
 	}
+	setOnCandidates(elm) {
+		this.w.setOnCandidates((candidates) => {
+			const msg = JSON.stringify(candidates);
+			console.log(`setOnCandidates msg:${msg}`);
+			elm.textContent = msg;
+			console.log(msg);
+		});
+	}
+	setCandidates(candidatesInput) {
+		this.w.setCandidates(candidatesInput);
+	}
 	setOnMessage(elm) {
 		this.w.setOnMessage((msg) => {
 			console.log(`setOnMessage msg:${msg}`);

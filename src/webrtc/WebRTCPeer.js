@@ -2,6 +2,7 @@ export class WebRTCPeer {
 	constructor() {
 		this.peer = null;
 		this.isOpend = false;
+		this.candidates = [];
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
@@ -22,6 +23,7 @@ export class WebRTCPeer {
 			peer.onicecandidate = (evt) => {
 				if (evt.candidate) {
 					console.log(evt.candidate);
+					this.candidates.push(evt.candidate);
 				} else {
 					console.log('-1--onicecandidate--- empty ice event');
 					this.sendSdp(peer.localDescription);
@@ -63,7 +65,8 @@ export class WebRTCPeer {
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
-				peer.createDataChannel(`chat${Date.now()}`);
+				const dc = peer.createDataChannel(`chat${Date.now()}`);
+				this.dataChannelSetup(dc);
 			}
 		});
 	}
@@ -153,7 +156,7 @@ export class WebRTCPeer {
 	async setAnswer(sdp) {
 		const answer = new RTCSessionDescription({
 			type: 'answer',
-			sdp: sdp,
+			sdp: typeof sdp === 'object' ? JSON.parse(sdp) : sdp,
 		});
 		if (!this.peer) {
 			console.error('peerConnection NOT exist!');
@@ -182,5 +185,16 @@ export class WebRTCPeer {
 			}
 		}
 		console.log('peerConnection is closed.');
+	}
+	getCandidates() {
+		return this.candidates;
+	}
+	async setCandidates(candidates) {
+		for (const candidate of candidates) {
+			console.log('receiverCandidatesStr adding candidate', candidate);
+			this.peer.addIceCandidate(candidate).catch((e) => {
+				console.eror('receiverCandidatesStr addIceCandidate error', e);
+			});
+		}
 	}
 }

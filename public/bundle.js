@@ -11089,7 +11089,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class ProcessUtil {
 	static wait(waitMs = 1000) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve();
 			}, waitMs);
@@ -11097,7 +11097,7 @@ class ProcessUtil {
 	}
 	static async waitRandom() {
 		const ms = _TimeUtil__WEBPACK_IMPORTED_MODULE_0__.TimeUtil.random();
-		console.log('waitRandom ms:' + ms);
+		console.log(`waitRandom ms:${ms}`);
 		await ProcessUtil.wait(ms + 1000);
 	}
 }
@@ -11279,9 +11279,6 @@ class MainView {
 		const col22 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row2, 'div', {}, { margin: '10px' });
 		const textareaAns = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col22, 'textarea', { text: 'set offer' });
 		const col23 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row2, 'div', {}, { margin: '10px' });
-		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.setOnClick(buttonMakeAnswer, async () => {
-			col23.textContent = JSON.stringify(await tc3.makeAnswer(textareaAns.value));
-		});
 		const row3 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(frame, 'div', {}, { margin: '10px' });
 		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'h4', { text: 'connect' });
 		const col30 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
@@ -11289,19 +11286,35 @@ class MainView {
 		const col301 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
 		const textareaCoonect = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col301, 'textarea', { text: 'set answer' });
 		const col303 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const col32 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const col31 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const buttonSetCandidates = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col31, 'button', { text: 'setCandidates' });
+		const col33 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const textareaCandidates = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col33, 'textarea', { text: 'set candidates' });
+
+		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.setOnClick(buttonMakeAnswer, async () => {
+			col23.textContent = JSON.stringify(await tc3.makeAnswer(textareaAns.value));
+			tc3.setOnCandidates(col32);
+		});
 		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.setOnClick(buttonCoonect, async () => {
 			col303.textContent = JSON.stringify(await tc3.connect(textareaCoonect.value));
+			tc3.setOnCandidates(col32);
 		});
-		const col31 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		const buttonSend = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col31, 'button', { text: 'send' });
-		const col32 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		const textareaMsg = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col32, 'textarea', { text: 'set msg' });
+		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.setOnClick(buttonSetCandidates, async () => {
+			col303.textContent = JSON.stringify(await tc3.setCandidates(textareaCandidates.value));
+		});
+		const row4 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row4, 'h4', { text: 'send' });
+		const col41 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		const buttonSend = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col41, 'button', { text: 'send' });
+		const col42 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		const textareaMsg = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(col42, 'textarea', { text: 'set msg' });
 		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.setOnClick(buttonSend, async () => {
 			await tc3.sendMessage(textareaMsg.value);
 		});
-		const col33 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		col33.textContent = '--NO-MSG--';
-		tc3.setOnMessage(col33);
+		const col44 = _util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		col44.textContent = '--NO-MSG--';
+		tc3.setOnMessage(col44);
 
 		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(frame, 'hr');
 		_util_ViewUtil_js__WEBPACK_IMPORTED_MODULE_0__.ViewUtil.add(frame, 'h2', { text: 'Test Auto Hand Shake' });
@@ -11727,6 +11740,17 @@ class TestClass3 {
 		console.log(sdp);
 		return await this.w.connect(sdp.sdp);
 	}
+	setOnCandidates(elm) {
+		this.w.setOnCandidates((candidates) => {
+			const msg = JSON.stringify(candidates);
+			console.log(`setOnCandidates msg:${msg}`);
+			elm.textContent = msg;
+			console.log(msg);
+		});
+	}
+	setCandidates(candidatesInput) {
+		this.w.setCandidates(candidatesInput);
+	}
 	setOnMessage(elm) {
 		this.w.setOnMessage((msg) => {
 			console.log(`setOnMessage msg:${msg}`);
@@ -11982,6 +12006,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WebRTCPeer */ "./src/webrtc/WebRTCPeer.js");
 /* harmony import */ var _util_Hasher__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/Hasher */ "./src/util/Hasher.js");
+/* harmony import */ var _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/ProcessUtil */ "./src/util/ProcessUtil.js");
+
 
 
 class WebRTCConnecter {
@@ -11989,6 +12015,7 @@ class WebRTCConnecter {
 		this.WebRTCPeerOffer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer();
 		this.WebRTCPeerAnswer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer();
 		this.WebRTCPeer = null;
+		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
 		this.onOpenCallBack = () => {};
 		this.onCloseCallBack = () => {};
@@ -12087,12 +12114,31 @@ class WebRTCConnecter {
 	async answer(sdp) {
 		const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerAnswer;
+		this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
 		return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 	}
 	async connect(sdp) {
 		const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerOffer;
+		this.WebRTCPeerCurrent = this.WebRTCPeerOffer;
 		return await this.WebRTCPeerOffer.setAnswer(sdp);
+	}
+	async setOnCandidates(func) {
+		let count = 0;
+		while (count < 100) {
+			await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_2__.ProcessUtil.wait(20 * count);
+			const candidates = this.WebRTCPeerCurrent.getCandidates();
+			console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
+			if (Array.isArray(candidates) && candidates.length > 0) {
+				func(candidates);
+				break;
+			}
+			count += 1;
+		}
+	}
+	async setCandidates(candidatesInput) {
+		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
+		this.WebRTCPeerCurrent.setCandidates(candidates);
 	}
 	close() {
 		this.WebRTCPeer.close();
@@ -12117,6 +12163,7 @@ class WebRTCPeer {
 	constructor() {
 		this.peer = null;
 		this.isOpend = false;
+		this.candidates = [];
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
@@ -12137,6 +12184,7 @@ class WebRTCPeer {
 			peer.onicecandidate = (evt) => {
 				if (evt.candidate) {
 					console.log(evt.candidate);
+					this.candidates.push(evt.candidate);
 				} else {
 					console.log('-1--onicecandidate--- empty ice event');
 					this.sendSdp(peer.localDescription);
@@ -12178,7 +12226,8 @@ class WebRTCPeer {
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
-				peer.createDataChannel(`chat${Date.now()}`);
+				const dc = peer.createDataChannel(`chat${Date.now()}`);
+				this.dataChannelSetup(dc);
 			}
 		});
 	}
@@ -12268,7 +12317,7 @@ class WebRTCPeer {
 	async setAnswer(sdp) {
 		const answer = new RTCSessionDescription({
 			type: 'answer',
-			sdp: sdp,
+			sdp: typeof sdp === 'object' ? JSON.parse(sdp) : sdp,
 		});
 		if (!this.peer) {
 			console.error('peerConnection NOT exist!');
@@ -12297,6 +12346,17 @@ class WebRTCPeer {
 			}
 		}
 		console.log('peerConnection is closed.');
+	}
+	getCandidates() {
+		return this.candidates;
+	}
+	async setCandidates(candidates) {
+		for (const candidate of candidates) {
+			console.log('receiverCandidatesStr adding candidate', candidate);
+			this.peer.addIceCandidate(candidate).catch((e) => {
+				console.eror('receiverCandidatesStr addIceCandidate error', e);
+			});
+		}
 	}
 }
 

@@ -1,10 +1,12 @@
 import { WebRTCPeer } from './WebRTCPeer';
 import { Hasher } from '../util/Hasher';
+import { ProcessUtil } from '../util/ProcessUtil';
 export class WebRTCConnecter {
 	constructor(logger = console) {
 		this.WebRTCPeerOffer = new WebRTCPeer();
 		this.WebRTCPeerAnswer = new WebRTCPeer();
 		this.WebRTCPeer = null;
+		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
 		this.onOpenCallBack = () => {};
 		this.onCloseCallBack = () => {};
@@ -103,12 +105,31 @@ export class WebRTCConnecter {
 	async answer(sdp) {
 		const hash = await Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerAnswer;
+		this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
 		return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 	}
 	async connect(sdp) {
 		const hash = await Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerOffer;
+		this.WebRTCPeerCurrent = this.WebRTCPeerOffer;
 		return await this.WebRTCPeerOffer.setAnswer(sdp);
+	}
+	async setOnCandidates(func) {
+		let count = 0;
+		while (count < 100) {
+			await ProcessUtil.wait(20 * count);
+			const candidates = this.WebRTCPeerCurrent.getCandidates();
+			console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
+			if (Array.isArray(candidates) && candidates.length > 0) {
+				func(candidates);
+				break;
+			}
+			count += 1;
+		}
+	}
+	async setCandidates(candidatesInput) {
+		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
+		this.WebRTCPeerCurrent.setCandidates(candidates);
 	}
 	close() {
 		this.WebRTCPeer.close();

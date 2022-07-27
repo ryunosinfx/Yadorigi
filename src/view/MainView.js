@@ -42,9 +42,6 @@ export class MainView {
 		const col22 = ViewUtil.add(row2, 'div', {}, { margin: '10px' });
 		const textareaAns = ViewUtil.add(col22, 'textarea', { text: 'set offer' });
 		const col23 = ViewUtil.add(row2, 'div', {}, { margin: '10px' });
-		ViewUtil.setOnClick(buttonMakeAnswer, async () => {
-			col23.textContent = JSON.stringify(await tc3.makeAnswer(textareaAns.value));
-		});
 		const row3 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
 		ViewUtil.add(row3, 'h4', { text: 'connect' });
 		const col30 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
@@ -52,19 +49,35 @@ export class MainView {
 		const col301 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
 		const textareaCoonect = ViewUtil.add(col301, 'textarea', { text: 'set answer' });
 		const col303 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const col32 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const col31 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const buttonSetCandidates = ViewUtil.add(col31, 'button', { text: 'setCandidates' });
+		const col33 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
+		const textareaCandidates = ViewUtil.add(col33, 'textarea', { text: 'set candidates' });
+
+		ViewUtil.setOnClick(buttonMakeAnswer, async () => {
+			col23.textContent = JSON.stringify(await tc3.makeAnswer(textareaAns.value));
+			tc3.setOnCandidates(col32);
+		});
 		ViewUtil.setOnClick(buttonCoonect, async () => {
 			col303.textContent = JSON.stringify(await tc3.connect(textareaCoonect.value));
+			tc3.setOnCandidates(col32);
 		});
-		const col31 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		const buttonSend = ViewUtil.add(col31, 'button', { text: 'send' });
-		const col32 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		const textareaMsg = ViewUtil.add(col32, 'textarea', { text: 'set msg' });
+		ViewUtil.setOnClick(buttonSetCandidates, async () => {
+			col303.textContent = JSON.stringify(await tc3.setCandidates(textareaCandidates.value));
+		});
+		const row4 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(row4, 'h4', { text: 'send' });
+		const col41 = ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		const buttonSend = ViewUtil.add(col41, 'button', { text: 'send' });
+		const col42 = ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		const textareaMsg = ViewUtil.add(col42, 'textarea', { text: 'set msg' });
 		ViewUtil.setOnClick(buttonSend, async () => {
 			await tc3.sendMessage(textareaMsg.value);
 		});
-		const col33 = ViewUtil.add(row3, 'div', {}, { margin: '10px' });
-		col33.textContent = '--NO-MSG--';
-		tc3.setOnMessage(col33);
+		const col44 = ViewUtil.add(row4, 'div', {}, { margin: '10px' });
+		col44.textContent = '--NO-MSG--';
+		tc3.setOnMessage(col44);
 
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Auto Hand Shake' });
