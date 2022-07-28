@@ -12062,6 +12062,8 @@ class WebRTCConnecter {
 		};
 		this.WebRTCPeerAnswer.onOpen = onOpenAtAnswer;
 		this.WebRTCPeerOffer.onOpen = onOpenAtOffer;
+		this.l.log(`--init--3----------WebRTCConnecter--------------------------------------WebRTCPeerOffer:${this.WebRTCPeerOffer.name}`);
+		this.l.log(`--init--4----------WebRTCConnecter--------------------------------------WebRTCPeerAnswer:${this.WebRTCPeerAnswer.name}`);
 		return result;
 	}
 
@@ -12102,13 +12104,13 @@ class WebRTCConnecter {
 	}
 	setOnMessage(callback) {
 		this.onMessageCallBack = (msg) => {
-			console.warn(`--onMessageCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
+			console.warn(`--onMessageCallBack--1----------WebRTCConnecter--------------------------------------msg:${msg}`);
 			callback(msg);
 		};
 	}
 	setOnError(callback) {
 		this.onErrorCallBack = (error) => {
-			console.warn(`--onErrorCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
+			console.warn(`--onErrorCallBack--1----------WebRTCConnecter--------------------------------------error:${error}`);
 			callback(error);
 		};
 	}
@@ -12232,8 +12234,8 @@ class WebRTCPeer {
 			};
 			peer.ondatachannel = (evt) => {
 				console.warn(`--ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
-				// this.dataChannelSetup(evt.channel);
-				// console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
+				this.dataChannelSetup(evt.channel);
+				console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
