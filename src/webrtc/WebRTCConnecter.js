@@ -44,7 +44,7 @@ export class WebRTCConnecter {
 				this.onOpenCallBack(event);
 				this.WebRTCPeer = this.WebRTCPeerAnswer;
 			}
-			this.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCPeerAnswer--------------------------------------');
+			this.l.log('--onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;

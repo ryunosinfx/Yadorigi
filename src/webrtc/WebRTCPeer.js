@@ -1,3 +1,5 @@
+import { ProcessUtil } from '../util/ProcessUtil';
+
 export class WebRTCPeer {
 	constructor() {
 		this.peer = null;
@@ -126,10 +128,13 @@ export class WebRTCPeer {
 			return;
 		}
 		try {
-			const answer = await this.peer.createAnswer();
-			console.log('createAnswer() succsess in promise');
-			await this.peer.setLocalDescription(answer);
-			console.log('setLocalDescription() succsess in promise');
+			while (this.candidates.length < 1) {
+				const answer = await this.peer.createAnswer();
+				console.log('createAnswer() succsess in promise');
+				await this.peer.setLocalDescription(answer);
+				console.log('setLocalDescription() succsess in promise');
+				await ProcessUtil.wait(Math.floor(Math.random() * 1000));
+			}
 			return this.peer.localDescription;
 		} catch (err) {
 			console.error(err);

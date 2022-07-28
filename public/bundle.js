@@ -12053,7 +12053,7 @@ class WebRTCConnecter {
 				this.onOpenCallBack(event);
 				this.WebRTCPeer = this.WebRTCPeerAnswer;
 			}
-			this.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCPeerAnswer--------------------------------------');
+			this.l.log('--onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
 			this.WebRTCPeer.onClose = this.onCloseCallBack;
 			this.WebRTCPeer.onMessage = this.onMessageCallBack;
 			this.WebRTCPeer.onError = this.onErrorCallBack;
@@ -12159,6 +12159,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "WebRTCPeer": () => (/* binding */ WebRTCPeer)
 /* harmony export */ });
+/* harmony import */ var _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util/ProcessUtil */ "./src/util/ProcessUtil.js");
+
+
 class WebRTCPeer {
 	constructor() {
 		this.peer = null;
@@ -12287,10 +12290,13 @@ class WebRTCPeer {
 			return;
 		}
 		try {
-			const answer = await this.peer.createAnswer();
-			console.log('createAnswer() succsess in promise');
-			await this.peer.setLocalDescription(answer);
-			console.log('setLocalDescription() succsess in promise');
+			while (this.candidates.length < 1) {
+				const answer = await this.peer.createAnswer();
+				console.log('createAnswer() succsess in promise');
+				await this.peer.setLocalDescription(answer);
+				console.log('setLocalDescription() succsess in promise');
+				await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_0__.ProcessUtil.wait(Math.floor(Math.random() * 1000));
+			}
 			return this.peer.localDescription;
 		} catch (err) {
 			console.error(err);
