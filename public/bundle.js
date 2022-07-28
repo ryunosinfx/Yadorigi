@@ -12226,21 +12226,25 @@ class WebRTCPeer {
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
-				const dc = peer.createDataChannel(`chat${Date.now()}`);
-				this.dataChannelSetup(dc);
+				peer.createDataChannel(`chat${Date.now()}`);
+				// this.dataChannelSetup(dc);
 			}
 		});
 	}
 	onOpen(event) {
+		console.log('WebRTCPeer.onOpen is not Overrided ');
 		console.log(event);
 	}
 	onError(error) {
+		console.log('WebRTCPeer.onError is not Overrided ');
 		console.log(error);
 	}
 	onMessage(msg) {
+		console.log('WebRTCPeer.onMessage is not Overrided ');
 		console.log(msg);
 	}
 	onClose() {
+		console.log('WebRTCPeer.onClose is not Overrided ');
 		console.log('close');
 	}
 	dataChannelSetup(dataChannel) {
@@ -12255,7 +12259,7 @@ class WebRTCPeer {
 		};
 
 		dataChannel.onopen = (event) => {
-			dataChannel.send('dataChannel Hello World!');
+			dataChannel.send('dataChannel Hello World! OPEN SUCCESS!');
 			this.isOpend = true;
 			this.onOpen(event);
 		};
