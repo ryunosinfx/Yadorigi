@@ -12323,12 +12323,12 @@ class WebRTCPeer {
 				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
 				console.warn(`setOfferAndAswer offer ${offer}`);
-				console.log('setRemoteDescription(answer) succsess in promise');
+				console.log(`setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
 				if (this.candidates.length < 1) {
 					return ans;
 				}
-				await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_0__.ProcessUtil.wait(Math.floor(Math.random() * 2000));
+				await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_0__.ProcessUtil.wait(Math.floor(Math.random() * 1000) + 1000);
 			}
 		} catch (err) {
 			console.error('setRemoteDescription(offer) ERROR: ', err);

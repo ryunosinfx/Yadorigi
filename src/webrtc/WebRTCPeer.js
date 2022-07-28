@@ -63,8 +63,8 @@ export class WebRTCPeer {
 			};
 			peer.ondatachannel = (evt) => {
 				console.warn(`--ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
-				// this.dataChannelSetup(evt.channel);
-				// console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
+				this.dataChannelSetup(evt.channel);
+				console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
@@ -154,12 +154,12 @@ export class WebRTCPeer {
 				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
 				console.warn(`setOfferAndAswer offer ${offer}`);
-				console.log('setRemoteDescription(answer) succsess in promise');
+				console.log(`setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
 				if (this.candidates.length < 1) {
 					return ans;
 				}
-				await ProcessUtil.wait(Math.floor(Math.random() * 2000));
+				await ProcessUtil.wait(Math.floor(Math.random() * 1000) + 1000);
 			}
 		} catch (err) {
 			console.error('setRemoteDescription(offer) ERROR: ', err);
