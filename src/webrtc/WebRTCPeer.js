@@ -128,13 +128,10 @@ export class WebRTCPeer {
 			return;
 		}
 		try {
-			while (this.candidates.length < 1) {
-				const answer = await this.peer.createAnswer();
-				console.log('createAnswer() succsess in promise');
-				await this.peer.setLocalDescription(answer);
-				console.log('setLocalDescription() succsess in promise');
-				await ProcessUtil.wait(Math.floor(Math.random() * 1000));
-			}
+			const answer = await this.peer.createAnswer();
+			console.log('createAnswer() succsess in promise');
+			await this.peer.setLocalDescription(answer);
+			console.log('setLocalDescription() succsess in promise');
 			return this.peer.localDescription;
 		} catch (err) {
 			console.error(err);
@@ -144,19 +141,25 @@ export class WebRTCPeer {
 		console.warn(`setOfferAndAswer sdp ${sdp}`);
 		console.warn(sdp);
 		try {
-			const offer = new RTCSessionDescription({
-				type: 'offer',
-				sdp: sdp,
-			});
-			if (this.peer) {
-				console.error('peerConnection alreay exist!');
+			while (this.candidates.length < 1) {
+				const offer = new RTCSessionDescription({
+					type: 'offer',
+					sdp: sdp,
+				});
+				if (this.peer) {
+					console.error('peerConnection alreay exist!');
+				}
+				this.peer = await this.prepareNewConnection(true);
+				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
+				await this.peer.setRemoteDescription(offer);
+				console.warn(`setOfferAndAswer offer ${offer}`);
+				console.log('setRemoteDescription(answer) succsess in promise');
+				const ans = await this.makeAnswer();
+				if (this.candidates.length < 1) {
+					return ans;
+				}
+				await ProcessUtil.wait(Math.floor(Math.random() * 2000));
 			}
-			this.peer = await this.prepareNewConnection(true);
-			console.warn(`setOfferAndAswer this.peer ${this.peer}`);
-			await this.peer.setRemoteDescription(offer);
-			console.warn(`setOfferAndAswer offer ${offer}`);
-			console.log('setRemoteDescription(answer) succsess in promise');
-			return await this.makeAnswer();
 		} catch (err) {
 			console.error('setRemoteDescription(offer) ERROR: ', err);
 		}
