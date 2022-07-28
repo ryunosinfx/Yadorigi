@@ -78,21 +78,25 @@ export class WebRTCConnecter {
 	}
 	setOnOpne(callback) {
 		this.onOpenCallBack = (event) => {
+			console.warn(`--onOpenCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
 			callback(event);
 		};
 	}
 	setOnClose(callback) {
 		this.onCloseCallBack = (event) => {
+			console.warn(`--onCloseCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
 			callback(event);
 		};
 	}
 	setOnMessage(callback) {
 		this.onMessageCallBack = (msg) => {
+			console.warn(`--onMessageCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
 			callback(msg);
 		};
 	}
 	setOnError(callback) {
 		this.onErrorCallBack = (error) => {
+			console.warn(`--onErrorCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
 			callback(error);
 		};
 	}
