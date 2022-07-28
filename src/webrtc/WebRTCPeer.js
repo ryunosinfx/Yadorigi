@@ -60,13 +60,13 @@ export class WebRTCPeer {
 			};
 			peer.ondatachannel = (evt) => {
 				console.warn(`--ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
-				this.dataChannelSetup(evt.channel);
-				console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
+				// this.dataChannelSetup(evt.channel);
+				// console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
 			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
-				peer.createDataChannel(`chat${Date.now()}`);
-				// this.dataChannelSetup(dc);
+				const dc = peer.createDataChannel(`chat${Date.now()}`);
+				this.dataChannelSetup(dc);
 			}
 		});
 	}
