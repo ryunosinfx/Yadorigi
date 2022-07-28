@@ -1,7 +1,8 @@
 import { ProcessUtil } from '../util/ProcessUtil';
 
 export class WebRTCPeer {
-	constructor() {
+	constructor(name) {
+		this.name = name;
 		this.peer = null;
 		this.isOpend = false;
 		this.candidates = [];
@@ -34,7 +35,7 @@ export class WebRTCPeer {
 
 			peer.onnegotiationneeded = async () => {
 				try {
-					console.log('-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
+					console.log(`-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
 					const offer = await peer.createOffer();
 					console.log('-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
 					await peer.setLocalDescription(offer);
@@ -73,19 +74,19 @@ export class WebRTCPeer {
 		});
 	}
 	onOpen(event) {
-		console.log('WebRTCPeer.onOpen is not Overrided ');
+		console.log(`WebRTCPeer.onOpen is not Overrided name:${this.name}`);
 		console.log(event);
 	}
 	onError(error) {
-		console.log('WebRTCPeer.onError is not Overrided ');
+		console.log(`WebRTCPeer.onError is not Overrided name:${this.name}`);
 		console.log(error);
 	}
 	onMessage(msg) {
-		console.log('WebRTCPeer.onMessage is not Overrided ');
+		console.log(`WebRTCPeer.onMessage is not Overrided name:${this.name}`);
 		console.log(msg);
 	}
 	onClose() {
-		console.log('WebRTCPeer.onClose is not Overrided ');
+		console.log(`WebRTCPeer.onClose is not Overrided name:${this.name}`);
 		console.log('close');
 	}
 	dataChannelSetup(dataChannel) {

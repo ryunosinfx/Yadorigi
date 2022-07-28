@@ -3,8 +3,8 @@ import { Hasher } from '../util/Hasher';
 import { ProcessUtil } from '../util/ProcessUtil';
 export class WebRTCConnecter {
 	constructor(logger = console) {
-		this.WebRTCPeerOffer = new WebRTCPeer();
-		this.WebRTCPeerAnswer = new WebRTCPeer();
+		this.WebRTCPeerOffer = new WebRTCPeer('OFFER');
+		this.WebRTCPeerAnswer = new WebRTCPeer('ANSWER');
 		this.WebRTCPeer = null;
 		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};

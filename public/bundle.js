@@ -12012,8 +12012,8 @@ __webpack_require__.r(__webpack_exports__);
 
 class WebRTCConnecter {
 	constructor(logger = console) {
-		this.WebRTCPeerOffer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer();
-		this.WebRTCPeerAnswer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer();
+		this.WebRTCPeerOffer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('OFFER');
+		this.WebRTCPeerAnswer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('ANSWER');
 		this.WebRTCPeer = null;
 		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
@@ -12167,7 +12167,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class WebRTCPeer {
-	constructor() {
+	constructor(name) {
+		this.name = name;
 		this.peer = null;
 		this.isOpend = false;
 		this.candidates = [];
@@ -12200,7 +12201,7 @@ class WebRTCPeer {
 
 			peer.onnegotiationneeded = async () => {
 				try {
-					console.log('-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
+					console.log(`-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
 					const offer = await peer.createOffer();
 					console.log('-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
 					await peer.setLocalDescription(offer);
@@ -12239,19 +12240,19 @@ class WebRTCPeer {
 		});
 	}
 	onOpen(event) {
-		console.log('WebRTCPeer.onOpen is not Overrided ');
+		console.log(`WebRTCPeer.onOpen is not Overrided name:${this.name}`);
 		console.log(event);
 	}
 	onError(error) {
-		console.log('WebRTCPeer.onError is not Overrided ');
+		console.log(`WebRTCPeer.onError is not Overrided name:${this.name}`);
 		console.log(error);
 	}
 	onMessage(msg) {
-		console.log('WebRTCPeer.onMessage is not Overrided ');
+		console.log(`WebRTCPeer.onMessage is not Overrided name:${this.name}`);
 		console.log(msg);
 	}
 	onClose() {
-		console.log('WebRTCPeer.onClose is not Overrided ');
+		console.log(`WebRTCPeer.onClose is not Overrided name:${this.name}`);
 		console.log('close');
 	}
 	dataChannelSetup(dataChannel) {
