@@ -12033,32 +12033,35 @@ class WebRTCConnecter {
 		this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
 		const result = await this.WebRTCPeerOffer.makeOffer();
 		this.l.log(`--init--2----------WebRTCConnecter--------------------------------------result:${result}`);
-		this.WebRTCPeerOffer.onOpen = (event) => {
-			if (this.WebRTCPeerAnswer.isOpend) {
-				this.selectActiveConnection();
+		const self = this;
+		const onOpenAtOffer = (event) => {
+			if (self.WebRTCPeerAnswer.isOpend) {
+				self.selectActiveConnection();
 			} else {
-				this.onOpenCallBack(event);
-				this.WebRTCPeer = this.WebRTCPeerOffer;
+				self.onOpenCallBack(event);
+				self.WebRTCPeer = self.WebRTCPeerOffer;
 			}
-			this.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
-			this.WebRTCPeer.onClose = this.onCloseCallBack;
-			this.WebRTCPeer.onMessage = this.onMessageCallBack;
-			this.WebRTCPeer.onError = this.onErrorCallBack;
-			this.isOpend = true;
+			self.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
+			self.WebRTCPeer.onClose = self.onCloseCallBack;
+			self.WebRTCPeer.onMessage = self.onMessageCallBack;
+			self.WebRTCPeer.onError = self.onErrorCallBack;
+			self.isOpend = true;
 		};
-		this.WebRTCPeerAnswer.onOpen = (event) => {
-			if (this.WebRTCPeerOffer.isOpend) {
-				this.selectActiveConnection();
+		const onOpenAtAnswer = (event) => {
+			if (self.WebRTCPeerOffer.isOpend) {
+				self.selectActiveConnection();
 			} else {
-				this.onOpenCallBack(event);
-				this.WebRTCPeer = this.WebRTCPeerAnswer;
+				self.onOpenCallBack(event);
+				self.WebRTCPeer = self.WebRTCPeerAnswer;
 			}
-			this.l.log('--onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
-			this.WebRTCPeer.onClose = this.onCloseCallBack;
-			this.WebRTCPeer.onMessage = this.onMessageCallBack;
-			this.WebRTCPeer.onError = this.onErrorCallBack;
-			this.isOpend = true;
+			self.l.log('--onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
+			self.WebRTCPeer.onClose = self.onCloseCallBack;
+			self.WebRTCPeer.onMessage = self.onMessageCallBack;
+			self.WebRTCPeer.onError = self.onErrorCallBack;
+			self.isOpend = true;
 		};
+		this.WebRTCPeerAnswer.onOpen = onOpenAtAnswer;
+		this.WebRTCPeerOffer.onOpen = onOpenAtOffer;
 		return result;
 	}
 
