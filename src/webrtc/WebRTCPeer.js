@@ -1,17 +1,18 @@
 import { ProcessUtil } from '../util/ProcessUtil';
 
 export class WebRTCPeer {
-	constructor(name) {
+	constructor(name, stunServers) {
 		this.name = name;
 		this.peer = null;
 		this.isOpend = false;
 		this.candidates = [];
+		this.config = { iceServers: stunServers };
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
 			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			// const peer = new RTCPeerConnection(null, { optional: [{ RtpDataChannels: true }] });
-			const peer = new RTCPeerConnection({});
+			const peer = new RTCPeerConnection(this.config);
 			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
 				console.log(`-- peer.ontrack()vevt:${evt}`);
@@ -178,7 +179,7 @@ export class WebRTCPeer {
 		try {
 			await this.peer.setRemoteDescription(answer);
 			console.log('setRemoteDescription(answer) succsess in promise');
-			alert('OpenSuccess!');
+			// alert('OpenSuccess!');
 			return true;
 		} catch (err) {
 			console.error('setRemoteDescription(answer) ERROR: ', err);

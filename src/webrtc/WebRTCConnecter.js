@@ -2,9 +2,16 @@ import { WebRTCPeer } from './WebRTCPeer';
 import { Hasher } from '../util/Hasher';
 import { ProcessUtil } from '../util/ProcessUtil';
 export class WebRTCConnecter {
-	constructor(logger = console) {
-		this.WebRTCPeerOffer = new WebRTCPeer('OFFER');
-		this.WebRTCPeerAnswer = new WebRTCPeer('ANSWER');
+	constructor(
+		logger = console,
+		stunServer = [
+			{
+				urls: 'stun:stun.l.google.com:19302',
+			},
+		]
+	) {
+		this.WebRTCPeerOffer = new WebRTCPeer('OFFER', stunServer);
+		this.WebRTCPeerAnswer = new WebRTCPeer('ANSWER', stunServer);
 		this.WebRTCPeer = null;
 		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
@@ -21,9 +28,9 @@ export class WebRTCConnecter {
 		this.l.log('--init--0----------WebRTCConnecter--------------------------------------');
 		this.WebRTCPeerOffer.close();
 		this.WebRTCPeerAnswer.close();
-		this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
+		// this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
 		const result = await this.WebRTCPeerOffer.makeOffer();
-		this.l.log(`--init--2----------WebRTCConnecter--------------------------------------result:${result}`);
+		this.l.log(`--init--1----------WebRTCConnecter--------------------------------------result:${result}`);
 		const self = this;
 		const onOpenAtOffer = (event) => {
 			if (self.WebRTCPeerAnswer.isOpend) {
@@ -119,11 +126,15 @@ export class WebRTCConnecter {
 			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 		}
 	}
-	async connect(sdp) {
+	async connect(sdp, func) {
 		const hash = await Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerOffer;
 		this.WebRTCPeerCurrent = this.WebRTCPeerOffer;
-		return await this.WebRTCPeerOffer.setAnswer(sdp);
+		const result = await this.WebRTCPeerOffer.setAnswer(sdp);
+		if (result && func) {
+			this.setOnCandidates(func);
+		}
+		return result;
 	}
 	async setOnCandidates(func) {
 		let count = 0;

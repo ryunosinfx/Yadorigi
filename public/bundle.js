@@ -12011,9 +12011,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class WebRTCConnecter {
-	constructor(logger = console) {
-		this.WebRTCPeerOffer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('OFFER');
-		this.WebRTCPeerAnswer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('ANSWER');
+	constructor(
+		logger = console,
+		stunServer = [
+			{
+				urls: 'stun:stun.l.google.com:19302',
+			},
+		]
+	) {
+		this.WebRTCPeerOffer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('OFFER', stunServer);
+		this.WebRTCPeerAnswer = new _WebRTCPeer__WEBPACK_IMPORTED_MODULE_0__.WebRTCPeer('ANSWER', stunServer);
 		this.WebRTCPeer = null;
 		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
@@ -12030,9 +12037,9 @@ class WebRTCConnecter {
 		this.l.log('--init--0----------WebRTCConnecter--------------------------------------');
 		this.WebRTCPeerOffer.close();
 		this.WebRTCPeerAnswer.close();
-		this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
+		// this.l.log('--init--1----------WebRTCConnecter--------------------------------------');
 		const result = await this.WebRTCPeerOffer.makeOffer();
-		this.l.log(`--init--2----------WebRTCConnecter--------------------------------------result:${result}`);
+		this.l.log(`--init--1----------WebRTCConnecter--------------------------------------result:${result}`);
 		const self = this;
 		const onOpenAtOffer = (event) => {
 			if (self.WebRTCPeerAnswer.isOpend) {
@@ -12128,11 +12135,15 @@ class WebRTCConnecter {
 			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 		}
 	}
-	async connect(sdp) {
+	async connect(sdp, func) {
 		const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
 		this.peerMap[hash] = this.WebRTCPeerOffer;
 		this.WebRTCPeerCurrent = this.WebRTCPeerOffer;
-		return await this.WebRTCPeerOffer.setAnswer(sdp);
+		const result = await this.WebRTCPeerOffer.setAnswer(sdp);
+		if (result && func) {
+			this.setOnCandidates(func);
+		}
+		return result;
 	}
 	async setOnCandidates(func) {
 		let count = 0;
@@ -12174,17 +12185,18 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class WebRTCPeer {
-	constructor(name) {
+	constructor(name, stunServers) {
 		this.name = name;
 		this.peer = null;
 		this.isOpend = false;
 		this.candidates = [];
+		this.config = { iceServers: stunServers };
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
 			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			// const peer = new RTCPeerConnection(null, { optional: [{ RtpDataChannels: true }] });
-			const peer = new RTCPeerConnection({});
+			const peer = new RTCPeerConnection(this.config);
 			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
 				console.log(`-- peer.ontrack()vevt:${evt}`);
@@ -12351,7 +12363,7 @@ class WebRTCPeer {
 		try {
 			await this.peer.setRemoteDescription(answer);
 			console.log('setRemoteDescription(answer) succsess in promise');
-			alert('OpenSuccess!');
+			// alert('OpenSuccess!');
 			return true;
 		} catch (err) {
 			console.error('setRemoteDescription(answer) ERROR: ', err);
@@ -12827,9 +12839,7 @@ class YadorigiSignalingAdapter {
 		this.l = logger;
 	}
 	async init(onOpenCallBack, onCloseCallBack, onMessageCallBack, onErrorCallBack) {
-		this.l.log('--init--0----------YadorigiSignalingAdapter--------------------------------------');
-		this.offer = await this.WebRTCConnecter.init();
-		this.l.log(`--init--1----------YadorigiSignalingAdapter--------------------------------------this.offer:${this.offer}`);
+		this.l.log(`--init--1----------YadorigiSignalingAdapter--------------------------------------`);
 		this.userIdHash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_2__.Hasher.sha512(this.userId);
 		this.l.log('--init--2----------YadorigiSignalingAdapter--------------------------------------');
 		this.deviceNameHash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_2__.Hasher.sha512(this.deviceName);
