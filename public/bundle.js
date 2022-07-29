@@ -12121,10 +12121,12 @@ class WebRTCConnecter {
 		return this.WebRTCPeer ? this.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
 	}
 	async answer(sdp) {
-		const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
-		this.peerMap[hash] = this.WebRTCPeerAnswer;
-		this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
-		return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
+		if (await this.init()) {
+			const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
+			this.peerMap[hash] = this.WebRTCPeerAnswer;
+			this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
+			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
+		}
 	}
 	async connect(sdp) {
 		const hash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_1__.Hasher.sha512(sdp);
@@ -12133,18 +12135,16 @@ class WebRTCConnecter {
 		return await this.WebRTCPeerOffer.setAnswer(sdp);
 	}
 	async setOnCandidates(func) {
-		if (await this.init()) {
-			let count = 0;
-			while (count < 100) {
-				await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_2__.ProcessUtil.wait(20 * count);
-				const candidates = this.WebRTCPeerCurrent.getCandidates();
-				console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
-				if (Array.isArray(candidates) && candidates.length > 0) {
-					func(candidates);
-					break;
-				}
-				count += 1;
+		let count = 0;
+		while (count < 100) {
+			await _util_ProcessUtil__WEBPACK_IMPORTED_MODULE_2__.ProcessUtil.wait(20 * count);
+			const candidates = this.WebRTCPeerCurrent.getCandidates();
+			console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
+			if (Array.isArray(candidates) && candidates.length > 0) {
+				func(candidates);
+				break;
 			}
+			count += 1;
 		}
 	}
 	async setCandidates(candidatesInput) {

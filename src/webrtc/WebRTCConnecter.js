@@ -112,10 +112,12 @@ export class WebRTCConnecter {
 		return this.WebRTCPeer ? this.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
 	}
 	async answer(sdp) {
-		const hash = await Hasher.sha512(sdp);
-		this.peerMap[hash] = this.WebRTCPeerAnswer;
-		this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
-		return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
+		if (await this.init()) {
+			const hash = await Hasher.sha512(sdp);
+			this.peerMap[hash] = this.WebRTCPeerAnswer;
+			this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
+			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
+		}
 	}
 	async connect(sdp) {
 		const hash = await Hasher.sha512(sdp);
@@ -124,18 +126,16 @@ export class WebRTCConnecter {
 		return await this.WebRTCPeerOffer.setAnswer(sdp);
 	}
 	async setOnCandidates(func) {
-		if (await this.init()) {
-			let count = 0;
-			while (count < 100) {
-				await ProcessUtil.wait(20 * count);
-				const candidates = this.WebRTCPeerCurrent.getCandidates();
-				console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
-				if (Array.isArray(candidates) && candidates.length > 0) {
-					func(candidates);
-					break;
-				}
-				count += 1;
+		let count = 0;
+		while (count < 100) {
+			await ProcessUtil.wait(20 * count);
+			const candidates = this.WebRTCPeerCurrent.getCandidates();
+			console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
+			if (Array.isArray(candidates) && candidates.length > 0) {
+				func(candidates);
+				break;
 			}
+			count += 1;
 		}
 	}
 	async setCandidates(candidatesInput) {
