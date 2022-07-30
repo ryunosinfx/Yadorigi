@@ -1,20 +1,27 @@
 import { WebRTCConnecter } from '../../webrtc/WebRTCConnecter';
+import { ClipboardUtil } from '../../util/ClipboardUtil';
+const stringLength = 20;
 export class TestClass3 {
 	constructor() {
 		this.w = new WebRTCConnecter();
+		this.isAnaswer = false;
 	}
 	async makeOffer() {
-		return await this.w.getOfferSdp();
+		const offer = await this.w.getOfferSdp();
+		await ClipboardUtil.copy(offer);
+		return offer;
 	}
 	async makeAnswer(sdpInput) {
-		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
+		const sdp = typeof sdpInput === 'string' ? (sdpInput.length < stringLength ? JSON.parse(await ClipboardUtil.past()) : JSON.parse(sdpInput)) : sdpInput;
 		console.log(`makeAnswer sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		console.log(sdp);
-		return await this.w.answer(sdp.sdp);
+		const answer = await this.w.answer(sdp.sdp);
+		await ClipboardUtil.copy(answer);
+		return answer;
 	}
 	async connect(sdpInput) {
-		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
+		const sdp = typeof sdpInput === 'string' ? (sdpInput.length < stringLength ? JSON.parse(await ClipboardUtil.past()) : JSON.parse(sdpInput)) : sdpInput;
 		console.log(`makeAnswer sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		console.log(sdp);
@@ -28,8 +35,9 @@ export class TestClass3 {
 			console.log(msg);
 		});
 	}
-	setCandidates(candidatesInput) {
-		this.w.setCandidates(candidatesInput);
+	async setCandidates(candidatesInput) {
+		const candidates = candidatesInput.length < stringLength ? JSON.parse(await ClipboardUtil.past()) : candidatesInput;
+		this.w.setCandidates(candidates);
 	}
 	setOnMessage(elm) {
 		this.w.setOnMessage((msg) => {
