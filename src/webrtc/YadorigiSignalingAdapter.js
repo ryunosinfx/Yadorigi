@@ -18,9 +18,7 @@ export class YadorigiSignalingAdapter {
 		this.l = logger;
 	}
 	async init(onOpenCallBack, onCloseCallBack, onMessageCallBack, onErrorCallBack) {
-		this.l.log('--init--0----------YadorigiSignalingAdapter--------------------------------------');
-		this.offer = await this.WebRTCConnecter.init();
-		this.l.log(`--init--1----------YadorigiSignalingAdapter--------------------------------------this.offer:${this.offer}`);
+		this.l.log('--init--1----------YadorigiSignalingAdapter--------------------------------------');
 		this.userIdHash = await Hasher.sha512(this.userId);
 		this.l.log('--init--2----------YadorigiSignalingAdapter--------------------------------------');
 		this.deviceNameHash = await Hasher.sha512(this.deviceName);
