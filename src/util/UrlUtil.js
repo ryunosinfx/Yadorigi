@@ -4,7 +4,7 @@ export class UrlUtil {
 	static convertObjToQueryParam(data) {
 		if (data && typeof data === 'object') {
 			return Object.keys(data)
-				.map(key => key + '=' + encodeURIComponent(data[key]))
+				.map((key) => `${key}=${encodeURIComponent(data[key])}`)
 				.join('&');
 		}
 		return data;
