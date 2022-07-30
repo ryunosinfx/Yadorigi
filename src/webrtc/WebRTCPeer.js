@@ -38,9 +38,9 @@ export class WebRTCPeer {
 				try {
 					console.log(`-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
 					const offer = await peer.createOffer();
-					console.log('-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
+					console.log(`-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${peer.iceConnectionState}`);
 					await peer.setLocalDescription(offer);
-					console.log('-3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise');
+					console.log(`-3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${peer.iceConnectionState}`);
 					this.sdp = peer.localDescription;
 					resolve(peer);
 				} catch (err) {
@@ -54,7 +54,7 @@ export class WebRTCPeer {
 				switch (peer.iceConnectionState) {
 					case 'closed':
 					case 'failed':
-						if (this.peer) {
+						if (this.peer && this.isOpend) {
 							this.close();
 						}
 						break;
