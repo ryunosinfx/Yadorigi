@@ -10727,6 +10727,41 @@ class BinaryConverter {
 
 /***/ }),
 
+/***/ "./src/util/ClipboardUtil.js":
+/*!***********************************!*\
+  !*** ./src/util/ClipboardUtil.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ClipboardUtil": () => (/* binding */ ClipboardUtil)
+/* harmony export */ });
+class ClipboardUtil {
+	static async copy(
+		text,
+		func = () => {
+			console.log('colied!');
+		}
+	) {
+		await navigator.clipboard.writeText(typeof text === 'object' ? JSON.stringify(text) : text);
+		func();
+	}
+	static async past(
+		func = () => {
+			console.log('past!');
+		}
+	) {
+		const result = navigator.clipboard.readText ? await navigator.clipboard.readText() : '';
+		func();
+		return result;
+	}
+}
+
+
+/***/ }),
+
 /***/ "./src/util/Cryptor.js":
 /*!*****************************!*\
   !*** ./src/util/Cryptor.js ***!
@@ -11206,7 +11241,7 @@ class UrlUtil {
 	static convertObjToQueryParam(data) {
 		if (data && typeof data === 'object') {
 			return Object.keys(data)
-				.map(key => key + '=' + encodeURIComponent(data[key]))
+				.map((key) => `${key}=${encodeURIComponent(data[key])}`)
 				.join('&');
 		}
 		return data;
@@ -11718,23 +11753,31 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "TestClass3": () => (/* binding */ TestClass3)
 /* harmony export */ });
 /* harmony import */ var _webrtc_WebRTCConnecter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../webrtc/WebRTCConnecter */ "./src/webrtc/WebRTCConnecter.js");
+/* harmony import */ var _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/ClipboardUtil */ "./src/util/ClipboardUtil.js");
 
+
+const stringLength = 20;
 class TestClass3 {
 	constructor() {
 		this.w = new _webrtc_WebRTCConnecter__WEBPACK_IMPORTED_MODULE_0__.WebRTCConnecter();
+		this.isAnaswer = false;
 	}
 	async makeOffer() {
-		return await this.w.getOfferSdp();
+		const offer = await this.w.getOfferSdp();
+		await _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__.ClipboardUtil.copy(offer);
+		return offer;
 	}
 	async makeAnswer(sdpInput) {
-		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
+		const sdp = typeof sdpInput === 'string' ? (sdpInput.length < stringLength ? JSON.parse(await _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__.ClipboardUtil.past()) : JSON.parse(sdpInput)) : sdpInput;
 		console.log(`makeAnswer sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		console.log(sdp);
-		return await this.w.answer(sdp.sdp);
+		const answer = await this.w.answer(sdp.sdp);
+		await _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__.ClipboardUtil.copy(answer);
+		return answer;
 	}
 	async connect(sdpInput) {
-		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
+		const sdp = typeof sdpInput === 'string' ? (sdpInput.length < stringLength ? JSON.parse(await _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__.ClipboardUtil.past()) : JSON.parse(sdpInput)) : sdpInput;
 		console.log(`makeAnswer sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		console.log(sdp);
@@ -11748,8 +11791,9 @@ class TestClass3 {
 			console.log(msg);
 		});
 	}
-	setCandidates(candidatesInput) {
-		this.w.setCandidates(candidatesInput);
+	async setCandidates(candidatesInput) {
+		const candidates = candidatesInput.length < stringLength ? JSON.parse(await _util_ClipboardUtil__WEBPACK_IMPORTED_MODULE_1__.ClipboardUtil.past()) : candidatesInput;
+		this.w.setCandidates(candidates);
 	}
 	setOnMessage(elm) {
 		this.w.setOnMessage((msg) => {
@@ -12258,10 +12302,6 @@ class WebRTCPeer {
 			}
 		});
 	}
-	openDataChannel() {
-		const dc = this.peer.createDataChannel(`chat${Date.now()}`);
-		this.dataChannelSetup(dc);
-	}
 	onOpen(event) {
 		console.log(`WebRTCPeer.onOpen is not Overrided name:${this.name}`);
 		console.log(event);
@@ -12307,7 +12347,7 @@ class WebRTCPeer {
 	}
 	async makeOffer() {
 		console.log('--makeOffer--1----------WebRTCPeer--------------------------------------');
-		this.peer = await this.prepareNewConnection(false);
+		this.peer = await this.prepareNewConnection(true);
 		console.log('--makeOffer--2----------WebRTCPeer--------------------------------------');
 		return true;
 	}
@@ -12339,7 +12379,7 @@ class WebRTCPeer {
 				if (this.peer) {
 					console.error('peerConnection alreay exist!');
 				}
-				this.peer = await this.prepareNewConnection(false);
+				this.peer = await this.prepareNewConnection(true);
 				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
 				console.warn(`setOfferAndAswer offer ${offer}`);
@@ -12368,7 +12408,6 @@ class WebRTCPeer {
 			await this.peer.setRemoteDescription(answer);
 			console.log('setRemoteDescription(answer) succsess in promise');
 			// alert('OpenSuccess!');
-			this.openDataChannel();
 			return true;
 		} catch (err) {
 			console.error('setRemoteDescription(answer) ERROR: ', err);
@@ -12399,7 +12438,6 @@ class WebRTCPeer {
 				console.eror('receiverCandidatesStr addIceCandidate error', e);
 			});
 		}
-		this.openDataChannel();
 	}
 }
 
