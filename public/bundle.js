@@ -11393,7 +11393,7 @@ class MainView {
 		return async () => {
 			const hash = location.hash;
 			if (!hash) {
-				alert('test2!!NO Hash!');
+				console.log('test2!!NO Hash!');
 				return;
 			}
 			_test_TestClass2_js__WEBPACK_IMPORTED_MODULE_4__.TestClass2.callFromHash(hash.replace('#', ''), logger);
@@ -12240,7 +12240,7 @@ class WebRTCPeer {
 		return new Promise((resolve, reject) => {
 			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			// const peer = new RTCPeerConnection(null, { optional: [{ RtpDataChannels: true }] });
-			const peer = new RTCPeerConnection(this.config);
+			const peer = new RTCPeerConnection(this.config, { optional: [{ RtpDataChannels: true }] });
 			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
 				console.log(`-- peer.ontrack()vevt:${evt}`);

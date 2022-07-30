@@ -12,7 +12,7 @@ export class WebRTCPeer {
 		return new Promise((resolve, reject) => {
 			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			// const peer = new RTCPeerConnection(null, { optional: [{ RtpDataChannels: true }] });
-			const peer = new RTCPeerConnection(this.config);
+			const peer = new RTCPeerConnection(this.config, { optional: [{ RtpDataChannels: true }] });
 			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
 				console.log(`-- peer.ontrack()vevt:${evt}`);
