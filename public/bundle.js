@@ -12222,9 +12222,9 @@ class WebRTCPeer {
 				try {
 					console.log(`-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
 					const offer = await peer.createOffer();
-					console.log('-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise');
+					console.log(`-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${peer.iceConnectionState}`);
 					await peer.setLocalDescription(offer);
-					console.log('-3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise');
+					console.log(`-3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${peer.iceConnectionState}`);
 					this.sdp = peer.localDescription;
 					resolve(peer);
 				} catch (err) {
@@ -12238,7 +12238,7 @@ class WebRTCPeer {
 				switch (peer.iceConnectionState) {
 					case 'closed':
 					case 'failed':
-						if (this.peer) {
+						if (this.peer && this.isOpend) {
 							this.close();
 						}
 						break;
@@ -12839,7 +12839,7 @@ class YadorigiSignalingAdapter {
 		this.l = logger;
 	}
 	async init(onOpenCallBack, onCloseCallBack, onMessageCallBack, onErrorCallBack) {
-		this.l.log(`--init--1----------YadorigiSignalingAdapter--------------------------------------`);
+		this.l.log('--init--1----------YadorigiSignalingAdapter--------------------------------------');
 		this.userIdHash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_2__.Hasher.sha512(this.userId);
 		this.l.log('--init--2----------YadorigiSignalingAdapter--------------------------------------');
 		this.deviceNameHash = await _util_Hasher__WEBPACK_IMPORTED_MODULE_2__.Hasher.sha512(this.deviceName);
