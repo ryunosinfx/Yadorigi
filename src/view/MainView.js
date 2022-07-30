@@ -121,7 +121,7 @@ export class MainView {
 		return async () => {
 			const hash = location.hash;
 			if (!hash) {
-				alert('test2!!NO Hash!');
+				console.log('test2!!NO Hash!');
 				return;
 			}
 			TestClass2.callFromHash(hash.replace('#', ''), logger);
