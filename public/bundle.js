@@ -12258,6 +12258,10 @@ class WebRTCPeer {
 			}
 		});
 	}
+	openDataChannel() {
+		const dc = this.peer.createDataChannel(`chat${Date.now()}`);
+		this.dataChannelSetup(dc);
+	}
 	onOpen(event) {
 		console.log(`WebRTCPeer.onOpen is not Overrided name:${this.name}`);
 		console.log(event);
@@ -12303,7 +12307,7 @@ class WebRTCPeer {
 	}
 	async makeOffer() {
 		console.log('--makeOffer--1----------WebRTCPeer--------------------------------------');
-		this.peer = await this.prepareNewConnection(true);
+		this.peer = await this.prepareNewConnection(false);
 		console.log('--makeOffer--2----------WebRTCPeer--------------------------------------');
 		return true;
 	}
@@ -12335,7 +12339,7 @@ class WebRTCPeer {
 				if (this.peer) {
 					console.error('peerConnection alreay exist!');
 				}
-				this.peer = await this.prepareNewConnection(true);
+				this.peer = await this.prepareNewConnection(false);
 				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
 				console.warn(`setOfferAndAswer offer ${offer}`);
@@ -12364,6 +12368,7 @@ class WebRTCPeer {
 			await this.peer.setRemoteDescription(answer);
 			console.log('setRemoteDescription(answer) succsess in promise');
 			// alert('OpenSuccess!');
+			this.openDataChannel();
 			return true;
 		} catch (err) {
 			console.error('setRemoteDescription(answer) ERROR: ', err);
@@ -12394,6 +12399,7 @@ class WebRTCPeer {
 				console.eror('receiverCandidatesStr addIceCandidate error', e);
 			});
 		}
+		this.openDataChannel();
 	}
 }
 
