@@ -1,5 +1,5 @@
-import { WebRTCConnecter } from '../../webrtc/WebRTCConnecter';
-import { ClipboardUtil } from '../../util/ClipboardUtil';
+import { WebRTCConnecter } from '../../webrtc/WebRTCConnecter.js';
+import { ClipboardUtil } from '../../util/ClipboardUtil.js';
 const stringLength = 20;
 export class TestClass3 {
 	constructor() {

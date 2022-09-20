@@ -1,4 +1,4 @@
-import { ViewUtil } from './ViewUtil';
+import { ViewUtil } from './ViewUtil.js';
 const SUBMIT_TIMEOUT = 10000;
 export class IframeController {
 	constructor() {
@@ -19,7 +19,7 @@ export class IframeController {
 		}
 		const body = ViewUtil.getBodyElm();
 		const form = ViewUtil.add(body, 'form', { action, method, target });
-		for (let name in dataMap) {
+		for (const name in dataMap) {
 			const value = dataMap[name];
 			ViewUtil.add(form, 'input', { type: 'hidden', value, name });
 		}
@@ -48,7 +48,7 @@ export class IframeController {
 		return null;
 	}
 	getDocOnLoad() {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			const win = this.getWin();
 			if (win) {
 				win.onload = () => {

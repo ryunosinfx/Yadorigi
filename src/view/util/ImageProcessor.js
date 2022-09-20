@@ -1,6 +1,6 @@
-import vu from './ViewUtil';
-import { BinaryConverter } from '../../util/BinaryConverter';
-import { Deflater } from '../../util/Deflater';
+import vu from './ViewUtil.js';
+import { BinaryConverter } from '../../util/BinaryConverter.js';
+import { Deflater } from '../../util/Deflater.js';
 
 const imgRe = /^image\/.+|application\/octet-stream/;
 const padding0 = BinaryConverter.stringToU8A('aaaa');
@@ -35,9 +35,9 @@ export class ImageProcessor {
 		const u8aData = BinaryConverter.arrayBuffer2Uint8Array(compressed);
 		const united = BinaryConverter.joinU8as([padding, u8aData]);
 
-		let newImage = this.ctx.createImageData(width, 1);
+		const newImage = this.ctx.createImageData(width, 1);
 		const unitedLength = united.length;
-		const len = newData.data.length;
+		// const len = newData.data.length;
 		for (let i = 0; i < unitedLength; i++) {
 			newImage.data[i] = united[i];
 		}
@@ -80,7 +80,7 @@ export class ImageProcessor {
 					resolve(defrateData);
 				}
 			};
-			imgElm.onerror = e => {
+			imgElm.onerror = (e) => {
 				console.log('失敗');
 				console.error(e);
 				reject(null);
@@ -105,7 +105,7 @@ export class ImageProcessor {
 				resolve(imageData);
 				// console.timeEnd('resize getImageDataFromArrayBuffer');
 			};
-			img.onerror = e => {
+			img.onerror = (e) => {
 				reject(e);
 			};
 		});
@@ -113,7 +113,7 @@ export class ImageProcessor {
 	getArrayBufferFromImageBitmapDataAsJpg(iamgeBitmapData, quority) {
 		const option = {
 			type: 'image/jpeg',
-			quority: quority
+			quority: quority,
 		};
 		return this.getArrayBufferFromImageBitmapData(iamgeBitmapData, option);
 	}
@@ -130,7 +130,7 @@ export class ImageProcessor {
 			newPaperData.data[i] = iamgeBitmapData.data[i];
 		}
 		this.ctx.putImageData(newPaperData, 0, 0);
-		let dataUri = option ? this.canvas.toDataURL(option.type, option.quority) : this.canvas.toDataURL();
+		const dataUri = option ? this.canvas.toDataURL(option.type, option.quority) : this.canvas.toDataURL();
 		const abResized = BinaryConverter.dataURI2ArrayBuffer(dataUri);
 		// console.log('iamgeBitmapData.data.length:'+iamgeBitmapData.data.length+'/w:'+iamgeBitmapData.width+'/h:'+iamgeBitmapData.height);
 		// console.log('dataUri:'+dataUri);
@@ -154,7 +154,7 @@ export class ImageProcessor {
 				this.ctx.drawImage(imgElm, 0, 0);
 				resolve(this.exportPng());
 			};
-			imgElm.onerror = e => {
+			imgElm.onerror = (e) => {
 				console.log('失敗');
 				console.error(e);
 				reject(null);
@@ -170,21 +170,22 @@ export class ImageProcessor {
 
 	createImageNodeByData(data) {
 		return new Promise((resolve, reject) => {
+			// eslint-disable-next-line prefer-const
 			let { name, ab, type } = data;
-			let imgElm = vu.createImage();
+			const imgElm = vu.createImage();
 			imgElm.alt = escape(name);
 
 			if (!type) {
 				type = 'application/octet-stream';
 			}
 			if (type && type.match(imgRe)) {
-				imgElm.src = bc.arrayBuffer2DataURI(ab, type);
+				imgElm.src = BinaryConverter.arrayBuffer2DataURI(ab, type);
 				imgElm.onload = () => {
 					data.height = imgElm.height;
 					data.width = imgElm.width;
 					resolve(imgElm);
 				};
-				imgElm.onerror = e => {
+				imgElm.onerror = (e) => {
 					console.log('失敗');
 					console.error(e);
 					reject(e);

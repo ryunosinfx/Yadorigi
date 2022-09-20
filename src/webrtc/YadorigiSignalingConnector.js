@@ -1,5 +1,5 @@
-import { Fetcher } from '../util/Fetcher';
-import { ENDPOINT, BLANK_PAGE } from './YadorigiSettings';
+import { Fetcher } from '../util/Fetcher.js';
+import { ENDPOINT, BLANK_PAGE } from './YadorigiSettings.js';
 export class YadorigiSignalingConnector {
 	constructor(endPoint = ENDPOINT, logger = console) {
 		this.endPoint = endPoint;

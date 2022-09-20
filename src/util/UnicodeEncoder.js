@@ -30,6 +30,7 @@ export class UnicodeEncoder {
 			} else {
 				codePointCharCodes = [codePoint];
 			}
+			// eslint-disable-next-line prefer-spread
 			stringParts += String.fromCharCode.apply(String, codePointCharCodes);
 		}
 		return stringParts;

@@ -1,10 +1,10 @@
-import { WebRTCConnecter } from './WebRTCConnecter';
-import { Base64Util } from '../util/Base64Util';
-import { Hasher } from '../util/Hasher';
-import { ProcessUtil } from '../util/ProcessUtil';
-import { YadorigiFileProsessor } from './YadorigiFileProsessor';
-import { YadorigiSignalingConnector } from './YadorigiSignalingConnector';
-import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
+import { WebRTCConnecter } from './WebRTCConnecter.js';
+import { Base64Util } from '../util/Base64Util.js';
+import { Hasher } from '../util/Hasher.js';
+import { ProcessUtil } from '../util/ProcessUtil.js';
+import { YadorigiFileProsessor } from './YadorigiFileProsessor.js';
+import { YadorigiSignalingConnector } from './YadorigiSignalingConnector.js';
+import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord.js';
 // const waitms = 20;
 export class YadorigiSignalingAdapter {
 	constructor(passphraseText, userId, deviceName, groupName, signalingServerEndpoint, logger = console) {

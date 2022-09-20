@@ -1,10 +1,10 @@
-import { Hasher } from '../util/Hasher';
-import { Base64Util } from '../util/Base64Util';
-import { Deflater } from '../util/Deflater';
-import { Cryptor } from '../util/Cryptor';
-import { BinaryConverter } from '../util/BinaryConverter';
-import { TimeUtil } from '../util/TimeUtil';
-import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
+import { Hasher } from '../util/Hasher.js';
+import { Base64Util } from '../util/Base64Util.js';
+import { Deflater } from '../util/Deflater.js';
+import { Cryptor } from '../util/Cryptor.js';
+import { BinaryConverter } from '../util/BinaryConverter.js';
+import { TimeUtil } from '../util/TimeUtil.js';
+import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord.js';
 const expireMunits = 30;
 export class YadorigiFileProsessor {
 	constructor(key, logger = console) {

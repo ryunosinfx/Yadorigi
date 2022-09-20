@@ -1,9 +1,9 @@
-import { Hasher } from '../util/Hasher';
-// import { ProcessUtil } from '../util/ProcessUtil';
-import { YadorigiFileProsessor } from './YadorigiFileProsessor';
-import { YadorigiSignalingConnector } from './YadorigiSignalingConnector';
-// import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord';
-import { WebRTCConnecter } from './WebRTCConnecter';
+import { Hasher } from '../util/Hasher.js';
+// import { ProcessUtil } from '../util/ProcessUtil.js';
+import { YadorigiFileProsessor } from './YadorigiFileProsessor.js';
+import { YadorigiSignalingConnector } from './YadorigiSignalingConnector.js';
+// import { YadorigiSdpFileRecord } from './YadorigiSdpFileRecord.js';
+import { WebRTCConnecter } from './WebRTCConnecter.js';
 // const waitms = 20;
 export class YadorigiLocalSignalingConnector {
 	constructor(isHub, passphraseText, userId, key, targetUrl = navigator.userAgent) {
@@ -131,6 +131,7 @@ export class YadorigiLocalSignalingConnector {
 		}
 		console.log(`--createOnSaveEventListenerHub--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
 		const func = async (key, newValue, url) => {
+			console.log(`url:${url}`);
 			if (key.indexOf(this.hubPrefix) !== 0) {
 				return;
 			}
@@ -161,14 +162,17 @@ export class YadorigiLocalSignalingConnector {
 	async connectAsPeer(targetDeviceNameHash) {
 		//const fileName = groupNameHash + '.' + userIdHash + '.' + senderDeviceNameHash + '.' + expireTime + '.' + (isOffer ? 'offer' : 'ans');
 		this.setEventListener(this.createOnSaveEventListenerPeer(targetDeviceNameHash));
+		let count = 0;
 		while (count < 10) {
+			count++;
 			const offerSdp = this.getSdp();
 			const offer = this.createOffer([], offerSdp);
 			this.currentOffer = offer;
 			const responceHash = await Hasher.sha512(this.hubPrefix + this.deviceNameHash + offer.hash, 1000);
 			sessionStorage.setItem(`${this.hubPrefix}.${targetDeviceNameHash}`, JSON.stringify(offer));
-			await new Promise(async (resolve) => {
+			const func = async (resolve) => {
 				this.eventMapedFun = async (key, newValue, url) => {
+					console.log(`url:${url}`);
 					if (key === responceHash) {
 						return;
 					}
@@ -179,11 +183,11 @@ export class YadorigiLocalSignalingConnector {
 					}
 					resolve();
 				};
-				setTomeout(() => {
+				setTimeout(() => {
 					resolve();
 				}, 1000 * 30);
-				this;
-			});
+			};
+			await new Promise(func);
 			if (this.connected) {
 				break;
 			}
@@ -195,7 +199,9 @@ export class YadorigiLocalSignalingConnector {
 			return this.eventMapedFun;
 		}
 		console.log(`--createOnSaveEventListenerPeer--2----------YadorigiLocalSignalzer--------------------------------------targetDeviceNameHash:${targetDeviceNameHash}`);
-		const func = async (key, newValue, url) => {};
+		const func = async (key, newValue, url) => {
+			console.log(`url:${url}`);
+		};
 		// getAnswer
 		return func;
 	}

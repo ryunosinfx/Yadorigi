@@ -1,15 +1,15 @@
-import { BinaryConverter } from './BinaryConverter';
-import { Base64Util } from './Base64Util';
-import { Deflater } from './Deflater';
+import { BinaryConverter } from './BinaryConverter.js';
+import { Base64Util } from './Base64Util.js';
+import { Deflater } from './Deflater.js';
 export class Cryptor {
 	constructor() {}
 	static async getKey(passphraseText, salt) {
-		console.log('getKey salt:' + salt + '/passphraseText:' + passphraseText);
+		console.log(`getKey salt:${salt}/passphraseText:${passphraseText}`);
 		const passphrase = BinaryConverter.stringToU8A(passphraseText).buffer;
 		const digest = await crypto.subtle.digest({ name: 'SHA-256' }, passphrase);
-		console.log('digest:' + digest);
+		console.log(`digest:${digest}`);
 		const keyMaterial = await crypto.subtle.importKey('raw', digest, { name: 'PBKDF2' }, false, ['deriveKey']);
-		console.log('keyMaterial:' + keyMaterial);
+		console.log(`keyMaterial:${keyMaterial}`);
 		const key = await crypto.subtle.deriveKey(
 			{
 				name: 'PBKDF2',
@@ -22,7 +22,7 @@ export class Cryptor {
 			false,
 			['encrypt', 'decrypt']
 		);
-		console.log('key:' + key);
+		console.log(`key:${key}`);
 		return [key, salt];
 	}
 	static getSalt(saltInput, isAB) {
@@ -57,13 +57,13 @@ export class Cryptor {
 		const invocationPart = Cryptor.getInvocationField();
 		const iv = Uint8Array.from([...fixedPart, ...new Uint8Array(invocationPart.buffer)]);
 		console.log(iv);
-		console.log('encodeAES256GCM 0 inputU8a:' + inputU8a);
+		console.log(`encodeAES256GCM 0 inputU8a:${inputU8a}`);
 		const encryptedDataAB = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, inputU8a.buffer);
-		console.log('encodeAES256GCM 1 encryptedDataAB:' + encryptedDataAB);
-		console.log('encodeAES256GCM 2 iv' + Base64Util.ab2Base64Url(iv) + '/' + iv.byteLength);
-		console.log('encodeAES256GCM 3 salt' + Base64Util.ab2Base64Url(salt) + '/' + salt.byteLength);
+		console.log(`encodeAES256GCM 1 encryptedDataAB:${encryptedDataAB}`);
+		console.log(`encodeAES256GCM 2 iv${Base64Util.ab2Base64Url(iv)}/${iv.byteLength}`);
+		console.log(`encodeAES256GCM 3 salt${Base64Util.ab2Base64Url(salt)}/${salt.byteLength}`);
 		// console.log('encodeAES256GCM 4 Deflater.deflate(encryptedDataAB):' + Deflater.deflate(encryptedDataAB));
-		console.log('encodeAES256GCM 5 encryptedDataAB:' + Base64Util.ab2Base64Url(encryptedDataAB));
+		console.log(`encodeAES256GCM 5 encryptedDataAB:${Base64Util.ab2Base64Url(encryptedDataAB)}`);
 		// const encryptedData = Array.from(new Uint8Array(encryptedDataAB), (char) => String.fromCharCode(char)).join('');
 		const dataEncrypted = Deflater.deflate(new Uint8Array(encryptedDataAB)).buffer;
 		return JSON.stringify([
@@ -79,8 +79,8 @@ export class Cryptor {
 		return BinaryConverter.u8aToString(decoedU8a);
 	}
 	static async loadKey(passphraseTextOrKey, salt) {
-		console.log('loadKey passphraseTextOrKey:' + passphraseTextOrKey);
-		console.log('loadKey salt:' + salt);
+		console.log(`loadKey passphraseTextOrKey:${passphraseTextOrKey}`);
+		console.log(`loadKey salt:${salt}`);
 		const saltU8A = typeof salt === 'string' ? new Uint8Array(Base64Util.base64UrlToAB(salt)) : salt;
 		// const [key, _] = await Cryptor.getKey(passphraseText, Base64Util.base64UrlToAB(salt), true);
 		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, saltU8A) : { passphraseTextOrKey };
@@ -95,22 +95,22 @@ export class Cryptor {
 		console.log(encryptedDataBase64Url);
 		console.log(encryptedResultJSON.length);
 		console.log(encryptedResultJSON);
-		console.log('decodeAES256GCM 1 salt:' + salt);
+		console.log(`decodeAES256GCM 1 salt:${salt}`);
 		const iv = new Uint8Array(Base64Util.base64UrlToAB(invocationPart));
 		console.log(iv);
-		console.log('decodeAES256GCM 2 iv:' + iv);
+		console.log(`decodeAES256GCM 2 iv:${iv}`);
 		const encryptedData = Base64Util.base64UrlToAB(encryptedDataBase64Url);
-		console.log('decodeAES256GCM 3 encryptedData:' + encryptedData);
+		console.log(`decodeAES256GCM 3 encryptedData:${encryptedData}`);
 		const key = await Cryptor.loadKey(passphraseTextOrKey, salt);
-		console.log('decodeAES256GCM 4 key:' + key);
+		console.log(`decodeAES256GCM 4 key:${key}`);
 		const dataForDecrypt = await Deflater.inflate(new Uint8Array(encryptedData));
 		// const dataForDecrypt = inflateData;
-		console.log('encryptedDataAB_:' + Base64Util.ab2Base64Url(dataForDecrypt.buffer));
-		console.log('decodeAES256GCM 5 dataForDecrypt:' + dataForDecrypt);
+		console.log(`encryptedDataAB_:${Base64Util.ab2Base64Url(dataForDecrypt.buffer)}`);
+		console.log(`decodeAES256GCM 5 dataForDecrypt:${dataForDecrypt}`);
 		// const decrepted = Uint8Array.from(dataForDecrypt.split(''), (char) => char.charCodeAt(0));
 		// console.log('decodeAES256GCM 4 decrepted:' + decrepted);
 		const decrepteduAB = dataForDecrypt.buffer; //BinaryConverter.binaryString2ArrayBuffer(dataForDecrypt);
-		console.log('decodeAES256GCM 6 decrepteduAB:' + Base64Util.ab2Base64Url(decrepteduAB));
+		console.log(`decodeAES256GCM 6 decrepteduAB:${Base64Util.ab2Base64Url(decrepteduAB)}`);
 		let decryptedData = null;
 		try {
 			decryptedData = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, decrepteduAB);
@@ -118,11 +118,11 @@ export class Cryptor {
 			console.warn(e);
 			return null;
 		}
-		console.log('decodeAES256GCM 7 decryptedData:' + decryptedData);
-		console.log('decodeAES256GCM 7 decryptedData:' + Base64Util.ab2Base64Url(decryptedData));
+		console.log(`decodeAES256GCM 7 decryptedData:${decryptedData}`);
+		console.log(`decodeAES256GCM 7 decryptedData:${Base64Util.ab2Base64Url(decryptedData)}`);
 		// decryptedData = new TextDecoder().decode(new Uint8Array(decryptedData));
-		console.log('decodeAES256GCM 8 decryptedData:' + decryptedData);
-		console.log('decodeAES256GCM 8 decryptedData:' + BinaryConverter.u8aToString(new Uint8Array(decryptedData)));
+		console.log(`decodeAES256GCM 8 decryptedData:${decryptedData}`);
+		console.log(`decodeAES256GCM 8 decryptedData:${BinaryConverter.u8aToString(new Uint8Array(decryptedData))}`);
 		return new Uint8Array(decryptedData);
 		// return JSON.parse(decryptedData);
 	}

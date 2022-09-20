@@ -1,5 +1,5 @@
-import {} from '../view/util/IframeController';
-import { UrlUtil } from './UrlUtil';
+import {} from '../view/util/IframeController.js';
+import { UrlUtil } from './UrlUtil.js';
 export class Fetcher {
 	constructor(headerKeys, logger = console) {
 		this.headerKeys = headerKeys;

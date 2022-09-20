@@ -1,5 +1,5 @@
-import { TimeUtil } from '../util/TimeUtil';
-import { Hasher } from '../util/Hasher';
+import { TimeUtil } from '../util/TimeUtil.js';
+import { Hasher } from '../util/Hasher.js';
 // import { Base64Util } from '../util/Base64Util';
 const expireSpan = 24 * 60 * 60 * 1000;
 

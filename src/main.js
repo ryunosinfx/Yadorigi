@@ -1,4 +1,4 @@
-import { MainView } from './view/MainView';
+import { MainView } from './view/MainView.js';
 export class Main {
 	constructor() {}
 	static run() {

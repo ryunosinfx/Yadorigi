@@ -1,4 +1,4 @@
-import { TextUtil } from '../../util/TextUtil';
+import { TextUtil } from '../../util/TextUtil.js';
 const DIV = 'div';
 export class ViewUtil {
 	static addHiddenDiv(parent, attrs = {}) {

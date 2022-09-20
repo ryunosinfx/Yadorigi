@@ -1,5 +1,5 @@
-import { Base64Util } from './Base64Util';
-import { te } from './BinaryConverter';
+import { Base64Util } from './Base64Util.js';
+import { te } from './BinaryConverter.js';
 const encoder = te;
 export class Hasher {
 	static async sha256(message, stretchCount = 1) {

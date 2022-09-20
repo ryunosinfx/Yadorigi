@@ -90,9 +90,9 @@ class SheetAddressor {
 	}
 	async addRow(group, fileName, data, hash) {
 		const record = new Recode(group, fileName, data, hash);
-		this.findRow([], true);
 		let count = 0;
 		const where = [group, fileName];
+		this.findRow(where, true);
 		while (count < 100) {
 			this.sheet.appendRow(record.toArray());
 			this.matrix = this.sheet.getDataRange().getValues(); //受け取ったシートのデータを二次元配列に取得
@@ -116,7 +116,7 @@ class SheetAddressor {
 		return this.sheet.deleteRow(index);
 	}
 	findRow(where, isDelete) {
-		this.logger.log('findRow Service get where');
+		this.logger.log('findRow0 Service get where');
 		this.logger.log(where);
 		const current = Date.now() - duration;
 		const len = this.matrix.length;
@@ -129,28 +129,28 @@ class SheetAddressor {
 			const row = this.matrix[i];
 			const colsCount = row.length;
 			let matchCount = 0;
-			for (let j = 0; j < colsCount; j++) {
+			for (let j = 0; j < colsCount && j < whereCount; j++) {
 				const colValue = row[j];
 				const condition = where[j];
-				this.logger.log(`findRow SheetAddressor colValue:${colValue}/condition:${condition}/matchCount:${matchCount}/whereCount:${whereCount}/j:${j}`);
+				this.logger.log(`findRow1 SheetAddressor colValue:${colValue}/condition:${condition}/matchCount:${matchCount}/whereCount:${whereCount}/j:${j}`);
 				matchCount += (whereCount > j && condition && condition === colValue) || (whereCount > j && !condition) ? 1 : 0;
 			}
 			if (matchCount === whereCount) {
-				this.logger.log(`findRow SheetAddressor findRow row${typeof row}/${Array.isArray(row)}`);
+				this.logger.log(`findRow2 SheetAddressor findRow!! row${typeof row}/${Array.isArray(row)}`);
 				this.logger.log(row);
 				resultRow = row;
 				resultRowIndex = i;
 			}
 			const createTime = `${row[4]}` * 1;
 			if (isDelete && !isNaN(createTime) && createTime < current) {
-				this.logger.log(`findRow createTime:${createTime}/i:${i}`);
+				this.logger.log(`findRow3 createTime:${createTime}/i:${i}`);
 				scavengableList.push(i);
 			}
 		}
 		const scvlen = scavengableList.length;
 		for (let i = 0; i < scvlen; i++) {
 			const index = scavengableList.shift() + 1;
-			this.logger.log(`findRow index:${index}/i:${i}`);
+			this.logger.log(`findRow4 index:${index}/i:${i}`);
 			this.deleteRow(index);
 			// break;
 		}
@@ -163,7 +163,7 @@ class SheetAddressor {
 const accessor = new SheetAddressor();
 const logger = accessor.logger;
 
-class YadorigiWebRTCSignalingServer {
+export default class YadorigiWebRTCSignalingServer {
 	static doPost(event) {
 		const { group, fileName, data, hash } = YadorigiWebRTCSignalingServer.parse(event);
 		YadorigiWebRTCSignalingServer.save(group, fileName, data, hash);
@@ -203,17 +203,20 @@ class YadorigiWebRTCSignalingServer {
 		return accessor.getLastRow();
 	}
 	static getNext(group, fileName) {
-		const result = accessor.findRow([group, fileName]);
+		const result = accessor.findRow([group, YadorigiWebRTCSignalingServer.reapFileName(fileName)]);
 		const index = result ? result.index : null;
 		const targetIndex = index && typeof index === 'number' ? index - 1 : 1;
 		return accessor.getRowByIndex(targetIndex);
 	}
 	static get(group, fileName) {
-		return accessor.findRow([group, fileName]);
+		return accessor.findRow([group, YadorigiWebRTCSignalingServer.reapFileName(fileName)]);
 	}
 	static hash(group, fileName) {
-		const result = accessor.findRow([group, fileName]);
+		const result = accessor.findRow([group, YadorigiWebRTCSignalingServer.reapFileName(fileName)]);
 		return result ? result.hash : null;
+	}
+	static reapFileName(fileName) {
+		return YadorigiWebRTCSignalingServer.reap(fileName.split('').reverse().join(''), 128);
 	}
 	static save(group, fileName, data, hash) {
 		if (!group || !fileName || !data || !hash) {
@@ -221,7 +224,7 @@ class YadorigiWebRTCSignalingServer {
 		}
 		accessor.addRow(
 			YadorigiWebRTCSignalingServer.reap(group, 128),
-			YadorigiWebRTCSignalingServer.reap(fileName, 128),
+			YadorigiWebRTCSignalingServer.reapFileName(fileName),
 			YadorigiWebRTCSignalingServer.reap(data, 10240),
 			YadorigiWebRTCSignalingServer.reap(hash, 90)
 		);

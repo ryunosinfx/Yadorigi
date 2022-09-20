@@ -1,6 +1,6 @@
-import { WebRTCPeer } from './WebRTCPeer';
-import { Hasher } from '../util/Hasher';
-import { ProcessUtil } from '../util/ProcessUtil';
+import { WebRTCPeer } from './WebRTCPeer.js';
+import { Hasher } from '../util/Hasher.js';
+import { ProcessUtil } from '../util/ProcessUtil.js';
 export class WebRTCConnecter {
 	constructor(
 		logger = console,

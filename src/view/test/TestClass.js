@@ -1,6 +1,6 @@
-import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter';
+import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter.js';
 // import { DummySpreadsheetApp } from '../../../test/mocs/DummySpreadsheetApp';
-import { YadorigiServerMoc } from '../../../test/mocs/YadorigiServerMoc';
+import { YadorigiServerMoc } from '../../../test/mocs/YadorigiServerMoc.js';
 // import gs from '../../../src/gs/YadorigiWebRTCSignalingServer';
 export class TestClass {
 	constructor() {}

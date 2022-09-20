@@ -1,7 +1,7 @@
-import { MessageChannel } from '../view/util/MessagingChannel';
-import { Cryptor } from '../util/Cryptor';
-import { Hasher } from '../util/Hasher';
-import { YadrogiLoginManager } from './YadrogiLoginManager';
+import { MessageChannel } from '../view/util/MessagingChannel.js';
+import { Cryptor } from '../util/Cryptor.js';
+import { Hasher } from '../util/Hasher.js';
+import { YadrogiLoginManager } from './YadrogiLoginManager.js';
 const TIMEOUT_MAX = 60 * 1000;
 const taskMap = {};
 export class YadorigiMessenger {

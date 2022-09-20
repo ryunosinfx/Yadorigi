@@ -1,4 +1,4 @@
-import { YadrogiLoginManager } from './YadrogiLoginManager';
+import { YadrogiLoginManager } from './YadrogiLoginManager.js';
 export class YadorigiSingleMessenger {
 	constructor() {
 		this.key = null;

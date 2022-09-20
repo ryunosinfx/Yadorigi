@@ -1,4 +1,4 @@
-import { TimeUtil } from './TimeUtil';
+import { TimeUtil } from './TimeUtil.js';
 export class ProcessUtil {
 	static wait(waitMs = 1000) {
 		return new Promise((resolve) => {

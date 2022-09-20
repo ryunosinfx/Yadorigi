@@ -4,7 +4,7 @@ export class Submitter {
 		form.setAttribute('action', path);
 		form.setAttribute('method', isPost ? 'POST' : 'GET');
 		form.setAttribute('target', target);
-		for (let key in data) {
+		for (const key in data) {
 			const value = data[key];
 			const input = document.createElement('input');
 			input.setAttribute('name', key);

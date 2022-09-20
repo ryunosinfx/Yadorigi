@@ -1,5 +1,5 @@
-import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter';
-import { Base64Util } from '../../util/Base64Util';
+import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter.js';
+import { Base64Util } from '../../util/Base64Util.js';
 const passphraseText = 'じゅげむじゅげむ';
 const userId = 'にゃーん';
 const deviceName1 = 'ぴよぴよ';

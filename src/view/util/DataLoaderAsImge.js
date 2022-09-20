@@ -1,8 +1,8 @@
-import { ViewUtil } from './ViewUtil';
-const width = 100;
+// import { ViewUtil } from './ViewUtil.js';
+// const width = 100;
 const height = 100;
 export class DataLoaderAsImge {
-	static load(path) {
+	static load(path, callback) {
 		const width = 100;
 		return new Promise((resolve, reject) => {
 			const img = new Image();
@@ -18,10 +18,10 @@ export class DataLoaderAsImge {
 
 				// ... or get as Data URI
 				callback(canvas.toDataURL('image/png'));
-				img;
+				// img;
 				resolve();
 			};
-			img.onerror = e => reject(e);
+			img.onerror = (e) => reject(e);
 			img.src = path;
 		});
 	}

@@ -1,21 +1,11 @@
-import { Hasher } from '../util/Hasher';
-import { BinaryConverter } from '../util/BinaryConverter';
-import { IframeController } from '../view/util/IframeController';
-import { CookieManager } from '../view/util/CookieManager';
+import { Hasher } from '../util/Hasher.js';
+import { BinaryConverter } from '../util/BinaryConverter.js';
+import { IframeController } from '../view/util/IframeController.js';
+import { CookieManager } from '../view/util/CookieManager.js';
 const ua = navigator.userAgent;
 const buidSeed = async (userId, passphrase) => {
-	const seedA = JSON.stringify([userId, ua])
-		.split('')
-		.join('#')
-		.split('')
-		.reverse()
-		.join('');
-	const seedB = JSON.stringify([passphrase])
-		.split('')
-		.join('#')
-		.split('')
-		.reverse()
-		.join('');
+	const seedA = JSON.stringify([userId, ua]).split('').join('#').split('').reverse().join('');
+	const seedB = JSON.stringify([passphrase]).split('').join('#').split('').reverse().join('');
 
 	const seedA1 = (await Hasher.sha512(seedA, 10)).split();
 	const seedA1len = seedA1.length;
@@ -30,23 +20,21 @@ const buidSeed = async (userId, passphrase) => {
 	}
 	return seedAll.jpin('');
 };
-const getPath = () => {
-	return window.location.origin + window.location.pathname;
-};
+const getPath = () => window.location.origin + window.location.pathname;
 const stretchCount = 1999;
 const YADORIGI = 'YADOPRIGI';
 const KEY = 'key';
 const iframeContllors = {};
 export class YadrogiLoginManager {
 	static async login(userId, passphrase) {
-		const current = await isLogedIn(userId, passphrase);
+		const current = await YadrogiLoginManager.isLogedIn(userId, passphrase);
 		if (current) {
 			return true;
 		}
-		let key = await window.crypto.subtle.generateKey(
+		const key = await window.crypto.subtle.generateKey(
 			{
 				name: 'AES-GCM',
-				length: 256
+				length: 256,
 			},
 			true,
 			['encrypt', 'decrypt']
@@ -75,7 +63,7 @@ export class YadrogiLoginManager {
 	}
 	static async getCoomieManager(userId, passphrase) {
 		const url = await YadrogiLoginManager.getUrl(userId, passphrase);
-		let doc = await YadrogiLoginManager.getIframeDoc(url);
+		const doc = await YadrogiLoginManager.getIframeDoc(url);
 		return new CookieManager(doc, window.location.hostname, url);
 	}
 
@@ -83,7 +71,7 @@ export class YadrogiLoginManager {
 		let iframeContllor = iframeContllors[url];
 		if (!iframeContllor) {
 			iframeContllor = new IframeController();
-			iframeContllor.build(Date.now() + '', url);
+			iframeContllor.build(`${Date.now()}`, url);
 			iframeContllors[url] = iframeContllor;
 		}
 		return await iframeContllors.getDocOnLoad();
@@ -98,5 +86,5 @@ export class YadrogiLoginManager {
 		const seed = await buidSeed(userId, passphrase);
 		return await Hasher.sha512(seed, stretchCount);
 	}
-	static saveKey(userId, passphrase) {}
+	// static saveKey(userId, passphrase) {}
 }

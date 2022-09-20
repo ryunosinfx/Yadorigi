@@ -1,7 +1,7 @@
-import { ViewUtil, div, hr, SPAN, BUTTON, TEXTAREA, INPUT } from './util/ViewUtil';
+import { ViewUtil, div, hr, SPAN, BUTTON, TEXTAREA, INPUT } from './util/ViewUtil.js';
 // import { BookMarkBuilder } from './util/BookMarkBuilder';
-import { MultiBrowsersConnectionTestService } from './service/MultiBrowsersConnectionTestService';
-import { TestClass2 } from './test/TestClass2';
+import { MultiBrowsersConnectionTestService } from './service/MultiBrowsersConnectionTestService.js';
+import { TestClass2 } from './test/TestClass2.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 // import { TestClass } from './test/TestClass';
 const v = ViewUtil;

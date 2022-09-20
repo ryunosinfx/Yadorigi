@@ -6,13 +6,13 @@ export class BookmarkletMaker {
 	constructor() {}
 	convert(scriptCode) {
 		if (scriptCode && typeof scriptCode === 'string') {
-			const code = Terser.minify(scriptCode);
+			const result = Terser.minify(scriptCode);
 			if (result.error) {
 				return result.error;
 			}
 			const marklet = prefix + encodeURIComponent(result.code) + suffix;
 			const length = marklet.length;
-			console.log('BookmarkletMaker convert marklet.length:' + length);
+			console.log(`BookmarkletMaker convert marklet.length:${length}`);
 			return marklet;
 		}
 		console.log(scriptCode);

@@ -1,4 +1,4 @@
-import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter';
+import { YadorigiSignalingAdapter } from '../../webrtc/YadorigiSignalingAdapter.js';
 let self = null;
 export class MultiBrowsersConnectionTestService {
 	constructor() {}

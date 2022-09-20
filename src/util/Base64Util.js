@@ -1,5 +1,5 @@
-import { BinaryConverter } from './BinaryConverter';
-import { Deflater } from './Deflater';
+import { BinaryConverter } from './BinaryConverter.js';
+import { Deflater } from './Deflater.js';
 const base64Regex = /^[0-9a-zA-Z/+=]+$/;
 const base64UrlRegex = /^[0-9a-zA-Z-_]+$/;
 export class Base64Util {
