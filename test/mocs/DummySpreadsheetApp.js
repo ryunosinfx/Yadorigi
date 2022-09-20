@@ -1,4 +1,4 @@
-import { DummyDataSheet } from './DummyDataSheet';
+import { DummyDataSheet } from './DummyDataSheet.js';
 const dummyDataSheet = new DummyDataSheet();
 export class DummySpreadsheetApp {
 	constructor() {}

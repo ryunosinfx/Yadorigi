@@ -5,12 +5,12 @@ export class DummyTextOutput {
 		this.mimeType = '';
 	}
 	append(textInput) {
-		console.log('DummyTextOutput append textInput:' + textInput + '/' + typeof textInput);
+		console.log(`DummyTextOutput append textInput:${textInput}/${typeof textInput}`);
 		this.value += textInput ? textInput : '';
 	}
 	setMimeType(mimeType) {
 		this.mimeType += mimeType;
-		console.log('DummyTextOutput setMimeType mimeType:' + mimeType);
+		console.log(`DummyTextOutput setMimeType mimeType:${mimeType}`);
 		this.resolve({ value: this.value, mimetype: mimeType });
 	}
 }

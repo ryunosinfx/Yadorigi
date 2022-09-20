@@ -1,4 +1,4 @@
-import { DummyDataRange } from './DummyDataRange';
+import { DummyDataRange } from './DummyDataRange.js';
 export class DummyDataSheet {
 	constructor() {
 		this.dataRange = new DummyDataRange();

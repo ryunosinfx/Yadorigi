@@ -1,9 +1,11 @@
 import chai from 'chai';
-import { YadorigiFileProsessor } from '../../src/webrtc/YadorigiFileProsessor';
-import { YadorigiSdpFileRecord } from '../../src/webrtc/YadorigiSdpFileRecord';
+import { YadorigiFileProsessor } from '../../src/webrtc/YadorigiFileProsessor.js';
+import { YadorigiSdpFileRecord } from '../../src/webrtc/YadorigiSdpFileRecord.js';
 const expect = chai.expect;
 
+// eslint-disable-next-line no-undef
 describe('テスト YadorigiFileProsessor', () => {
+	// eslint-disable-next-line no-undef
 	it('build!', async () => {
 		const yfp = new YadorigiFileProsessor();
 		const passphraseText = 'なーん';
@@ -17,6 +19,7 @@ describe('テスト YadorigiFileProsessor', () => {
 		console.log(A);
 		expect(n).to.not.equal(A);
 	});
+	// eslint-disable-next-line no-undef
 	it('decode!', async () => {
 		const yfp = new YadorigiFileProsessor();
 		const passphraseText = 'なーん';
@@ -37,6 +40,7 @@ describe('テスト YadorigiFileProsessor', () => {
 		expect(B).to.not.equal(A);
 		expect(B.sdp).to.be.equal(sdp);
 	});
+	// eslint-disable-next-line no-undef
 	it('decode With Answer!', async () => {
 		const yfp = new YadorigiFileProsessor();
 		const passphraseText = 'なーん';

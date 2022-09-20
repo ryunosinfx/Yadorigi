@@ -1,9 +1,11 @@
 import chai from 'chai';
-import { YadorigiSignalingAdapter } from '../../src/webrtc/YadorigiSignalingAdapter';
-import { DummySpreadsheetApp } from '../mocs/DummySpreadsheetApp';
-import { YadorigiServerMoc } from '../mocs/YadorigiServerMoc';
-import gs from '../../src/gs/YadorigiWebRTCSignalingServer';
+import { YadorigiSignalingAdapter } from '../../src/webrtc/YadorigiSignalingAdapter.js';
+import { DummySpreadsheetApp } from '../mocs/DummySpreadsheetApp.js';
+import { YadorigiServerMoc } from '../mocs/YadorigiServerMoc.js';
+import gs from '../../src/gs/YadorigiWebRTCSignalingServer.js';
+import { global } from './global.js';
 const expect = chai.expect;
+// eslint-disable-next-line no-undef
 global.SpreadsheetApp = DummySpreadsheetApp;
 const passphraseText = 'じゅげむじゅげむ';
 const userId = 'にゃーん';
@@ -11,7 +13,9 @@ const deviceName1 = 'ぴよぴよ';
 const deviceNamee2 = 'もにょもにょ';
 const groupName = 'なーん';
 const server = new gs.YadorigiWebRTCSignalingServer();
+// eslint-disable-next-line no-undef
 describe('テスト YadorigiSignalingAdupter', () => {
+	// eslint-disable-next-line no-undef
 	it('build!', async () => {
 		console.log('---0-----------YadorigiSignalingAdupter--------------------------------------');
 		const ysa1 = new YadorigiSignalingAdapter(passphraseText, userId, deviceName1, groupName);
@@ -22,7 +26,7 @@ describe('テスト YadorigiSignalingAdupter', () => {
 		await ysa2.init();
 		console.log(ysa2);
 		console.log('---A-----------YadorigiSignalingAdupter--------------------------------------');
-		ysa1.startConnect(deviceName2);
+		// ysa1.startConnect(deviceName2);
 		console.log('----B----------YadorigiSignalingAdupter--------------------------------------');
 		ysa2.startConnect(deviceName1);
 		console.log('----C----------YadorigiSignalingAdupter--------------------------------------');
