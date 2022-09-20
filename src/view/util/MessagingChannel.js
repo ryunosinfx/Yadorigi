@@ -1,5 +1,5 @@
-import { IframeController } from './IframeController';
-const MessagingQueue = [];
+import { IframeController } from './IframeController.js';
+// const MessagingQueue = [];
 const funcs = [];
 const targetWindows = [];
 export class MessagingChannel {
@@ -26,7 +26,7 @@ export class MessagingChannel {
 		}
 		window.addEventListener(
 			'message',
-			event => {
+			(event) => {
 				const msg = event.data;
 				onMessageCallBack(msg);
 			},
@@ -34,7 +34,7 @@ export class MessagingChannel {
 		);
 		funcs.push(onMessageCallBack);
 	}
-	send(message) {
+	send(message, targetWindow) {
 		targetWindow.postMessage(message, this.targetOrigin);
 	}
 }
