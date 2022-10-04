@@ -5,6 +5,7 @@ import { Logger } from '../util/Logger.js';
 import { TestClass } from './test/TestClass.js';
 import { TestClass2 } from './test/TestClass2.js';
 import { TestClass3 } from './test/TestClass3.js';
+import { TestClass4 } from './test/TestClass4.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
@@ -22,6 +23,26 @@ export class MainView {
 		const col2 = ViewUtil.add(row, 'div', {}, { margin: '10px' });
 
 		const ancker = ViewUtil.add(col1, 'a', { text: 'Yadorigi Bookmarklet! bookmark me!' });
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE in Same Browser Tabse' });
+		const rowA = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(rowA, 'h4', { text: 'startWithNewWindow' });
+		const colA1 = ViewUtil.add(rowA, 'div', {}, { margin: '10px' });
+		const buttonICEWithSameBrowserTabs = ViewUtil.add(colA1, 'button', { text: 'MakeAnswer' });
+		const colA2 = ViewUtil.add(rowA, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
+		const tc4 = new TestClass4(colA2);
+		const colA3 = ViewUtil.add(rowA, 'div', {}, { margin: '12px', fontSize: '60%' });
+		const colA4 = ViewUtil.add(rowA, 'div', {}, { margin: '12px', fontSize: '60%' });
+
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabs, async () => {
+			tc4.start(colA2);
+		});
+		const textareaT4 = ViewUtil.add(colA3, 'textarea', { text: '' });
+		ViewUtil.setOnInput(textareaT4, () => {
+			tc4.sendMessage(textareaT4.value);
+		});
+		tc4.setOnMessage(colA4);
+
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE' });
 		const tc3 = new TestClass3();
