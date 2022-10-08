@@ -6,9 +6,11 @@ import { TestClass } from './test/TestClass.js';
 import { TestClass2 } from './test/TestClass2.js';
 import { TestClass3 } from './test/TestClass3.js';
 import { TestClass4 } from './test/TestClass4.js';
+import { TestClass5 } from './test/TestClass5.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
+const testAPIc = 'https://script.google.com/macros/s/AKfycbwd3zEqiYkTZApE4H1nMGCXKw-7sQ7wC7fKT48R_0FBmvJKKNLayx76lSacLa3C205G/exec';
 export class MainView {
 	constructor(service) {
 		this.hash = location.hash;
@@ -23,12 +25,37 @@ export class MainView {
 		const col2 = ViewUtil.add(row, 'div', {}, { margin: '10px' });
 
 		const ancker = ViewUtil.add(col1, 'a', { text: 'Yadorigi Bookmarklet! bookmark me!' });
+
+		//----------------------------------------------------------------------------------------
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE in Same Browser Tabse By ServerC' });
+		const rowB = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		const inputB = ViewUtil.add(rowB, 'input', {}, { margin: '10px', width: '90vw' });
+		inputB.value = testAPIc;
+		ViewUtil.add(rowB, 'h4', { text: 'start' });
+		const colB1 = ViewUtil.add(rowB, 'div', {}, { margin: '10px' });
+		const buttonICEWithSameBrowserTabsC = ViewUtil.add(colB1, 'button', { text: 'test' });
+		const colB2 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
+		const tc5 = new TestClass5(colB2, inputB);
+		const colB3 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
+		const colB4 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
+
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsC, async () => {
+			tc5.exec(colB2);
+		});
+		const textareaT5 = ViewUtil.add(colB3, 'textarea', { text: '' });
+		ViewUtil.setOnInput(textareaT5, () => {
+			tc5.sendMessage(textareaT5.value);
+		});
+		tc5.setOnMessage(colB4);
+
+		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE in Same Browser Tabse' });
 		const rowA = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
 		ViewUtil.add(rowA, 'h4', { text: 'startWithNewWindow' });
 		const colA1 = ViewUtil.add(rowA, 'div', {}, { margin: '10px' });
-		const buttonICEWithSameBrowserTabs = ViewUtil.add(colA1, 'button', { text: 'MakeAnswer' });
+		const buttonICEWithSameBrowserTabs = ViewUtil.add(colA1, 'button', { text: 'Test Connect' });
 		const colA2 = ViewUtil.add(rowA, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const tc4 = new TestClass4(colA2);
 		const colA3 = ViewUtil.add(rowA, 'div', {}, { margin: '12px', fontSize: '60%' });
@@ -42,6 +69,7 @@ export class MainView {
 			tc4.sendMessage(textareaT4.value);
 		});
 		tc4.setOnMessage(colA4);
+		//----------------------------------------------------------------------------------------
 
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE' });
