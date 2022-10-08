@@ -2,6 +2,7 @@
 	"name": "yadorigi",
 	"version": "1.0.0",
 	"description": "WebRTC bookmarklet maker!",
+	"type":"module",
 	"main": "index.js",
 	"scripts": {
 		"start": "webpack-dev-server --hot --progress --mode development",
