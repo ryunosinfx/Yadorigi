@@ -44,14 +44,14 @@ export class TestClass5 {
 		const now = Date.now();
 		this.log('================testAPIpost=A================');
 		const url = this.urlInput.value;
-		await this.Fetcher.postJsonCors(url, obj);
+		await this.Fetcher.postAsSubmit(url, obj);
 		this.log(`================testAPIpost=B================${Date.now() - now}`);
 	}
 	async testAPIget(obj) {
 		const now = Date.now();
 		this.log('================testAPIget=A================');
 		const url = this.urlInput.value;
-		const data = await this.getText.ge(url, obj);
+		const data = await this.Fetcher.getTextCors(url, obj);
 		this.log(`================testAPIget=B================${Date.now() - now} data:${data}`);
 	}
 	getLisntenr() {
