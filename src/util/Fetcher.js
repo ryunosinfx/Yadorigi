@@ -73,7 +73,12 @@ export class Fetcher {
 		const t = encodeURIComponent(getpath);
 		const newurl = `https://accounts.google.com/ServiceLogin?passive=1209600&continue=${t}&followup=${t}`;
 		console.log(`----getTextGAS--C------------newurl:${newurl}`);
-		const res = await this.getTextCors(newurl);
+		// const res = await this.getTextCors(newurl);
+		const res = await fetch(newurl, {
+			method: 'GET',
+			redirect: 'follow',
+			mode: 'cors',
+		});
 		console.log('----getTextGAS--D------------');
 		console.log(res);
 		console.log('----getTextGAS--E------------');
