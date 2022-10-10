@@ -44,7 +44,7 @@ export class TestClass5 {
 		const now = Date.now();
 		this.log('================testAPIpost=A================');
 		const url = this.urlInput.value;
-		await this.Fetcher.postAsSubmit(url, obj);
+		await this.Fetcher.postJson(url, obj);
 		this.log(`================testAPIpost=B================${Date.now() - now}`);
 	}
 	async testAPIget(obj) {

@@ -12,6 +12,9 @@ export class Fetcher {
 	async postJsonCors(path, data) {
 		return await this.post(path, data, 'application/json', true);
 	}
+	async postJson(path, data) {
+		return await this.post(path, data, 'application/json', null);
+	}
 
 	async post(path, data, contentType, isCors) {
 		return await this.exec(path, data, true, contentType, isCors);
@@ -19,7 +22,6 @@ export class Fetcher {
 	async exec(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
 		const requestData = {
 			method: isPost ? 'POST' : 'GET',
-			mode: isCORS ? 'cors' : 'no-cors',
 			cache: 'no-cache',
 			credentials: 'omit',
 			redirect: 'follow',
@@ -28,6 +30,10 @@ export class Fetcher {
 				'Content-Type': contentType,
 			},
 		};
+
+		if (isCORS !== null) {
+			requestData.mode = isCORS ? 'cors' : 'no-cors';
+		}
 		const isObj = typeof data === 'object';
 		if (isPost) {
 			requestData.body = isObj ? JSON.stringify(data) : data;
