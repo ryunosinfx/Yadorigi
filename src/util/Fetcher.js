@@ -33,6 +33,8 @@ export class Fetcher {
 			requestData.cache = 'no-cache';
 			requestData.redirect = 'follow';
 			requestData.referrer = 'no-referrer';
+		} else if (isPost) {
+			requestData['Content-Type'] = contentType;
 		}
 		const isObj = typeof data === 'object';
 		if (isPost) {
