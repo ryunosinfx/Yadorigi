@@ -22,10 +22,6 @@ export class Fetcher {
 	async exec(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
 		const requestData = {
 			method: isPost ? 'POST' : 'GET',
-			cache: 'no-cache',
-			credentials: 'omit',
-			redirect: 'follow',
-			referrer: 'no-referrer',
 			headers: {
 				'Content-Type': contentType,
 			},
@@ -33,6 +29,10 @@ export class Fetcher {
 
 		if (isCORS !== null) {
 			requestData.mode = isCORS ? 'cors' : 'no-cors';
+			requestData.credentials = 'omit';
+			requestData.cache = 'no-cache';
+			requestData.redirect = 'follow';
+			requestData.referrer = 'no-referrer';
 		}
 		const isObj = typeof data === 'object';
 		if (isPost) {
