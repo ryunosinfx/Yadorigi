@@ -51,7 +51,7 @@ export class TestClass5 {
 		const now = Date.now();
 		this.log('================testAPIget=A================');
 		const url = this.urlInput.value;
-		const data = await this.Fetcher.getTextCors(url, obj);
+		const data = await this.Fetcher.getTextGAS(url, obj);
 		this.log(`================testAPIget=B================${Date.now() - now} data:${data}`);
 	}
 	getLisntenr() {
