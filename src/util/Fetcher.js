@@ -65,7 +65,7 @@ export class Fetcher {
 	}
 	async getTextGAS(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded', isCORS = null) {
 		console.log('----getTextGAS--A------------');
-		const r = await this.exec(path, data, isPost, contentType, isCORS);
+		const r = this.exec(path, data, isPost, contentType, isCORS);
 		console.log('----getTextGAS--B------------');
 		const res = await r;
 		console.log('----getTextGAS--C------------');
