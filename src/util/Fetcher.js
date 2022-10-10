@@ -35,7 +35,7 @@ export class Fetcher {
 			requestData.referrer = 'no-referrer';
 		} else if (isPost) {
 			requestData['Content-Type'] = 'application/x-www-form-urlencoded';
-			requestData.mode = 'no-cors';
+			// requestData.mode = 'no-cors';
 		}
 		const isObj = typeof data === 'object';
 		if (isPost) {
