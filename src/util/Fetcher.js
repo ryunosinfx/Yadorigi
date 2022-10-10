@@ -71,12 +71,13 @@ export class Fetcher {
 		const getpath = `${path}?${UrlUtil.convertObjToQueryParam(data)}`;
 		const t = encodeURIComponent(getpath);
 		const newurl = `https://accounts.google.com/ServiceLogin?passive=1209600&continue=${t}&followup=${t}`;
+		console.log(`----getTextGAS--C------------newurl:${newurl}`);
 		const res = await this.getTextCors(newurl);
-		console.log('----getTextGAS--C------------');
-		console.log(res);
 		console.log('----getTextGAS--D------------');
-		console.log(res.headers);
+		console.log(res);
 		console.log('----getTextGAS--E------------');
+		console.log(res.headers);
+		console.log('----getTextGAS--F------------');
 		return await res.text();
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
