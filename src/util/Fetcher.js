@@ -60,7 +60,8 @@ export class Fetcher {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
 		return await res.json();
 	}
-	async getTextCors(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded; charset=utf-8') {
+	async getTextCors(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded') {
+		//'application/x-www-form-urlencoded; charset=utf-8'
 		return await this.getText(path, data, isPost, contentType, true);
 	}
 	async getTextGAS(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded', isCORS = null) {
