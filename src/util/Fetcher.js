@@ -34,11 +34,11 @@ export class Fetcher {
 			requestData.redirect = 'follow';
 			requestData.referrer = 'no-referrer';
 		} else if (isPost) {
-			requestData['Content-Type'] = contentType;
+			requestData['Content-Type'] = 'application/x-www-form-urlencoded';
 		}
 		const isObj = typeof data === 'object';
 		if (isPost) {
-			requestData.body = isObj ? JSON.stringify(data) : data;
+			requestData.body = isCORS !== null ? UrlUtil.convertObjToQueryParam(data) : isObj ? JSON.stringify(data) : data;
 		} else if (contentType === 'application/json') {
 			const json = isObj ? JSON.stringify(data) : data;
 			path += `?q=${encodeURIComponent(json)}`;
