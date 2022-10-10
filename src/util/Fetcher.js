@@ -66,8 +66,12 @@ export class Fetcher {
 	async getTextGAS(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded', isCORS = null) {
 		console.log('----getTextGAS--A------------');
 		const r = this.exec(path, data, isPost, contentType, isCORS);
-		console.log('----getTextGAS--B------------');
-		const res = await r;
+		console.log(`----getTextGAS--B------------${r}`);
+
+		const getpath = `${path}?${UrlUtil.convertObjToQueryParam(data)}`;
+		const t = encodeURIComponent(getpath);
+		const newurl = `https://accounts.google.com/ServiceLogin?passive=1209600&continue=${t}&followup=${t}`;
+		const res = await this.getTextCors(newurl);
 		console.log('----getTextGAS--C------------');
 		console.log(res);
 		console.log('----getTextGAS--D------------');
