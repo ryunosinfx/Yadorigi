@@ -1,4 +1,7 @@
 const CacheService = { getDocumentCache: () => {} };
+const ContentService = {
+	createTextOutput: () => ({ setMimeType: () => {}, setContent: () => {} }),
+};
 const cache = CacheService.getDocumentCache();
 
 const parse = (event) => (!event || !event.parameter ? { group: null, fileName: null, data: null } : { group: event.parameter.group, fileName: event.parameter.fileName, data: event.parameter.data });
@@ -17,6 +20,12 @@ function doPost(event) {
 // eslint-disable-next-line no-unused-vars
 function doGet(event) {
 	console.log('=doGet=');
+
+	const out = ContentService.createTextOutput();
+
+	//Mime TypeをJSONに設定
+	out.setMimeType(ContentService.MimeType.JSON);
+	//JSONテキストをセットする
 	try {
 		const { group, fileName } = parse(event);
 		const key = JSON.stringify([group, fileName]);
@@ -25,10 +34,10 @@ function doGet(event) {
 			if (value) {
 				cache.remove(key);
 			}
-			return value;
+			out.setContent(JSON.stringify(value));
 		}
-		return null;
 	} catch (e) {
 		console.warn(e);
 	}
+	return out;
 }
