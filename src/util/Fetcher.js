@@ -68,11 +68,12 @@ export class Fetcher {
 		const getpath = `${path}?${UrlUtil.convertObjToQueryParam(data)}`;
 		console.log('----getTextGAS--A------------');
 		// const r = this.exec(path, data, isPost, contentType, isCORS);
+		const contentType = 'application/x-www-form-urlencoded';
 		const r = await fetch(getpath, {
 			method: 'GET',
 			redirect: 'follow',
 			Accept: 'application/json',
-			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Type': contentType,
 		});
 		console.log(`----getTextGAS--B------------${r}`);
 		const text = await r.text();
@@ -84,13 +85,17 @@ export class Fetcher {
 	async postToGAS(path, data) {
 		const getpath = `${path}`;
 		console.log('----postToGAS--A------------');
+		const contentType = 'application/x-www-form-urlencoded';
 		// const r = this.exec(path, data, isPost, contentType, isCORS);
 		const r = await fetch(getpath, {
 			method: 'POST',
 			redirect: 'follow',
 			Accept: 'application/json',
-			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Type': contentType,
 			body: `${UrlUtil.convertObjToQueryParam(data)}`,
+			headers: {
+				'Content-Type': contentType,
+			},
 		});
 		console.log(`----postToGAS--B------------${r}`);
 		const text = await r.text();

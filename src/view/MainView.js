@@ -10,7 +10,7 @@ import { TestClass5 } from './test/TestClass5.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
-const testAPIc = 'https://script.google.com/macros/s/AKfycbx1tS6ftvjcjMb4K25JWRZO8GbIosOpoQMp9u10L7r3cD9fjGTQtpjtDWvESG9F3NOi/exec';
+const testAPIc = 'https://script.google.com/macros/s/AKfycby0vIFE4VzSTGUwgKFkD4ktqaL8u2Vu_B9XBzDjFuD4na2aERQ_msZm18Yc_xhFe0pn/exec';
 export class MainView {
 	constructor(service) {
 		this.hash = location.hash;
