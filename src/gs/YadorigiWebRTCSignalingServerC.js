@@ -8,14 +8,18 @@ const parse = (event) => (!event || !event.parameter ? { group: null, fileName: 
 // eslint-disable-next-line no-unused-vars
 function doPost(event) {
 	console.log('=doPost=');
+	const out = ContentService.createTextOutput();
 	try {
 		const { group, fileName, data } = parse(event);
 		const key = JSON.stringify([group, fileName]);
 		const value = typeof data !== 'string' ? JSON.stringify(data) : data;
-		return cache.put(key, value);
+		cache.put(key, value);
+		out.setContent(value);
 	} catch (e) {
 		console.warn(e);
 	}
+	out.setMimeType(ContentService.MimeType.JSON);
+	return out;
 }
 // eslint-disable-next-line no-unused-vars
 function doGet(event) {
@@ -24,6 +28,7 @@ function doGet(event) {
 	const out = ContentService.createTextOutput();
 
 	//Mime TypeをJSONに設定
+	out.setContent({ result: 'OK' });
 	out.setMimeType(ContentService.MimeType.JSON);
 	//JSONテキストをセットする
 	try {
@@ -34,7 +39,7 @@ function doGet(event) {
 			if (value) {
 				cache.remove(key);
 			}
-			out.setContent(JSON.stringify(value));
+			out.setContent({ value: value });
 		}
 	} catch (e) {
 		console.warn(e);
