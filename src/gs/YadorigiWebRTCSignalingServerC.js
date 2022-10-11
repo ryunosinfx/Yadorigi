@@ -39,7 +39,7 @@ function doGet(event) {
 			if (value) {
 				cache.remove(key);
 			}
-			out.setContent({ value: value });
+			out.setContent(JSON.stringify({ value: value }));
 		}
 	} catch (e) {
 		console.warn(e);
