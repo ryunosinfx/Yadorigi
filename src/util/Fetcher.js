@@ -64,12 +64,19 @@ export class Fetcher {
 		//'application/x-www-form-urlencoded; charset=utf-8'
 		return await this.getText(path, data, isPost, contentType, true);
 	}
-	async getTextGAS(path, data = {}, isPost = false, contentType = 'application/x-www-form-urlencoded', isCORS = null) {
+	async getTextGAS(path, data = {}) {
+		const getpath = `${path}?${UrlUtil.convertObjToQueryParam(data)}`;
 		console.log('----getTextGAS--A------------');
-		const r = this.exec(path, data, isPost, contentType, isCORS);
+		// const r = this.exec(path, data, isPost, contentType, isCORS);
+		const r = await fetch(getpath, {
+			method: 'GET',
+			redirect: 'follow',
+			Accept: 'application/json',
+			'Content-Type': 'application/x-www-form-urlencoded',
+			mode: 'cors',
+		});
 		console.log(`----getTextGAS--B------------${r}`);
 
-		const getpath = `${path}?${UrlUtil.convertObjToQueryParam(data)}`;
 		const t = encodeURIComponent(getpath);
 		const newurl = `https://accounts.google.com/ServiceLogin?passive=1209600&continue=${t}&followup=${t}`;
 		console.log(`----getTextGAS--C------------newurl:${newurl}`);
@@ -77,6 +84,8 @@ export class Fetcher {
 		const res = await fetch(newurl, {
 			method: 'GET',
 			redirect: 'follow',
+			Accept: 'application/json',
+			'Content-Type': 'application/x-www-form-urlencoded',
 			mode: 'cors',
 		});
 		console.log('----getTextGAS--D------------');
