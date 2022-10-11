@@ -73,7 +73,6 @@ export class Fetcher {
 			redirect: 'follow',
 			Accept: 'application/json',
 			'Content-Type': 'application/x-www-form-urlencoded',
-			mode: 'cors',
 		});
 		console.log(`----getTextGAS--B------------${r}`);
 
