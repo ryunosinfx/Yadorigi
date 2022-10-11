@@ -1,8 +1,8 @@
-const CacheService = { getDocumentCache: () => {} };
+const CacheService = { getUserCache: () => {} };
 const ContentService = {
 	createTextOutput: () => ({ setMimeType: () => {}, setContent: () => {} }),
 };
-const cache = CacheService.getDocumentCache();
+const cache = CacheService.getUserCache();
 
 const parse = (event) => (!event || !event.parameter ? { group: null, fileName: null, data: null } : { group: event.parameter.group, fileName: event.parameter.fileName, data: event.parameter.data });
 // eslint-disable-next-line no-unused-vars
@@ -39,7 +39,7 @@ function doGet(event) {
 			if (value) {
 				cache.remove(key);
 			}
-			out.setContent(JSON.stringify({ value: value }));
+			out.setContent(JSON.stringify({ message: value }));
 		}
 	} catch (e) {
 		console.warn(e);

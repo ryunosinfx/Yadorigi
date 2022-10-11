@@ -81,6 +81,24 @@ export class Fetcher {
 		console.log(`----getTextGAS--D------------text:${text}`);
 		return text;
 	}
+	async postToGAS(path, data) {
+		const getpath = `${path}`;
+		console.log('----postToGAS--A------------');
+		// const r = this.exec(path, data, isPost, contentType, isCORS);
+		const r = await fetch(getpath, {
+			method: 'POST',
+			redirect: 'follow',
+			Accept: 'application/json',
+			'Content-Type': 'application/x-www-form-urlencoded',
+			body: `${UrlUtil.convertObjToQueryParam(data)}`,
+		});
+		console.log(`----postToGAS--B------------${r}`);
+		const text = await r.text();
+		console.log(`----postToGAS--C------------text:${text}`);
+		console.log(text);
+		console.log(`----postToGAS--D------------text:${text}`);
+		return text;
+	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
 		const res = await this.exec(path, data, isPost, contentType, isCORS);
 		return await res.text();
