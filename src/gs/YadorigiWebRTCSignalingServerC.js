@@ -9,16 +9,18 @@ const parse = (event) => (!event || !event.parameter ? { group: null, fileName: 
 function doPost(event) {
 	console.log('=doPost=');
 	const out = ContentService.createTextOutput();
+	out.setMimeType(ContentService.MimeType.JSON);
 	try {
 		const { group, fileName, data } = parse(event);
 		const key = JSON.stringify([group, fileName]);
+		// out.setContent(JSON.stringify({ message: "OK"+key }));
 		const value = typeof data !== 'string' ? JSON.stringify(data) : data;
 		cache.put(key, value);
-		out.setContent(value);
+		const nv = cache.get(key);
+		out.setContent(JSON.stringify({ message: nv, pre: value, event }));
 	} catch (e) {
-		console.warn(e);
+		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
-	out.setMimeType(ContentService.MimeType.JSON);
 	return out;
 }
 // eslint-disable-next-line no-unused-vars
@@ -28,21 +30,23 @@ function doGet(event) {
 	const out = ContentService.createTextOutput();
 
 	//Mime TypeをJSONに設定
-	out.setContent({ result: 'OK' });
 	out.setMimeType(ContentService.MimeType.JSON);
 	//JSONテキストをセットする
 	try {
 		const { group, fileName } = parse(event);
 		const key = JSON.stringify([group, fileName]);
+		// out.setContent(JSON.stringify({ message: "OK"+key }));
 		if (fileName && group) {
 			const value = cache.get(key);
 			if (value) {
 				cache.remove(key);
 			}
 			out.setContent(JSON.stringify({ message: value }));
+		} else {
+			out.setContent(JSON.stringify({ message: 'OK' }));
 		}
 	} catch (e) {
-		console.warn(e);
+		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
 	return out;
 }

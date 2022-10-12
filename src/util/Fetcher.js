@@ -79,7 +79,7 @@ export class Fetcher {
 		const text = await r.text();
 		console.log(`----getTextGAS--C------------text:${text}`);
 		console.log(text);
-		console.log(`----getTextGAS--D------------text:${text}`);
+		console.log(`----getTextGAS--D------------text:${text.length}`);
 		return text;
 	}
 	async postToGAS(path, data) {
@@ -101,7 +101,7 @@ export class Fetcher {
 		const text = await r.text();
 		console.log(`----postToGAS--C------------text:${text}`);
 		console.log(text);
-		console.log(`----postToGAS--D------------text:${text}`);
+		console.log(`----postToGAS--D------------text:${text.length}`);
 		return text;
 	}
 	async getText(path, data = {}, isPost = false, contentType = 'application/json', isCORS = false) {
