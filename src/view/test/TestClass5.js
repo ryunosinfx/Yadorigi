@@ -7,12 +7,15 @@ import { LocalStorageMessanger } from '../../util/LocalStorageMessanger.js';
 const OFFER = '_OFFER';
 const ANSWER = '_ANSWER';
 export class TestClass5 {
-	constructor(elm, urlInput) {
+	constructor(elm, urlInput, prefixInput) {
 		this.elm = elm;
 		this.urlInput = urlInput;
+		this.prefixInput = prefixInput;
 		this.log('TestClass4');
 		this.init();
 		this.Fetcher = new Fetcher({}, this);
+		this.cache = {};
+		this.listoner = this.getLisntenr();
 	}
 	init() {
 		this.log('INIT START');
@@ -30,6 +33,61 @@ export class TestClass5 {
 		this.elm.textContent = `${msg}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
 		console.log(text);
 	}
+	decode(data) {
+		try {
+			const obj = typeof data === 'string' ? JSON.parse(data) : data;
+			const result = obj && obj.event && obj.event.parameter ? obj.event.parameter.data : null;
+			return result;
+		} catch (e) {
+			console.log(e);
+		}
+		return null;
+	}
+	async start() {
+		this.isStop = false;
+		const prefix = this.prefixInput.value;
+		const pxOFFER = prefix + OFFER;
+		const pxANSWER = prefix + ANSWER;
+		const objOffer = { group: pxOFFER, fileName: `${pxOFFER}.file` };
+		const objAnswer = { group: pxANSWER, fileName: `${pxANSWER}.file` };
+		while (this.isStop === false) {
+			this.get(objOffer).then((data) => {
+				const d = this.decode(data);
+				if (!this.cache[data]) {
+					this.cache[data] = 1;
+					this.listoner(OFFER, { vakue: d });
+				}
+			});
+			this.get(objAnswer).then((data) => {
+				const d = this.decode(data);
+				if (!this.cache[data]) {
+					this.cache[data] = 1;
+					this.listoner(ANSWER, { vakue: d });
+				}
+			});
+		}
+	}
+	async stop() {
+		this.isStop = true;
+	}
+	async offer() {
+		this.isAnaswer = false;
+		const u = new URL(location.href);
+		this.log('START1');
+		this.window = window.open(u.href, 'newOne');
+		this.log('START2');
+		await ProcessUtil.wait(1);
+		this.log('START3');
+		const offer = await this.makeOffer();
+		this.log('START4');
+		LocalStorageMessanger.removeOnRecieve();
+		this.log('START5 setOnRecieve OFFER');
+		LocalStorageMessanger.setOnRecieve(OFFER, this.listener, this);
+		this.log(`START6 send offer:${offer}`);
+		LocalStorageMessanger.send(ANSWER, offer, this);
+		this.log('START7');
+	}
+
 	async exec() {
 		const now = Date.now();
 		let count = 0;
@@ -46,6 +104,12 @@ export class TestClass5 {
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.postToGAS(url, obj);
 		this.log(`================testAPIpost=B================${Date.now() - now} data:${data}`);
+	}
+	async get(obj) {
+		const now = Date.now();
+		const url = this.urlInput.value;
+		const data = await this.Fetcher.getTextGAS(url, obj);
+		this.log(`================get=B================${Date.now() - now} data:${data}`);
 	}
 	async testAPIget(obj) {
 		const now = Date.now();
@@ -115,23 +179,6 @@ export class TestClass5 {
 				}
 			}
 		};
-	}
-	async start() {
-		this.isAnaswer = false;
-		const u = new URL(location.href);
-		this.log('START1');
-		this.window = window.open(u.href, 'newOne');
-		this.log('START2');
-		await ProcessUtil.wait(1);
-		this.log('START3');
-		const offer = await this.makeOffer();
-		this.log('START4');
-		LocalStorageMessanger.removeOnRecieve();
-		this.log('START5 setOnRecieve OFFER');
-		LocalStorageMessanger.setOnRecieve(OFFER, this.listener, this);
-		this.log(`START6 send offer:${offer}`);
-		LocalStorageMessanger.send(ANSWER, offer, this);
-		this.log('START7');
 	}
 	async makeOffer() {
 		const offer = await this.w.getOfferSdp();

@@ -29,12 +29,24 @@ export class MainView {
 		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Vanilla ICE in Same Browser Tabse By ServerC' });
+		const rowB01 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		const colB011 = ViewUtil.add(rowB01, 'div', {}, { margin: '1px' });
+		ViewUtil.add(colB011, 'h4', { text: 'ServerC(Cache) GAS App URL ' });
+		const colB012 = ViewUtil.add(rowB01, 'div', {}, { margin: '1px' });
+		const inputB0 = ViewUtil.add(colB012, 'input', {}, { margin: '10px', width: '90vw' });
+		inputB0.value = testAPIc;
+		const colB013 = ViewUtil.add(rowB01, 'div', {}, { margin: '1px' });
+		ViewUtil.add(colB013, 'h4', { text: 'Prefix' });
+		const colB014 = ViewUtil.add(rowB01, 'div', {}, { margin: '1px' });
+		const inputB = ViewUtil.add(colB014, 'input', {}, { margin: '10px', width: '10vw' });
+		inputB.value = Math.floor(Date.now() / 1000);
 		const rowB = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
-		const inputB = ViewUtil.add(rowB, 'input', {}, { margin: '10px', width: '90vw' });
-		inputB.value = testAPIc;
 		ViewUtil.add(rowB, 'h4', { text: 'start' });
 		const colB1 = ViewUtil.add(rowB, 'div', {}, { margin: '10px' });
-		const buttonICEWithSameBrowserTabsC = ViewUtil.add(colB1, 'button', { text: 'test' });
+		const buttonICEWithSameBrowserTabsC = ViewUtil.add(colB1, 'button', { text: 'testAPI' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCSTART = ViewUtil.add(colB1, 'button', { text: 'testSTART' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(colB1, 'button', { text: 'testSTOP' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(colB1, 'button', { text: 'testOFFER' }, { margin: '1px' });
 		const colB2 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const tc5 = new TestClass5(colB2, inputB);
 		const colB3 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
@@ -42,6 +54,15 @@ export class MainView {
 
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsC, async () => {
 			tc5.exec(colB2);
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCSTART, async () => {
+			tc5.start(colB2);
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCSTOP, async () => {
+			tc5.stop(colB2);
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCOFFER, async () => {
+			tc5.offer(colB2);
 		});
 		const textareaT5 = ViewUtil.add(colB3, 'textarea', { text: '' });
 		ViewUtil.setOnInput(textareaT5, () => {
