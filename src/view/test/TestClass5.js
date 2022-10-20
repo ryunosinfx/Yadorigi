@@ -6,6 +6,7 @@ import { LocalStorageMessanger } from '../../util/LocalStorageMessanger.js';
 // const now = Date.now();
 const OFFER = '_OFFER';
 const ANSWER = '_ANSWER';
+const SleepMs = 100;
 export class TestClass5 {
 	constructor(elm, urlInput, prefixInput) {
 		this.elm = elm;
@@ -16,6 +17,7 @@ export class TestClass5 {
 		this.Fetcher = new Fetcher({}, this);
 		this.cache = {};
 		this.listoner = this.getLisntenr();
+		this.threads = [];
 	}
 	init() {
 		this.log('INIT START');
@@ -43,6 +45,13 @@ export class TestClass5 {
 		}
 		return null;
 	}
+	sleep() {
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				resolve();
+			}, SleepMs);
+		});
+	}
 	async start() {
 		this.isStop = false;
 		const prefix = this.prefixInput.value;
@@ -52,23 +61,36 @@ export class TestClass5 {
 		const objAnswer = { group: pxANSWER, fileName: `${pxANSWER}.file` };
 		while (this.isStop === false) {
 			setTimeout(() => {
+				if (this.threads.length < 4) {
+					this.threads.push(1);
+				} else {
+					return;
+				}
 				this.get(objOffer).then((data) => {
+					this.threads.pop(1);
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
 						this.listoner(OFFER, { vakue: d });
 					}
 				});
-			}, 100);
+			}, SleepMs);
 			setTimeout(() => {
+				if (this.threads.length < 4) {
+					this.threads.push(1);
+				} else {
+					return;
+				}
 				this.get(objAnswer).then((data) => {
+					this.threads.pop(1);
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
 						this.listoner(ANSWER, { vakue: d });
 					}
 				});
-			}, 100);
+			}, SleepMs);
+			await this.sleep();
 		}
 	}
 	async stop() {
