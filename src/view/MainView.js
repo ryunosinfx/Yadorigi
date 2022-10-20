@@ -48,7 +48,7 @@ export class MainView {
 		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(colB1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(colB1, 'button', { text: 'testOFFER' }, { margin: '1px' });
 		const colB2 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
-		const tc5 = new TestClass5(colB2, inputB);
+		const tc5 = new TestClass5(colB2, inputB0, inputB);
 		const colB3 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
 		const colB4 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
 
