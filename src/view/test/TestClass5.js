@@ -51,20 +51,24 @@ export class TestClass5 {
 		const objOffer = { group: pxOFFER, fileName: `${pxOFFER}.file` };
 		const objAnswer = { group: pxANSWER, fileName: `${pxANSWER}.file` };
 		while (this.isStop === false) {
-			this.get(objOffer).then((data) => {
-				const d = this.decode(data);
-				if (!this.cache[data]) {
-					this.cache[data] = 1;
-					this.listoner(OFFER, { vakue: d });
-				}
-			});
-			this.get(objAnswer).then((data) => {
-				const d = this.decode(data);
-				if (!this.cache[data]) {
-					this.cache[data] = 1;
-					this.listoner(ANSWER, { vakue: d });
-				}
-			});
+			setTimeout(() => {
+				this.get(objOffer).then((data) => {
+					const d = this.decode(data);
+					if (!this.cache[data]) {
+						this.cache[data] = 1;
+						this.listoner(OFFER, { vakue: d });
+					}
+				});
+			}, 100);
+			setTimeout(() => {
+				this.get(objAnswer).then((data) => {
+					const d = this.decode(data);
+					if (!this.cache[data]) {
+						this.cache[data] = 1;
+						this.listoner(ANSWER, { vakue: d });
+					}
+				});
+			}, 100);
 		}
 	}
 	async stop() {
