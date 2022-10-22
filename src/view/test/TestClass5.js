@@ -1,7 +1,6 @@
 import { WebRTCConnecter } from '../../webrtc/WebRTCConnecter.js';
 import { ProcessUtil } from '../../util/ProcessUtil.js';
 import { Fetcher } from '../../util/Fetcher.js';
-import { LocalStorageMessanger } from '../../util/LocalStorageMessanger.js';
 // const stringLength = 20;
 // const now = Date.now();
 const OFFER = '_OFFER';
@@ -27,7 +26,7 @@ export class TestClass5 {
 		this.isExcangedCandidates = false;
 		// this.listener = this.getLisntenr();
 		this.log('setOnRecieve ANSWER');
-		LocalStorageMessanger.setOnRecieve(ANSWER, this.listener, this);
+		// LocalStorageMessanger.setOnRecieve(ANSWER, this.listener, this);
 		this.log('INIT END');
 	}
 	log(text) {
@@ -106,12 +105,21 @@ export class TestClass5 {
 		this.log('START3');
 		const offer = await this.makeOffer();
 		this.log('START4');
-		LocalStorageMessanger.removeOnRecieve();
+		// LocalStorageMessanger.removeOnRecieve();
 		this.log('START5 setOnRecieve OFFER');
-		LocalStorageMessanger.setOnRecieve(OFFER, this.listener, this);
+		// LocalStorageMessanger.setOnRecieve(OFFER, this.listener, this);
 		this.log(`START6 send offer:${offer}`);
-		LocalStorageMessanger.send(ANSWER, offer, this);
+		const prefix = this.prefixInput.value;
+		const pxANSWER = prefix + ANSWER;
+		await this.send(pxANSWER, offer);
+		// LocalStorageMessanger.send(ANSWER, offer, this);
 		this.log('START7');
+	}
+	async send(prefix, data) {
+		const srt = typeof data !== 'string' ? JSON.stringify(data) : data;
+		const obj = { group: prefix, fileName: `${prefix}.file`, data: srt };
+
+		await this.testAPIpost(obj);
 	}
 
 	async exec() {
@@ -164,7 +172,8 @@ export class TestClass5 {
 					self.log(`A px:${px}`);
 					if (!self.isGetFirst) {
 						const func = async (candidates) => {
-							LocalStorageMessanger.send(OFFER, candidates, self);
+							// LocalStorageMessanger.send(OFFER, candidates, self);
+							await this.send(OFFER, candidates);
 						};
 						this.setOnCandidates(func);
 						const answer = await self.makeAnswer(value);
@@ -172,7 +181,8 @@ export class TestClass5 {
 						self.log('================answer=A================');
 						self.log(answer);
 						self.log('================answer=B================');
-						LocalStorageMessanger.send(OFFER, answer, self);
+						// LocalStorageMessanger.send(OFFER, answer, self);
+						await this.send(OFFER, answer);
 					} else if (!self.isExcangedCandidates) {
 						const candidats = await this.setCandidates(JSON.parse(value));
 						self.log('================answer candidats=A================');
@@ -191,7 +201,8 @@ export class TestClass5 {
 						self.log(candidates);
 						self.log('================candidates=B================');
 						self.isGetFirst = true;
-						LocalStorageMessanger.send(ANSWER, candidates, self);
+						// LocalStorageMessanger.send(ANSWER, candidates, self);
+						await this.send(OFFER, candidates);
 						// } else if (!this.isExcangedCandidates) {
 						// 	LocalStorageMessanger.send(OFFER, answer);
 						// 	this.isExcangedCandidates = true;
