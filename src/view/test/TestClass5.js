@@ -70,7 +70,7 @@ export class TestClass5 {
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(OFFER, { vakue: d });
+						this.listoner(OFFER, { newValue: d });
 					}
 				});
 			}, SleepMs);
@@ -85,7 +85,7 @@ export class TestClass5 {
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(ANSWER, { vakue: d });
+						this.listoner(ANSWER, { newValue: d });
 					}
 				});
 			}, SleepMs);
