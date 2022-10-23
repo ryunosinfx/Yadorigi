@@ -123,6 +123,7 @@ export class TestClass5 {
 		const obj = { group: prefix, fileName: `${prefix}.file`, data: srt };
 
 		await this.testAPIpost(obj);
+		await this.testAPIget(obj);
 	}
 
 	async exec() {
