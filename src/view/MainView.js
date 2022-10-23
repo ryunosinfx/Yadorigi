@@ -44,6 +44,7 @@ export class MainView {
 		ViewUtil.add(rowB, 'h4', { text: 'start' });
 		const colB1 = ViewUtil.add(rowB, 'div', {}, { margin: '10px' });
 		const buttonICEWithSameBrowserTabsC = ViewUtil.add(colB1, 'button', { text: 'testAPI' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCNewWindows = ViewUtil.add(colB1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCSTART = ViewUtil.add(colB1, 'button', { text: 'testSTART' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(colB1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(colB1, 'button', { text: 'testOFFER' }, { margin: '1px' });
@@ -53,16 +54,19 @@ export class MainView {
 		const colB4 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
 
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsC, async () => {
-			tc5.exec(colB2);
+			tc5.exec();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCNewWindows, async () => {
+			tc5.openNewWindow();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCSTART, async () => {
-			tc5.start(colB2);
+			tc5.start();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCSTOP, async () => {
-			tc5.stop(colB2);
+			tc5.stop();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCOFFER, async () => {
-			tc5.offer(colB2);
+			tc5.offer();
 		});
 		const textareaT5 = ViewUtil.add(colB3, 'textarea', { text: '' });
 		ViewUtil.setOnInput(textareaT5, () => {

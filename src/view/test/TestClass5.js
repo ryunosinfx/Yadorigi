@@ -95,13 +95,16 @@ export class TestClass5 {
 	async stop() {
 		this.isStop = true;
 	}
+	async openNewWindow() {
+		const u = new URL(location.href);
+		this.log('openNewWindow 1');
+		this.window = window.open(u.href, 'newOne');
+		this.log('openNewWindow 2');
+		await ProcessUtil.wait(1);
+		this.log('openNewWindow 3');
+	}
 	async offer() {
 		this.isAnaswer = false;
-		const u = new URL(location.href);
-		this.log('START1');
-		this.window = window.open(u.href, 'newOne');
-		this.log('START2');
-		await ProcessUtil.wait(1);
 		this.log('START3');
 		const offer = await this.makeOffer();
 		this.log('START4');
