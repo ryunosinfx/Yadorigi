@@ -145,16 +145,20 @@ export class TestClass5 {
 	}
 	async get(obj) {
 		const now = Date.now();
+		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`================get=B================${Date.now() - now} data:${data}`);
+		this.log(`==${key}==============get=B================${Date.now() - now} data:${data}`);
+		return data;
 	}
 	async testAPIget(obj) {
 		const now = Date.now();
-		this.log('================testAPIget=A================');
+		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
+		this.log(`==${key}==============testAPIget=A================`);
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`================testAPIget=B================${Date.now() - now} data:${data}`);
+		this.log(`==${key}===============testAPIget=B================${Date.now() - now} data:${data}`);
+		return data;
 	}
 	getLisntenr() {
 		this.log(`getLisntenrA event this.isAnaswer:${this.isAnaswer}/!this.isGetFirst:${!this.isGetFirst}/this.isExcangedCandidates:${this.isExcangedCandidates}`);
