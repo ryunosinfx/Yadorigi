@@ -149,7 +149,7 @@ export class TestClass5 {
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`==${key}==============get=B================${Date.now() - now} data:${data}`);
+		this.log(`==${key}==============get=B========this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
 		return data;
 	}
 	async testAPIget(obj) {
