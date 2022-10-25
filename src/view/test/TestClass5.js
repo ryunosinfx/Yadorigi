@@ -37,7 +37,8 @@ export class TestClass5 {
 	decode(data) {
 		try {
 			const obj = typeof data === 'string' ? JSON.parse(data) : data;
-			const result = obj && obj.event && obj.event.parameter ? obj.event.parameter.data : null;
+			// const result = obj && obj.event && obj.event.parameter ? obj.event.parameter.data : null;
+			const result = obj && obj.message ? obj.message : null;
 			return result;
 		} catch (e) {
 			console.log(e);
