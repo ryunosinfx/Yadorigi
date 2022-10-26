@@ -155,7 +155,7 @@ export class TestClass5 {
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`==${key}==============get=B========this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
+		this.log(`==${key}==============get=B========${obj.group}/${obj.fileName} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
 		return data;
 	}
 	async testAPIget(obj) {
@@ -172,6 +172,9 @@ export class TestClass5 {
 		const self = this;
 		return async (px, event) => {
 			const value = event.newValue;
+			const prefix = this.prefixInput.value;
+			const pxOFFER = prefix + OFFER;
+			const pxANSWER = prefix + ANSWER;
 			self.log('================RECEIVE=A================');
 			self.log(`getLisntenrB event px:${px}/${px === ANSWER}/self.isAnaswer:${self.isAnaswer}/!self.isGetFirst:${!self.isGetFirst}/self.isExcangedCandidates:${self.isExcangedCandidates}`);
 			self.log(event);
@@ -188,7 +191,7 @@ export class TestClass5 {
 					if (!self.isGetFirst) {
 						const func = async (candidates) => {
 							// LocalStorageMessanger.send(OFFER, candidates, self);
-							await this.send(OFFER, candidates);
+							await this.send(pxOFFER, candidates);
 						};
 						this.setOnCandidates(func);
 						const answer = await self.makeAnswer(value);
@@ -197,7 +200,7 @@ export class TestClass5 {
 						self.log(answer);
 						self.log('================answer=B================');
 						// LocalStorageMessanger.send(OFFER, answer, self);
-						await this.send(OFFER, answer);
+						await this.send(pxOFFER, answer);
 					} else if (!self.isExcangedCandidates) {
 						const candidats = await this.setCandidates(JSON.parse(value));
 						self.log('================answer candidats=A================');
@@ -217,7 +220,7 @@ export class TestClass5 {
 						self.log('================candidates=B================');
 						self.isGetFirst = true;
 						// LocalStorageMessanger.send(ANSWER, candidates, self);
-						await this.send(OFFER, candidates);
+						await this.send(pxANSWER, candidates);
 						// } else if (!this.isExcangedCandidates) {
 						// 	LocalStorageMessanger.send(OFFER, answer);
 						// 	this.isExcangedCandidates = true;
