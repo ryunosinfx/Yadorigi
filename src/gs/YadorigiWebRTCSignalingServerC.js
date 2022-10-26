@@ -3,6 +3,7 @@ const ContentService = {
 	createTextOutput: () => ({ setMimeType: () => {}, setContent: () => {} }),
 };
 const cache = CacheService.getUserCache();
+const EXPIRE_DURATION = 1000 * 2;
 
 const parse = (event) => (!event || !event.parameter ? { group: null, fileName: null, data: null } : { group: event.parameter.group, fileName: event.parameter.fileName, data: event.parameter.data });
 // eslint-disable-next-line no-unused-vars
@@ -17,7 +18,8 @@ function doPost(event) {
 		const value = typeof data !== 'string' ? JSON.stringify(data) : data;
 		cache.put(key, value);
 		const nv = cache.get(key);
-		out.setContent(JSON.stringify({ message: nv, pre: value, event }));
+		const expire = Date.now() + EXPIRE_DURATION;
+		out.setContent(JSON.stringify({ message: nv, pre: value, event, expire }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
@@ -38,7 +40,7 @@ function doGet(event) {
 		// out.setContent(JSON.stringify({ message: "OK"+key }));
 		if (fileName && group) {
 			const value = cache.get(key);
-			if (value) {
+			if (value && (!value.expire || value.expire < Date.now())) {
 				cache.remove(key);
 			}
 			out.setContent(JSON.stringify({ message: value }));
