@@ -61,6 +61,9 @@ export class TestClass5 {
 		const objAnswer = { group: pxANSWER, fileName: `${pxANSWER}.file` };
 		while (this.isStop === false) {
 			setTimeout(() => {
+				if (this.isAnaswer) {
+					return;
+				}
 				if (this.threads.length < 4) {
 					this.threads.push(1);
 				} else {
@@ -76,6 +79,9 @@ export class TestClass5 {
 				});
 			}, SleepMs);
 			setTimeout(() => {
+				if (!this.isAnaswer) {
+					return;
+				}
 				if (this.threads.length < 4) {
 					this.threads.push(1);
 				} else {
@@ -139,7 +145,7 @@ export class TestClass5 {
 	}
 	async testAPIpost(obj) {
 		const now = Date.now();
-		this.log('================testAPIpost=A================');
+		this.log(`================testAPIpost=A================${obj.group}/${obj.fileName}`);
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.postToGAS(url, obj);
 		this.log(`================testAPIpost=B================${Date.now() - now} data:${data}`);
@@ -155,7 +161,7 @@ export class TestClass5 {
 	async testAPIget(obj) {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
-		this.log(`==${key}==============testAPIget=A================`);
+		this.log(`==${key}==============testAPIget=A================${obj.group}/${obj.fileName}`);
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
 		this.log(`==${key}===============testAPIget=B================${Date.now() - now} data:${data}`);
