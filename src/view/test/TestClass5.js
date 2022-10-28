@@ -45,11 +45,11 @@ export class TestClass5 {
 		}
 		return null;
 	}
-	sleep() {
+	sleep(ms = SleepMs) {
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve();
-			}, SleepMs);
+			}, ms);
 		});
 	}
 	async start() {
@@ -57,8 +57,8 @@ export class TestClass5 {
 		const prefix = this.prefixInput.value;
 		const pxOFFER = prefix + OFFER;
 		const pxANSWER = prefix + ANSWER;
-		const objOffer = { group: pxOFFER, fileName: `${pxOFFER}.file` };
-		const objAnswer = { group: pxANSWER, fileName: `${pxANSWER}.file` };
+		const objOffer = { group: pxOFFER, cmd: `${pxOFFER}.cmd` };
+		const objAnswer = { group: pxANSWER, cmd: `${pxANSWER}.cmd` };
 		while (this.isStop === false) {
 			setTimeout(() => {
 				if (this.isAnaswer) {
@@ -127,7 +127,7 @@ export class TestClass5 {
 	}
 	async send(prefix, data) {
 		const srt = typeof data !== 'string' ? JSON.stringify(data) : data;
-		const obj = { group: prefix, fileName: `${prefix}.file`, data: srt };
+		const obj = { group: prefix, cmd: `${prefix}.cmd`, data: srt };
 
 		await this.testAPIpost(obj);
 		await this.testAPIget(obj);
@@ -137,7 +137,7 @@ export class TestClass5 {
 		const now = Date.now();
 		let count = 0;
 		while (count < 10) {
-			const obj = { group: now, fileName: `${now}.file`, data: `${now}/${count}` };
+			const obj = { group: now, cmd: `${now}.cmd`, data: `${now}/${count}` };
 			await this.testAPIpost(obj);
 			await this.testAPIget(obj);
 			count++;
@@ -145,7 +145,7 @@ export class TestClass5 {
 	}
 	async testAPIpost(obj) {
 		const now = Date.now();
-		this.log(`================testAPIpost=A================${obj.group}/${obj.fileName}`);
+		this.log(`================testAPIpost=A================${obj.group}/${obj.cmd}`);
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.postToGAS(url, obj);
 		this.log(`================testAPIpost=B================${Date.now() - now} data:${data}`);
@@ -155,13 +155,13 @@ export class TestClass5 {
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`==${key}==============get=B========${obj.group}/${obj.fileName} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
+		this.log(`==${key}==============get=B========${obj.group}/${obj.cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
 		return data;
 	}
 	async testAPIget(obj) {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
-		this.log(`==${key}==============testAPIget=A================${obj.group}/${obj.fileName}`);
+		this.log(`==${key}==============testAPIget=A================${obj.group}/${obj.cmd}`);
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
 		this.log(`==${key}===============testAPIget=B================${Date.now() - now} data:${data}`);

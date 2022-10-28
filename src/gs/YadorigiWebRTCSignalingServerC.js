@@ -4,22 +4,58 @@ const ContentService = {
 };
 const cache = CacheService.getUserCache();
 const EXPIRE_DURATION = 1000 * 2;
+const WAIT_EXPIRE_DURATION = 1000 * 20;
 
-const parse = (event) => (!event || !event.parameter ? { group: null, fileName: null, data: null } : { group: event.parameter.group, fileName: event.parameter.fileName, data: event.parameter.data });
+const parse = (event) => (!event || !event.parameter ? { cmd: null, group: null, data: null } : { group: event.parameter.group, cmd: event.parameter.cmd, data: event.parameter.data });
+function sleep(sec = Math.floor(Math.random() * 1000) + 100) {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve();
+		}, sec);
+	});
+}
+async function wait(key, value) {
+	const ckey = `c%${key}`;
+	const challeng = value + Date.now() + Math.floor(Math.random() * 1000000);
+	let c = null;
+	while (c !== challeng) {
+		cache.put(ckey, challeng);
+		c = cache.get(ckey);
+		cache.remove(ckey);
+		if (c !== challeng) {
+			await sleep();
+		}
+	}
+}
+async function add(key, value, now = Date.now()) {
+	await wait(key, value);
+	let c = cache.get(key);
+	c = c ? JSON.parse(c) : [];
+	const n = [];
+	for (const v of c.a) {
+		if (v.expire > now) {
+			n.push(v);
+		}
+	}
+	n.push({ value, expire: now + WAIT_EXPIRE_DURATION });
+	cache.remove(key);
+	cache.put(key, JSON.stringify({ message: n, expire: now + 40000 }), 900);
+}
+async function put(key, value, now = Date.now()) {
+	const v = { value, expire: now + EXPIRE_DURATION };
+	cache.remove(key);
+	cache.put(key, JSON.stringify(v));
+}
 // eslint-disable-next-line no-unused-vars
-function doPost(event) {
-	console.log('=doPost=');
+async function doPost(event) {
 	const out = ContentService.createTextOutput();
 	out.setMimeType(ContentService.MimeType.JSON);
 	try {
-		const { group, fileName, data } = parse(event);
-		const key = JSON.stringify([group, fileName]);
-		// out.setContent(JSON.stringify({ message: "OK"+key }));
+		const { group, cmd, data } = parse(event);
+		const key = JSON.stringify([group, cmd]);
 		const value = typeof data !== 'string' ? JSON.stringify(data) : data;
-		cache.put(key, value);
-		const nv = cache.get(key);
-		const expire = Date.now() + EXPIRE_DURATION;
-		out.setContent(JSON.stringify({ message: nv, pre: value, event, expire }));
+		console.log(cmd === 'wait' ? await add(key, value) : put(key, value));
+		out.setContent(JSON.stringify({ message: 'OK' }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
@@ -27,23 +63,21 @@ function doPost(event) {
 }
 // eslint-disable-next-line no-unused-vars
 function doGet(event) {
-	console.log('=doGet=');
-
 	const out = ContentService.createTextOutput();
-
 	//Mime TypeをJSONに設定
 	out.setMimeType(ContentService.MimeType.JSON);
 	//JSONテキストをセットする
 	try {
-		const { group, fileName } = parse(event);
-		const key = JSON.stringify([group, fileName]);
+		const { group, cmd } = parse(event);
+		const key = JSON.stringify([group, cmd]);
 		// out.setContent(JSON.stringify({ message: "OK"+key }));
-		if (fileName && group) {
-			const value = cache.get(key);
+		if (cmd && group) {
+			let value = cache.get(key);
+			value = value && typeof value === 'string' ? JSON.parse(value) : null;
 			if (value && (!value.expire || value.expire < Date.now())) {
 				cache.remove(key);
 			}
-			out.setContent(JSON.stringify({ message: value }));
+			out.setContent(JSON.stringify({ message: value.message }));
 		} else {
 			out.setContent(JSON.stringify({ message: 'OK' }));
 		}
