@@ -77,7 +77,7 @@ function doGet(event) {
 			if (value && (!value.expire || value.expire < Date.now())) {
 				cache.remove(key);
 			}
-			out.setContent(JSON.stringify({ message: value.message }));
+			out.setContent(JSON.stringify({ message: value ? value.message : 'null' }));
 		} else {
 			out.setContent(JSON.stringify({ message: 'OK' }));
 		}
