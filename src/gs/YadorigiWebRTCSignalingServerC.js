@@ -2,10 +2,10 @@ const CacheService = { getUserCache: () => {} };
 const ContentService = {
 	createTextOutput: () => ({ setMimeType: () => {}, setContent: () => {} }),
 };
+/////////ここより上はGAS上では取り除く/////////////////////////////////////////////////
 const cache = CacheService.getUserCache();
 const EXPIRE_DURATION = 1000 * 2;
 const WAIT_EXPIRE_DURATION = 1000 * 20;
-
 const parse = (event) => (!event || !event.parameter ? { cmd: null, group: null, data: null } : { group: event.parameter.group, cmd: event.parameter.cmd, data: event.parameter.data });
 function sleep(sec = Math.floor(Math.random() * 800) + 200) {
 	return new Promise((resolve) => {
@@ -39,10 +39,9 @@ async function add(key, value, now = Date.now()) {
 	cache.remove(key);
 	cache.put(key, JSON.stringify({ message: n, expire: now + 40000 }), 900);
 }
-async function put(key, value, now = Date.now()) {
-	const v = { value, expire: now + EXPIRE_DURATION };
+function put(key, value, now = Date.now()) {
 	cache.remove(key);
-	cache.put(key, JSON.stringify(v));
+	cache.put(key, JSON.stringify({ message: value, expire: now + EXPIRE_DURATION }));
 }
 function doWait(now) {
 	console.log(`doWait:now;${now}`);
@@ -66,7 +65,7 @@ function doPost(event) {
 		} else {
 			put(key, value);
 		}
-		out.setContent(JSON.stringify({ message: 'OK' }));
+		out.setContent(JSON.stringify({ message: 'POST OK' }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
@@ -74,24 +73,17 @@ function doPost(event) {
 }
 // eslint-disable-next-line no-unused-vars
 function doGet(event) {
-	const out = ContentService.createTextOutput();
-	//Mime TypeをJSONに設定
-	out.setMimeType(ContentService.MimeType.JSON);
-	//JSONテキストをセットする
+	const out = ContentService.createTextOutput(); //Mime TypeをJSONに設定
+	out.setMimeType(ContentService.MimeType.JSON); //JSONテキストをセットする
 	try {
 		const { group, cmd } = parse(event);
-		const key = JSON.stringify([group, cmd]);
-		// out.setContent(JSON.stringify({ message: "OK"+key }));
-		if (cmd && group) {
-			let value = cache.get(key);
-			value = value && typeof value === 'string' ? JSON.parse(value) : null;
-			if (value && (!value.expire || value.expire < Date.now())) {
-				cache.remove(key);
-			}
-			out.setContent(JSON.stringify({ message: value ? value.message : 'null' }));
-		} else {
-			out.setContent(JSON.stringify({ message: 'OK' }));
+		const key = cmd && group ? JSON.stringify([group, cmd]) : null;
+		let value = key ? cache.get(key) : null;
+		value = value ? (typeof value === 'string' ? JSON.parse(value) : value) : null;
+		if (key && value && (!value.expire || value.expire < Date.now())) {
+			cache.remove(key);
 		}
+		out.setContent(JSON.stringify({ message: key ? (value ? value.message : value) : 'GET OK' }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}

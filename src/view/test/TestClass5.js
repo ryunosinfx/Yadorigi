@@ -34,6 +34,9 @@ export class TestClass5 {
 		this.elm.textContent = `${msg}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
 		console.log(text);
 	}
+	clear() {
+		this.elm.textContent = '';
+	}
 	decode(data) {
 		try {
 			const obj = typeof data === 'string' ? JSON.parse(data) : data;
@@ -59,6 +62,9 @@ export class TestClass5 {
 		const pxANSWER = prefix + ANSWER;
 		const objOffer = { group: pxOFFER, cmd: `${pxOFFER}.cmd` };
 		const objAnswer = { group: pxANSWER, cmd: `${pxANSWER}.cmd` };
+		this.w.setOnOpne(() => {
+			this.isStop = true;
+		});
 		while (this.isStop === false) {
 			setTimeout(() => {
 				if (this.isAnaswer) {
@@ -130,7 +136,7 @@ export class TestClass5 {
 		const obj = { group: prefix, cmd: `${prefix}.cmd`, data: srt };
 
 		await this.testAPIpost(obj);
-		await this.testAPIget(obj);
+		await this.get(obj);
 	}
 
 	async exec() {
@@ -139,7 +145,7 @@ export class TestClass5 {
 		while (count < 10) {
 			const obj = { group: now, cmd: `${now}.cmd`, data: `${now}/${count}` };
 			await this.testAPIpost(obj);
-			await this.testAPIget(obj);
+			await this.get(obj);
 			count++;
 		}
 	}
@@ -156,15 +162,6 @@ export class TestClass5 {
 		const url = this.urlInput.value;
 		const data = await this.Fetcher.getTextGAS(url, obj);
 		this.log(`==${key}==============get=B========${obj.group}/${obj.cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
-		return data;
-	}
-	async testAPIget(obj) {
-		const now = Date.now();
-		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
-		this.log(`==${key}==============testAPIget=A================${obj.group}/${obj.cmd}`);
-		const url = this.urlInput.value;
-		const data = await this.Fetcher.getTextGAS(url, obj);
-		this.log(`==${key}===============testAPIget=B================${Date.now() - now} data:${data}`);
 		return data;
 	}
 	getLisntenr() {

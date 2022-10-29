@@ -150,8 +150,7 @@ export class WebRTCConnecter {
 		}
 	}
 	async setCandidates(candidatesInput) {
-		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
-		this.WebRTCPeerCurrent.setCandidates(candidates);
+		this.WebRTCPeerCurrent.setCandidates(typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput));
 	}
 	close() {
 		this.WebRTCPeer.close();

@@ -10,7 +10,7 @@ import { TestClass5 } from './test/TestClass5.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
-const testAPIc = 'https://script.google.com/macros/s/AKfycbyMY_HqaT-usGcijXkJQ5hVIZWXFzqYtySyJLBz3Ycnw4Sw-P-DPBxNQVrw7aoRZ606/exec';
+const testAPIc = 'https://script.google.com/macros/s/AKfycbyU-SW4c8KN_LmxELzwWB2xKzx5uPph0zx59dT2kYMuobh9Cr3bi-7Ac1AcILPeRwfX/exec';
 export class MainView {
 	constructor(service) {
 		this.hash = location.hash;
@@ -48,6 +48,7 @@ export class MainView {
 		const buttonICEWithSameBrowserTabsCSTART = ViewUtil.add(colB1, 'button', { text: 'testSTART' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(colB1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(colB1, 'button', { text: 'testOFFER' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCCLEAR = ViewUtil.add(colB1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
 		const colB2 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const tc5 = new TestClass5(colB2, inputB0, inputB);
 		const colB3 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });
@@ -67,6 +68,9 @@ export class MainView {
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCOFFER, async () => {
 			tc5.offer();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsCCLEAR, async () => {
+			tc5.clear();
 		});
 		const textareaT5 = ViewUtil.add(colB3, 'textarea', { text: '' });
 		ViewUtil.setOnInput(textareaT5, () => {
