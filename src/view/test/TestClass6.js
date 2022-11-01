@@ -31,8 +31,7 @@ export class TestClass6 {
 		return await this.digest(JSON.stringify(seeds, stretch));
 	}
 	log(text) {
-		const msg = this.elm.textContent;
-		this.elm.textContent = `${msg}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
+		this.elm.textContent = `${this.elm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
 		console.log(text);
 	}
 	clear() {
@@ -73,6 +72,7 @@ export class TestClass6 {
 			if (data) {
 				console.log(`data:${data}`);
 				const list = JSON.parse(data);
+				this.log(list);
 				const now = Date.now();
 				let isOffer = false;
 				let isHotStamdby = false;
@@ -83,8 +83,8 @@ export class TestClass6 {
 					if (row.expire > now) {
 						continue;
 					}
+					console.log(row);
 					if (row.hash !== this.hash && row.hash.indexOf(this.hash) < 0) {
-						console.log();
 						await this.sendWaitNotify(group, row.hash);
 						isHotStamdby = true;
 						break;
@@ -133,10 +133,10 @@ export class TestClass6 {
 		}
 	}
 	async sendWait(group) {
-		await this.send(group, WAIT, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL });
+		await this.send(group, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async sendWaitNotify(group, tagetHash) {
-		await this.send(group, WAIT, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL });
+		await this.send(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async start() {
 		this.isStop = false;

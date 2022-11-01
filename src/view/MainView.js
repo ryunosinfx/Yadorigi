@@ -40,7 +40,7 @@ export class MainView {
 		ViewUtil.add(colC013, 'h4', { text: 'Prefix' });
 		const colC014 = ViewUtil.add(rowC01, 'div', {}, { margin: '1px' });
 		const inputC = ViewUtil.add(colC014, 'input', {}, { margin: '10px', width: '10vw' });
-		inputC.value = Math.floor(Date.now() / 1000);
+		inputC.value = Math.floor(Date.now() / 1000); //Group
 		const rowC = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
 		ViewUtil.add(rowC, 'h4', { text: 'start' });
 		const colC1 = ViewUtil.add(rowC, 'div', {}, { margin: '10px' });
