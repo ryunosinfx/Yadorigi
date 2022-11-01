@@ -344,7 +344,7 @@ export class TestClass6 {
 		return retList.join('');
 	}
 	//////Fetcher Core///////////////////////////////////////////////
-	static convertObjToQueryParam(data) {
+	convertObjToQueryParam(data) {
 		return data && typeof data === 'object'
 			? Object.keys(data)
 					.map((key) => `${key}=${encodeURIComponent(data[key])}`)
