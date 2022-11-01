@@ -61,7 +61,7 @@ export class MainView {
 			tc6.openNewWindow();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
-			tc6.start();
+			tc6.startAuto();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
 			tc6.stop();
