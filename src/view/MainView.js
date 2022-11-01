@@ -7,6 +7,7 @@ import { TestClass2 } from './test/TestClass2.js';
 import { TestClass3 } from './test/TestClass3.js';
 import { TestClass4 } from './test/TestClass4.js';
 import { TestClass5 } from './test/TestClass5.js';
+import { TestClass6 } from './test/TestClass6.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
@@ -25,6 +26,54 @@ export class MainView {
 		const col2 = ViewUtil.add(row, 'div', {}, { margin: '10px' });
 
 		const ancker = ViewUtil.add(col1, 'a', { text: 'Yadorigi Bookmarklet! bookmark me!' });
+
+		//----------------------------------------------------------------------------------------
+		ViewUtil.add(frame, 'hr');
+		ViewUtil.add(frame, 'h2', { text: 'Test Auto Vanilla ICE in Browser Tabse By ServerC' });
+		const rowC01 = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		const colC011 = ViewUtil.add(rowC01, 'div', {}, { margin: '1px' });
+		ViewUtil.add(colC011, 'h4', { text: 'ServerC(Cache) GAS App URL ' });
+		const colC012 = ViewUtil.add(rowC01, 'div', {}, { margin: '1px' });
+		const inputC0 = ViewUtil.add(colC012, 'input', {}, { margin: '10px', width: '90vw' });
+		inputC0.value = testAPIc;
+		const colC013 = ViewUtil.add(rowC01, 'div', {}, { margin: '1px' });
+		ViewUtil.add(colC013, 'h4', { text: 'Prefix' });
+		const colC014 = ViewUtil.add(rowC01, 'div', {}, { margin: '1px' });
+		const inputC = ViewUtil.add(colC014, 'input', {}, { margin: '10px', width: '10vw' });
+		inputC.value = Math.floor(Date.now() / 1000);
+		const rowC = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		ViewUtil.add(rowC, 'h4', { text: 'start' });
+		const colC1 = ViewUtil.add(rowC, 'div', {}, { margin: '10px' });
+		const buttonICEWithSameBrowserTabsD = ViewUtil.add(colC1, 'button', { text: 'testAPI' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(colC1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(colC1, 'button', { text: 'testAutoSTART' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
+		const colC2 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
+		const tc6 = new TestClass6(colC2, inputC0, inputC);
+		const colC3 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
+		const colC4 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
+
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsD, async () => {
+			tc6.exec();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDNewWindows, async () => {
+			tc6.openNewWindow();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
+			tc6.start();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
+			tc6.stop();
+		});
+		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDCLEAR, async () => {
+			tc6.clear();
+		});
+		const textareaT6 = ViewUtil.add(colC3, 'textarea', { text: '' });
+		ViewUtil.setOnInput(textareaT6, () => {
+			tc6.sendMessage(textareaT6.value);
+		});
+		tc6.setOnMessage(colC4);
 
 		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');
