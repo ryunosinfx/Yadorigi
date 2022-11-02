@@ -60,6 +60,10 @@ export class TestClass6 {
 		let count = 0;
 		this.isWaiting = false;
 		this.isStop = false;
+		const ef = (e) => {
+			console.log(e.message);
+			console.log(e.stack);
+		};
 		while (this.isStopAuto === false && this.isStop === false) {
 			const group = this.groupInput.value;
 			this.gropuHash = await this.digest(group);
@@ -85,6 +89,7 @@ export class TestClass6 {
 					}
 					console.log(row);
 					if (row.hash !== this.hash && row.hash.indexOf(this.hash) < 0) {
+						console.log(`sendWaitNotify group:${group}`);
 						await this.sendWaitNotify(group, row.hash);
 						isHotStamdby = true;
 						break;
@@ -92,6 +97,7 @@ export class TestClass6 {
 				}
 				const data2 = await this.get(group);
 				const list2 = JSON.parse(data2);
+				console.log(`sendWaitNotify data2:${data2}`);
 				if (!Array.isArray(list2)) {
 					continue;
 				}
@@ -117,10 +123,10 @@ export class TestClass6 {
 					}
 				}
 				if (isHotStamdby) {
-					this.start();
+					this.start().catch(ef);
 					await this.sleep(100);
 					if (isOffer) {
-						this.offer();
+						this.offer().catch(ef);
 					}
 					setTimeout(() => {
 						isHotStamdby = false;
