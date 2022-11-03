@@ -107,14 +107,19 @@ export class TestClass6 {
 				list3.sort();
 				list3.reverse();
 				let isOffer = false;
+				let rowCount = 0;
 				for (const row of list3) {
 					const cols = JSON.parse(row);
 					const hash = cols[1];
 					if (hash.indexOf(this.hash) === 1) {
 						isOffer = true;
+						rowCount++;
 					}
 					if (hash.indexOf(this.hash) >= this.hash.length) {
 						isOffer = false;
+						rowCount++;
+					}
+					if (rowCount >= 2) {
 						break;
 					}
 				}
@@ -171,7 +176,7 @@ export class TestClass6 {
 				this.get(objOffer).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
-					if (!this.cache[data]) {
+					if (d && !this.cache[data]) {
 						this.cache[data] = 1;
 						this.listoner(OFFER, d);
 					}
@@ -189,7 +194,7 @@ export class TestClass6 {
 				this.get(objAnswer).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
-					if (!this.cache[data]) {
+					if (d && !this.cache[data]) {
 						this.cache[data] = 1;
 						this.listoner(ANSWER, d);
 					}
