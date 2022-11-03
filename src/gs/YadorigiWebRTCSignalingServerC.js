@@ -8,10 +8,13 @@ const EXPIRE_DURATION = 1000 * 2;
 const WAIT_EXPIRE_DURATION = 1000 * 20;
 const parse = (event) => (!event || !event.parameter ? { cmd: null, group: null, data: null } : { group: event.parameter.group, cmd: event.parameter.cmd, data: event.parameter.data });
 function sleep(sec = Math.floor(Math.random() * 800) + 200) {
+	const expire = Date.now() + sec;
+	const func = (ms) => ms > expire;
 	return new Promise((resolve) => {
-		setTimeout(() => {
-			resolve();
-		}, sec);
+		while (!func(Date.now())) {
+			console.log(`sleep: sec:${sec}/expire:${expire}/now:${Date.now()}`);
+		}
+		resolve();
 	});
 }
 async function wait(key, value) {
@@ -28,9 +31,13 @@ async function wait(key, value) {
 async function add(key, value, now = Date.now()) {
 	await wait(key, value);
 	let c = cache.get(key);
-	c = c ? JSON.parse(c) : [];
+	console.log(`add A1 c key:${key}`);
+	console.log(c);
+	c = c ? JSON.parse(c) : { message: [], expire: now + 40000 };
 	const n = [];
-	for (const v of c.a) {
+	console.log('add A2 c');
+	console.log(c);
+	for (const v of c.message) {
 		if (v.expire > now) {
 			n.push(v);
 		}
@@ -43,8 +50,15 @@ function put(key, value, now = Date.now()) {
 	cache.remove(key);
 	cache.put(key, JSON.stringify({ message: value, expire: now + EXPIRE_DURATION }));
 }
-function doWait(now) {
-	console.log(`doWait:now;${now}`);
+function doWait(state, expire) {
+	console.log(`doWait:expire;${expire}`);
+	if (expire < Date.now()) {
+		state.isOver = true;
+	}
+}
+// eslint-disable-next-line no-unused-vars
+function doPostTest() {
+	doPost({ parameter: { group: 1122333, cmd: 'wait', data: 'wait!' } });
 }
 // eslint-disable-next-line no-unused-vars
 function doPost(event) {
@@ -59,12 +73,14 @@ function doPost(event) {
 			add(key, value).then(() => {
 				state.isOver = true;
 			});
+			const expire = Date.now() + 1000;
 			while (!state.isOver) {
-				doWait(Date.now());
+				doWait(state, expire);
 			}
 		} else {
 			put(key, value);
 		}
+		console.log('END:doPost');
 		out.setContent(JSON.stringify({ message: 'POST OK' }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));

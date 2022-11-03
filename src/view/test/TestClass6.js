@@ -72,7 +72,7 @@ export class TestClass6 {
 				await this.sendWait(group);
 			}
 			count++;
-			const data = await this.get(group);
+			const data = await this.getWait(group);
 			if (data) {
 				console.log(`data:${data}`);
 				const list = JSON.parse(data);
@@ -95,7 +95,7 @@ export class TestClass6 {
 						break;
 					}
 				}
-				const data2 = await this.get(group);
+				const data2 = await this.getWait(group);
 				const list2 = JSON.parse(data2);
 				console.log(`sendWaitNotify data2:${data2}`);
 				if (!Array.isArray(list2)) {
@@ -143,6 +143,9 @@ export class TestClass6 {
 	}
 	async sendWaitNotify(group, tagetHash) {
 		await this.send(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+	}
+	async getWait(group) {
+		return await this.get({ group, cmd: WAIT });
 	}
 	async start() {
 		this.isStop = false;
@@ -296,8 +299,7 @@ export class TestClass6 {
 		this.log(`makeAnswer sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		this.log(sdp);
-		const answer = await this.w.answer(sdp.sdp);
-		return answer;
+		return await this.w.answer(sdp.sdp);
 	}
 	connect(sdpInput) {
 		const func = async (resolve) => {
@@ -315,14 +317,12 @@ export class TestClass6 {
 		this.w.setOnCandidates(func);
 	}
 	async setCandidates(candidatesInput) {
-		const candidates = candidatesInput;
-		this.w.setCandidates(candidates);
+		this.w.setCandidates(candidatesInput);
 	}
 	setOnMessage(elm) {
 		this.w.setOnMessage((msg) => {
 			this.log(`setOnMessage msg:${msg}`);
 			elm.textContent = msg;
-			console.log(msg);
 		});
 	}
 	sendMessage(msg) {

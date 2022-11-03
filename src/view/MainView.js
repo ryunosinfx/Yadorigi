@@ -11,7 +11,7 @@ import { TestClass6 } from './test/TestClass6.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
-const testAPIc = 'https://script.google.com/macros/s/AKfycbyU-SW4c8KN_LmxELzwWB2xKzx5uPph0zx59dT2kYMuobh9Cr3bi-7Ac1AcILPeRwfX/exec';
+const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
 export class MainView {
 	constructor(service) {
 		this.hash = location.hash;
