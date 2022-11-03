@@ -149,7 +149,7 @@ export class TestClass6 {
 		await this.send(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async getWaitList(group) {
-		const data = await this.get({ group, cmd: WAIT });
+		const data = await this.loas(group, WAIT);
 		const obj = data ? JSON.parse(data) : null;
 		return obj ? obj.message : null;
 	}
@@ -158,8 +158,6 @@ export class TestClass6 {
 		const prefix = this.groupInput.value;
 		const pxOFFER = prefix + OFFER;
 		const pxANSWER = prefix + ANSWER;
-		const objOffer = { group: pxOFFER, cmd: `${pxOFFER}.cmd` };
-		const objAnswer = { group: pxANSWER, cmd: `${pxANSWER}.cmd` };
 		this.w.setOnOpne(() => {
 			this.isStop = true;
 		});
@@ -173,7 +171,7 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.get(objOffer).then((data) => {
+				this.load(pxOFFER).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
@@ -191,7 +189,7 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.get(objAnswer).then((data) => {
+				this.load(pxANSWER).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
@@ -222,19 +220,15 @@ export class TestClass6 {
 		this.log('START3');
 	}
 	async send(group, dataObj, cmd = 'g') {
-		const data = typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj;
-		await this.post({ group, cmd, data });
-	}
-	async post(obj) {
 		const now = Date.now();
-		const data = await this.postToGAS(this.urlInput.value, obj);
-		this.log(`================post=================${obj.group}/${obj.cmd} d:${Date.now() - now} data:${data}`);
+		const data = await this.postToGAS(this.urlInput.value, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
+		this.log(`================send=================${group}/${cmd} d:${Date.now() - now} data:${data}`);
 	}
-	async get(obj) {
+	async load(group, cmd = 'g') {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
-		const data = await this.getTextGAS(this.urlInput.value, obj);
-		this.log(`==${key}==============get=B========${obj.group}/${obj.cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
+		const data = await this.getTextGAS(this.urlInput.value, { group, cmd });
+		this.log(`==${key}==============load=B========${group}/${cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
 		return data;
 	}
 	async listoner(px, value) {
