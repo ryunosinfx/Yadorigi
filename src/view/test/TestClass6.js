@@ -123,6 +123,7 @@ export class TestClass6 {
 					this.start().catch(ef);
 					await this.sleep(100);
 					if (isOffer) {
+						await this.sleep(1000);
 						this.offer().catch(ef);
 					}
 					setTimeout(() => {
