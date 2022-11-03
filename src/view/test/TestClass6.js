@@ -236,53 +236,53 @@ export class TestClass6 {
 		const prefix = this.groupInput.value;
 		const pxOFFER = prefix + OFFER;
 		const pxANSWER = prefix + ANSWER;
-		self.log('==============LISTENER==RECEIVE=A================');
-		self.log(`getLisntenrB event px:${px}/${px === ANSWER}/self.isAnaswer:${self.isAnaswer}/!self.isGetFirst:${!self.isGetFirst}/self.isExcangedCandidates:${self.isExcangedCandidates}`);
-		self.log(`value:${value}`);
-		self.log('==============LISTENER==RECEIVE=B================');
+		this.log('==============LISTENER==RECEIVE=A================');
+		this.log(`getLisntenrB event px:${px}/${px === ANSWER}/this.isAnaswer:${this.isAnaswer}/!this.isGetFirst:${!this.isGetFirst}/this.isExcangedCandidates:${this.isExcangedCandidates}`);
+		this.log(`value:${value}`);
+		this.log('==============LISTENER==RECEIVE=B================');
 		if (value === true || value === null || value === 'null') {
-			self.log(`==============LISTENER==END=================value:${value}`);
+			this.log(`==============LISTENER==END=================value:${value}`);
 			return;
 		}
-		if (self.isAnaswer) {
-			self.log(`A AS ANSWER self.isAnaswer:${self.isAnaswer}`);
+		if (this.isAnaswer) {
+			this.log(`A AS ANSWER this.isAnaswer:${this.isAnaswer}`);
 			if (px === ANSWER) {
-				self.log(`A px:${px}`);
-				if (!self.isGetFirst) {
+				this.log(`A px:${px}`);
+				if (!this.isGetFirst) {
 					this.setOnCandidates(async (candidates) => {
 						await this.send(pxOFFER, candidates);
 					});
-					const answer = await self.makeAnswer(value);
-					self.isGetFirst = true;
-					self.log('==============LISTENER==answer=A================');
-					self.log(answer);
-					self.log('==============LISTENER==answer=B================');
+					const answer = await this.makeAnswer(value);
+					this.isGetFirst = true;
+					this.log('==============LISTENER==answer=A================');
+					this.log(answer);
+					this.log('==============LISTENER==answer=B================');
 					await this.send(pxOFFER, answer);
-				} else if (!self.isExcangedCandidates) {
+				} else if (!this.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
-					self.log('==============LISTENER==answer candidats=A================');
-					self.log(candidats);
-					self.isExcangedCandidates = true;
-					self.log('==============LISTENER==answer candidats=B================');
+					this.log('==============LISTENER==answer candidats=A================');
+					this.log(candidats);
+					this.isExcangedCandidates = true;
+					this.log('==============LISTENER==answer candidats=B================');
 				}
 			}
 		} else {
-			self.log(`B AS OFFER self.isAnaswer:${self.isAnaswer}`);
+			this.log(`B AS OFFER this.isAnaswer:${this.isAnaswer}`);
 			if (px === OFFER) {
-				self.log(`B px:${px}/!self.isGetFirst:${!self.isGetFirst}`);
-				if (!self.isGetFirst) {
-					const candidates = await self.connect(value);
-					self.log('==============LISTENER==candidates=A================');
-					self.log(candidates);
-					self.log('==============LISTENER==candidates=B================');
-					self.isGetFirst = true;
+				this.log(`B px:${px}/!this.isGetFirst:${!this.isGetFirst}`);
+				if (!this.isGetFirst) {
+					const candidates = await this.connect(value);
+					this.log('==============LISTENER==candidates=A================');
+					this.log(candidates);
+					this.log('==============LISTENER==candidates=B================');
+					this.isGetFirst = true;
 					await this.send(pxANSWER, candidates);
-				} else if (!self.isExcangedCandidates) {
+				} else if (!this.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
-					self.log('==============LISTENER==offer candidats=A================');
-					self.log(candidats);
-					self.isExcangedCandidates = true;
-					self.log('==============LISTENER==offer candidats=B================');
+					this.log('==============LISTENER==offer candidats=A================');
+					this.log(candidats);
+					this.isExcangedCandidates = true;
+					this.log('==============LISTENER==offer candidats=B================');
 				}
 			}
 		}
