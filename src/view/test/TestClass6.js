@@ -15,7 +15,6 @@ export class TestClass6 {
 		this.log('TestClass6');
 		this.inited = this.init();
 		this.cache = {};
-		this.listoner = this.getLisntenr();
 		this.threads = [];
 	}
 	async init() {
@@ -128,10 +127,12 @@ export class TestClass6 {
 					}
 					setTimeout(() => {
 						isHotStamdby = false;
+						this.isStop = true;
 					}, WAIT_AUTO_INTERVAL);
 					while (isHotStamdby) {
 						await this.sleep(100);
 					}
+					this.isStop = false;
 				}
 			}
 		}
@@ -172,7 +173,7 @@ export class TestClass6 {
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(OFFER, { newValue: d });
+						this.listoner(OFFER, d);
 					}
 				});
 			}, SleepMs);
@@ -190,7 +191,7 @@ export class TestClass6 {
 					const d = this.decode(data);
 					if (!this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(ANSWER, { newValue: d });
+						this.listoner(ANSWER, d);
 					}
 				});
 			}, SleepMs);
@@ -231,66 +232,60 @@ export class TestClass6 {
 		this.log(`==${key}==============get=B========${obj.group}/${obj.cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
 		return data;
 	}
-	getLisntenr() {
-		this.log(`getLisntenrA event this.isAnaswer:${this.isAnaswer}/!this.isGetFirst:${!this.isGetFirst}/this.isExcangedCandidates:${this.isExcangedCandidates}`);
-		const self = this;
-		return async (px, event) => {
-			const value = event.newValue;
-			const prefix = this.groupInput.value;
-			const pxOFFER = prefix + OFFER;
-			const pxANSWER = prefix + ANSWER;
-			self.log('================RECEIVE=A================');
-			self.log(`getLisntenrB event px:${px}/${px === ANSWER}/self.isAnaswer:${self.isAnaswer}/!self.isGetFirst:${!self.isGetFirst}/self.isExcangedCandidates:${self.isExcangedCandidates}`);
-			self.log(event);
-			self.log(`value:${value}`);
-			self.log('================RECEIVE=B================');
-			if (value === true || value === null || value === 'null') {
-				self.log(`================END=================value:${value}`);
-				return;
-			}
-			if (self.isAnaswer) {
-				self.log(`A AS ANSWER self.isAnaswer:${self.isAnaswer}`);
-				if (px === ANSWER) {
-					self.log(`A px:${px}`);
-					if (!self.isGetFirst) {
-						this.setOnCandidates(async (candidates) => {
-							await this.send(pxOFFER, candidates);
-						});
-						const answer = await self.makeAnswer(value);
-						self.isGetFirst = true;
-						self.log('================answer=A================');
-						self.log(answer);
-						self.log('================answer=B================');
-						await this.send(pxOFFER, answer);
-					} else if (!self.isExcangedCandidates) {
-						const candidats = await this.setCandidates(JSON.parse(value));
-						self.log('================answer candidats=A================');
-						self.log(candidats);
-						self.isExcangedCandidates = true;
-						self.log('================answer candidats=B================');
-					}
-				}
-			} else {
-				self.log(`B AS OFFER self.isAnaswer:${self.isAnaswer}`);
-				if (px === OFFER) {
-					self.log(`B px:${px}/!self.isGetFirst:${!self.isGetFirst}`);
-					if (!self.isGetFirst) {
-						const candidates = await self.connect(value);
-						self.log('================candidates=A================');
-						self.log(candidates);
-						self.log('================candidates=B================');
-						self.isGetFirst = true;
-						await this.send(pxANSWER, candidates);
-					} else if (!self.isExcangedCandidates) {
-						const candidats = await this.setCandidates(JSON.parse(value));
-						self.log('================offer candidats=A================');
-						self.log(candidats);
-						self.isExcangedCandidates = true;
-						self.log('================offer candidats=B================');
-					}
+	async listoner(px, value) {
+		const prefix = this.groupInput.value;
+		const pxOFFER = prefix + OFFER;
+		const pxANSWER = prefix + ANSWER;
+		self.log('==============LISTENER==RECEIVE=A================');
+		self.log(`getLisntenrB event px:${px}/${px === ANSWER}/self.isAnaswer:${self.isAnaswer}/!self.isGetFirst:${!self.isGetFirst}/self.isExcangedCandidates:${self.isExcangedCandidates}`);
+		self.log(`value:${value}`);
+		self.log('==============LISTENER==RECEIVE=B================');
+		if (value === true || value === null || value === 'null') {
+			self.log(`==============LISTENER==END=================value:${value}`);
+			return;
+		}
+		if (self.isAnaswer) {
+			self.log(`A AS ANSWER self.isAnaswer:${self.isAnaswer}`);
+			if (px === ANSWER) {
+				self.log(`A px:${px}`);
+				if (!self.isGetFirst) {
+					this.setOnCandidates(async (candidates) => {
+						await this.send(pxOFFER, candidates);
+					});
+					const answer = await self.makeAnswer(value);
+					self.isGetFirst = true;
+					self.log('==============LISTENER==answer=A================');
+					self.log(answer);
+					self.log('==============LISTENER==answer=B================');
+					await this.send(pxOFFER, answer);
+				} else if (!self.isExcangedCandidates) {
+					const candidats = await this.setCandidates(JSON.parse(value));
+					self.log('==============LISTENER==answer candidats=A================');
+					self.log(candidats);
+					self.isExcangedCandidates = true;
+					self.log('==============LISTENER==answer candidats=B================');
 				}
 			}
-		};
+		} else {
+			self.log(`B AS OFFER self.isAnaswer:${self.isAnaswer}`);
+			if (px === OFFER) {
+				self.log(`B px:${px}/!self.isGetFirst:${!self.isGetFirst}`);
+				if (!self.isGetFirst) {
+					const candidates = await self.connect(value);
+					self.log('==============LISTENER==candidates=A================');
+					self.log(candidates);
+					self.log('==============LISTENER==candidates=B================');
+					self.isGetFirst = true;
+					await this.send(pxANSWER, candidates);
+				} else if (!self.isExcangedCandidates) {
+					const candidats = await this.setCandidates(JSON.parse(value));
+					self.log('==============LISTENER==offer candidats=A================');
+					self.log(candidats);
+					self.isExcangedCandidates = true;
+					self.log('==============LISTENER==offer candidats=B================');
+				}
+			}
+		}
 	}
 	async makeOffer() {
 		return await this.w.getOfferSdp();
