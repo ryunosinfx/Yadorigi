@@ -25,10 +25,10 @@ export class TestClass6 {
 		this.isGetFirst = false;
 		this.isExcangedCandidates = false;
 		this.hash = await this.mkHash();
-		this.log('INIT END');
+		this.log(`INIT END this.hash:${this.hash}`);
 	}
 	async mkHash(seeds = [location.origin, navigator.userAgent, Date.now()], stretch = Math.floor(Math.random() * 100) + (Date.now() % 100) + 1) {
-		return await this.digest(JSON.stringify(seeds, stretch));
+		return await this.digest(JSON.stringify(seeds), stretch);
 	}
 	log(text) {
 		this.elm.textContent = `${this.elm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
