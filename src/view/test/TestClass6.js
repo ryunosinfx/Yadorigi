@@ -16,13 +16,11 @@ export class TestClass6 {
 		this.inited = this.init();
 		this.cache = {};
 		this.threads = [];
+		this.connections = {};
 	}
 	async init() {
 		this.log('INIT START');
 		this.w = new WebRTCConnecter();
-		this.isAnaswer = true;
-		this.isGetFirst = false;
-		this.isExcangedCandidates = false;
 		this.hash = await this.mkHash();
 		this.log(`INIT END this.hash:${this.hash}`);
 	}
@@ -156,6 +154,7 @@ export class TestClass6 {
 	async start() {
 		this.isStop = false;
 		const prefix = this.groupInput.value;
+		const conf = this.getConfByPrefix(prefix);
 		const pxOFFER = prefix + OFFER;
 		const pxANSWER = prefix + ANSWER;
 		this.w.setOnOpne(() => {
@@ -163,7 +162,7 @@ export class TestClass6 {
 		});
 		while (this.isStop === false) {
 			setTimeout(() => {
-				if (this.isAnaswer) {
+				if (conf.isAnaswer) {
 					return;
 				}
 				if (this.threads.length < 4) {
@@ -181,7 +180,7 @@ export class TestClass6 {
 				});
 			}, SleepMs);
 			setTimeout(() => {
-				if (!this.isAnaswer) {
+				if (!conf.isAnaswer) {
 					return;
 				}
 				if (this.threads.length < 4) {
@@ -210,11 +209,12 @@ export class TestClass6 {
 		await this.sleep(1000);
 	}
 	async offer() {
-		this.isAnaswer = false;
+		const prefix = this.groupInput.value;
+		const conf = this.getConfByPrefix(prefix);
+		conf.isAnaswer = false;
 		this.log('START1');
 		const offer = await this.makeOffer();
 		this.log(`START2 setOnRecieve OFFER send offer:${offer}`);
-		const prefix = this.groupInput.value;
 		const pxANSWER = prefix + ANSWER;
 		await this.send(pxANSWER, offer);
 		this.log('START3');
@@ -228,59 +228,68 @@ export class TestClass6 {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const data = await this.getTextGAS(this.urlInput.value, { group, cmd });
-		this.log(`==${key}==============load=B========${group}/${cmd} this.isAnaswer:${this.isAnaswer}========${Date.now() - now} data:${data}`);
+		this.log(`==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:${data}`);
 		return data;
+	}
+	getConfByPrefix(prefix) {
+		let conf = this.connections[prefix];
+		if (!conf) {
+			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false };
+			this.connections[prefix] = conf;
+		}
+		return conf;
 	}
 	async listoner(px, value) {
 		const prefix = this.groupInput.value;
+		const conf = this.getConfByPrefix(prefix);
 		const pxOFFER = prefix + OFFER;
 		const pxANSWER = prefix + ANSWER;
 		this.log('==============LISTENER==RECEIVE=A================');
-		this.log(`getLisntenrB event px:${px}/${px === ANSWER}/this.isAnaswer:${this.isAnaswer}/!this.isGetFirst:${!this.isGetFirst}/this.isExcangedCandidates:${this.isExcangedCandidates}`);
+		this.log(`getLisntenrB event px:${px}/${px === ANSWER}/conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
 		this.log(`value:${value}`);
 		this.log('==============LISTENER==RECEIVE=B================');
 		if (value === true || value === null || value === 'null') {
 			this.log(`==============LISTENER==END=================value:${value}`);
 			return;
 		}
-		if (this.isAnaswer) {
-			this.log(`A AS ANSWER this.isAnaswer:${this.isAnaswer}`);
+		if (conf.isAnaswer) {
+			this.log(`A AS ANSWER this.isAnaswer:${conf.isAnaswer}`);
 			if (px === ANSWER) {
 				this.log(`A px:${px}`);
-				if (!this.isGetFirst) {
+				if (!conf.isGetFirst) {
 					this.setOnCandidates(async (candidates) => {
 						await this.send(pxOFFER, candidates);
 					});
 					const answer = await this.makeAnswer(value);
-					this.isGetFirst = true;
-					this.log('==============LISTENER==answer=A================');
+					conf.isGetFirst = true;
+					this.log(`==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 					this.log(answer);
 					this.log('==============LISTENER==answer=B================');
 					await this.send(pxOFFER, answer);
-				} else if (!this.isExcangedCandidates) {
+				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==answer candidats=A================');
 					this.log(candidats);
-					this.isExcangedCandidates = true;
+					conf.isExcangedCandidates = true;
 					this.log('==============LISTENER==answer candidats=B================');
 				}
 			}
 		} else {
-			this.log(`B AS OFFER this.isAnaswer:${this.isAnaswer}`);
+			this.log(`B AS OFFER conf.isAnaswer:${conf.isAnaswer}`);
 			if (px === OFFER) {
-				this.log(`B px:${px}/!this.isGetFirst:${!this.isGetFirst}`);
-				if (!this.isGetFirst) {
+				this.log(`B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
+				if (!conf.isGetFirst) {
 					const candidates = await this.connect(value);
 					this.log('==============LISTENER==candidates=A================');
 					this.log(candidates);
 					this.log('==============LISTENER==candidates=B================');
-					this.isGetFirst = true;
+					conf.isGetFirst = true;
 					await this.send(pxANSWER, candidates);
-				} else if (!this.isExcangedCandidates) {
+				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==offer candidats=A================');
 					this.log(candidats);
-					this.isExcangedCandidates = true;
+					conf.isExcangedCandidates = true;
 					this.log('==============LISTENER==offer candidats=B================');
 				}
 			}
@@ -291,7 +300,7 @@ export class TestClass6 {
 	}
 	async makeAnswer(sdpInput) {
 		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
-		this.log(`makeAnswer sdpInput:${sdpInput}`);
+		this.log(`makeAnswer ${typeof sdpInput}/sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		this.log(sdp);
 		return await this.w.answer(sdp.sdp);
