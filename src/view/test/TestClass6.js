@@ -76,7 +76,6 @@ export class TestClass6 {
 			if (list) {
 				this.log(list);
 				const now = Date.now();
-				let isOffer = false;
 				let isHotStamdby = false;
 				if (!Array.isArray(list)) {
 					continue;
@@ -108,12 +107,12 @@ export class TestClass6 {
 				}
 				list3.sort();
 				list3.reverse();
+				let isOffer = false;
 				for (const row of list3) {
 					const cols = JSON.parse(row);
 					const hash = cols[1];
 					if (hash.indexOf(this.hash) === 1) {
 						isOffer = true;
-						break;
 					}
 					if (hash.indexOf(this.hash) >= this.hash.length) {
 						isOffer = false;
@@ -199,6 +198,7 @@ export class TestClass6 {
 	}
 	async stop() {
 		this.isStop = true;
+		this.isStopAuto = true;
 	}
 	async openNewWindow() {
 		this.window = window.open(new URL(location.href).href, 'newOne');
