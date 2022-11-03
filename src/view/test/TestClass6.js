@@ -84,7 +84,7 @@ export class TestClass6 {
 					continue;
 				}
 				for (const row of list) {
-					if (row.expire > now) {
+					if (row.expire < now) {
 						continue;
 					}
 					console.log(row);
@@ -103,7 +103,7 @@ export class TestClass6 {
 				}
 				const list3 = [];
 				for (const row of list2) {
-					if (row.expire > now) {
+					if (row.expire < now) {
 						continue;
 					}
 					list3.push(JSON.stringify([row.expire, row.hash]));
