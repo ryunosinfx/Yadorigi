@@ -72,7 +72,7 @@ export class TestClass6 {
 				await this.sendWait(group);
 			}
 			count++;
-			const list = await this.getWait(group);
+			const list = await this.getWaitList(group);
 			if (list) {
 				this.log(list);
 				const now = Date.now();
