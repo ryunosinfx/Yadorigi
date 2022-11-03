@@ -85,10 +85,11 @@ export class TestClass6 {
 					if (row.expire < now) {
 						continue;
 					}
+					const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 					console.log(row);
-					if (row.hash !== this.hash && row.hash.indexOf(this.hash) < 0) {
+					if (v.hash !== this.hash && row.hash.indexOf(this.hash) < 0) {
 						console.log(`sendWaitNotify group:${group}`);
-						await this.sendWaitNotify(group, row.hash);
+						await this.sendWaitNotify(group, v.hash);
 						isHotStamdby = true;
 						break;
 					}
@@ -102,7 +103,8 @@ export class TestClass6 {
 					if (row.expire < now) {
 						continue;
 					}
-					list3.push(JSON.stringify([row.expire, row.hash]));
+					const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+					list3.push(JSON.stringify([row.expire, v.hash]));
 				}
 				list3.sort();
 				list3.reverse();
