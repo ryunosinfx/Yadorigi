@@ -87,7 +87,7 @@ export class TestClass6 {
 					}
 					const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 					console.log(row);
-					if (v.hash !== this.hash && row.hash.indexOf(this.hash) < 0) {
+					if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
 						console.log(`sendWaitNotify group:${group}`);
 						await this.sendWaitNotify(group, v.hash);
 						isHotStamdby = true;
