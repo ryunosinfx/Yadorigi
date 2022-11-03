@@ -149,7 +149,7 @@ export class TestClass6 {
 		await this.send(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async getWaitList(group) {
-		const data = await this.loas(group, WAIT);
+		const data = await this.load(group, WAIT);
 		const obj = data ? JSON.parse(data) : null;
 		return obj ? obj.message : null;
 	}
