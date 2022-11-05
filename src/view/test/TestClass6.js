@@ -105,12 +105,16 @@ export class TestClass6 {
 		}
 		let isHotStamdby = false;
 		const list3 = [];
+		const len = this.hash.length;
+		const tlen = target.length;
+		const a = len + tlen;
 		for (const row of l) {
 			if (row.expire < now) {
 				continue;
 			}
+			this.log(`A row:${row}`);
 			const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-			if (target !== v.hash) {
+			if (v.hash.length > a) {
 				continue;
 			}
 			list3.push(JSON.stringify([row.expire, v.hash]));
@@ -122,12 +126,10 @@ export class TestClass6 {
 		list3.reverse();
 		let isOffer = false;
 		let rowCount = 0;
-		const len = this.hash.length;
-		const tlen = target.length;
 		for (const row of list3) {
 			const cols = JSON.parse(row);
 			const hash = cols[1];
-			this.log(`row:${row}`);
+			this.log(`B row:${row}`);
 			if (hash.indexOf(this.hash) === 1 && hash.indexOf(target) >= tlen) {
 				isOffer = true;
 				rowCount++;
