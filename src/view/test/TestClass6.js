@@ -6,7 +6,10 @@ const SleepMs = 100;
 const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const contentType = 'application/x-www-form-urlencoded';
-
+const ef = (e) => {
+	console.log(e.message);
+	console.log(e.stack);
+};
 export class TestClass6 {
 	constructor(elm, urlInput, groupInput) {
 		this.elm = elm;
@@ -16,6 +19,7 @@ export class TestClass6 {
 		this.inited = this.init();
 		this.cache = {};
 		this.threads = [];
+		this.confs = {};
 		this.connections = {};
 	}
 	async init() {
@@ -31,6 +35,10 @@ export class TestClass6 {
 		this.elm.textContent = `${this.elm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
 		console.log(text);
 	}
+	async openNewWindow() {
+		this.window = window.open(new URL(location.href).href, 'newOne');
+		await this.sleep(1000);
+	}
 	clear() {
 		this.elm.textContent = '';
 	}
@@ -45,9 +53,9 @@ export class TestClass6 {
 		return null;
 	}
 	sleep(ms = SleepMs) {
-		return new Promise((resolve) => {
+		return new Promise((r) => {
 			setTimeout(() => {
-				resolve();
+				r();
 			}, ms);
 		});
 	}
@@ -57,10 +65,6 @@ export class TestClass6 {
 		let count = 0;
 		this.isWaiting = false;
 		this.isStop = false;
-		const ef = (e) => {
-			console.log(e.message);
-			console.log(e.stack);
-		};
 		while (this.isStopAuto === false && this.isStop === false) {
 			const group = this.groupInput.value;
 			this.gropuHash = await this.digest(group);
@@ -73,7 +77,6 @@ export class TestClass6 {
 			if (list) {
 				this.log(list);
 				const now = Date.now();
-				let isHotStamdby = false;
 				if (!Array.isArray(list)) {
 					continue;
 				}
@@ -85,60 +88,70 @@ export class TestClass6 {
 					console.log(row);
 					if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
 						console.log(`sendWaitNotify group:${group}`);
-						await this.sendWaitNotify(group, v.hash);
-						isHotStamdby = true;
+						await this.onCatchAnother(group, now, v.hash);
 						break;
 					}
-				}
-				const list2 = await this.getWaitList(group);
-				if (!Array.isArray(list2)) {
-					continue;
-				}
-				const list3 = [];
-				for (const row of list2) {
-					if (row.expire < now) {
-						continue;
-					}
-					const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-					list3.push(JSON.stringify([row.expire, v.hash]));
-				}
-				list3.sort();
-				list3.reverse();
-				let isOffer = false;
-				let rowCount = 0;
-				for (const row of list3) {
-					const cols = JSON.parse(row);
-					const hash = cols[1];
-					if (hash.indexOf(this.hash) === 1) {
-						isOffer = true;
-						rowCount++;
-					}
-					if (hash.indexOf(this.hash) >= this.hash.length) {
-						isOffer = false;
-						rowCount++;
-					}
-					if (rowCount >= 2) {
-						break;
-					}
-				}
-				if (isHotStamdby) {
-					this.start().catch(ef);
-					await this.sleep(100);
-					if (isOffer) {
-						await this.sleep(1000);
-						this.offer().catch(ef);
-					}
-					setTimeout(() => {
-						isHotStamdby = false;
-						this.isStop = true;
-					}, WAIT_AUTO_INTERVAL);
-					while (isHotStamdby) {
-						await this.sleep(100);
-					}
-					this.isStop = false;
 				}
 			}
 		}
+	}
+
+	async onCatchAnother(group, now, target) {
+		const conf = this.getConf(group, target);
+		await this.sendWaitNotify(group, target);
+		const l = await this.getWaitList(group);
+		if (!Array.isArray(l) || l.length < 1) {
+			return;
+		}
+		let isHotStamdby = false;
+		const list3 = [];
+		for (const row of l) {
+			if (row.expire < now) {
+				continue;
+			}
+			const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+			if (target !== v.hash) {
+				continue;
+			}
+			list3.push(JSON.stringify([row.expire, v.hash]));
+		}
+		if (list3.length < 1) {
+			return;
+		}
+		list3.sort();
+		list3.reverse();
+		let isOffer = false;
+		let rowCount = 0;
+		for (const row of list3) {
+			const cols = JSON.parse(row);
+			const hash = cols[1];
+			if (hash.indexOf(this.hash) === 1) {
+				isOffer = true;
+				rowCount++;
+			}
+			if (hash.indexOf(this.hash) >= this.hash.length) {
+				isOffer = false;
+				rowCount++;
+			}
+			if (rowCount >= 2) {
+				break;
+			}
+		}
+		this.start(conf).catch(ef);
+		await this.sleep(100);
+		if (isOffer) {
+			await this.sleep(1000);
+			this.offer(conf).catch(ef);
+		}
+		setTimeout(() => {
+			isHotStamdby = false;
+			this.isStop = true;
+		}, WAIT_AUTO_INTERVAL);
+		isHotStamdby = true;
+		while (isHotStamdby) {
+			await this.sleep(100);
+		}
+		this.isStop = false;
 	}
 	async sendWait(group) {
 		await this.send(group, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
@@ -151,16 +164,12 @@ export class TestClass6 {
 		const obj = data ? JSON.parse(data) : null;
 		return obj ? obj.message : null;
 	}
-	async start() {
-		this.isStop = false;
-		const prefix = this.groupInput.value;
-		const conf = this.getConfByPrefix(prefix);
-		const pxOFFER = prefix + OFFER;
-		const pxANSWER = prefix + ANSWER;
+	async start(conf) {
+		conf.isStop = false;
 		this.w.setOnOpne(() => {
-			this.isStop = true;
+			conf.isStop = true;
 		});
-		while (this.isStop === false) {
+		while (conf.isStop === false && this.isStopAuto === false) {
 			setTimeout(() => {
 				if (conf.isAnaswer) {
 					return;
@@ -170,12 +179,12 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.load(pxOFFER).then((data) => {
+				this.load(conf.pxO).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(OFFER, d);
+						this.listoner(conf, OFFER, d);
 					}
 				});
 			}, SleepMs);
@@ -188,35 +197,28 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.load(pxANSWER).then((data) => {
+				this.load(conf.pxA).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
 						this.cache[data] = 1;
-						this.listoner(ANSWER, d);
+						this.listoner(conf, ANSWER, d);
 					}
 				});
 			}, SleepMs);
 			await this.sleep();
 		}
 	}
-	async stop() {
-		this.isStop = true;
+	async stop(conf) {
+		conf.isStop = true;
 		this.isStopAuto = true;
 	}
-	async openNewWindow() {
-		this.window = window.open(new URL(location.href).href, 'newOne');
-		await this.sleep(1000);
-	}
-	async offer() {
-		const prefix = this.groupInput.value;
-		const conf = this.getConfByPrefix(prefix);
+	async offer(conf) {
 		conf.isAnaswer = false;
 		this.log('START1');
 		const offer = await this.makeOffer();
 		this.log(`START2 setOnRecieve OFFER send offer:${offer}`);
-		const pxANSWER = prefix + ANSWER;
-		await this.send(pxANSWER, offer);
+		await this.send(conf.pxA, offer);
 		this.log('START3');
 	}
 	async send(group, dataObj, cmd = 'g') {
@@ -231,41 +233,40 @@ export class TestClass6 {
 		this.log(`==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:${data}`);
 		return data;
 	}
-	getConfByPrefix(prefix) {
-		let conf = this.connections[prefix];
+	getConKey(group, target) {
+		return JSON.stringify([group, target]);
+	}
+	getConf(group, target) {
+		const key = this.getConKey(group, target);
+		let conf = this.confs[key];
 		if (!conf) {
-			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false };
-			this.connections[prefix] = conf;
+			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxA: key + ANSWER, pxO: key + OFFER, isStop: false };
+			this.confs[key] = conf;
 		}
 		return conf;
 	}
-	async listoner(px, value) {
-		const prefix = this.groupInput.value;
-		const conf = this.getConfByPrefix(prefix);
-		const pxOFFER = prefix + OFFER;
-		const pxANSWER = prefix + ANSWER;
+	async listoner(conf, px, value) {
 		this.log('==============LISTENER==RECEIVE=A================');
-		this.log(`getLisntenrB event px:${px}/${px === ANSWER}/conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
-		this.log(`value:${value}`);
-		this.log('==============LISTENER==RECEIVE=B================');
+		this.log(`getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
+		this.log(`==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
 		if (value === true || value === null || value === 'null') {
 			this.log(`==============LISTENER==END=================value:${value}`);
 			return;
 		}
 		if (conf.isAnaswer) {
-			this.log(`A AS ANSWER this.isAnaswer:${conf.isAnaswer}`);
+			this.log(`A AS ANSWER conf.isAnaswer:${conf.isAnaswer}`);
 			if (px === ANSWER) {
 				this.log(`A px:${px}`);
 				if (!conf.isGetFirst) {
 					this.setOnCandidates(async (candidates) => {
-						await this.send(pxOFFER, candidates);
+						await this.send(conf.pxO, candidates);
 					});
 					const answer = await this.makeAnswer(value);
 					conf.isGetFirst = true;
 					this.log(`==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 					this.log(answer);
 					this.log('==============LISTENER==answer=B================');
-					await this.send(pxOFFER, answer);
+					await this.send(conf.pxO, answer);
 				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==answer candidats=A================');
@@ -284,7 +285,7 @@ export class TestClass6 {
 					this.log(candidates);
 					this.log('==============LISTENER==candidates=B================');
 					conf.isGetFirst = true;
-					await this.send(pxANSWER, candidates);
+					await this.send(conf.pxA, candidates);
 				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==offer candidats=A================');

@@ -31,12 +31,8 @@ async function wait(key, value) {
 async function add(key, value, now = Date.now()) {
 	await wait(key, value);
 	let c = cache.get(key);
-	console.log(`add A1 c key:${key}`);
-	console.log(c);
 	c = c ? JSON.parse(c) : { message: [], expire: now + 40000 };
 	const n = [];
-	console.log('add A2 c');
-	console.log(c);
 	for (const v of c.message) {
 		if (v.expire > now) {
 			n.push(v);
