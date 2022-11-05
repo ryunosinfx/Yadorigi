@@ -122,14 +122,17 @@ export class TestClass6 {
 		list3.reverse();
 		let isOffer = false;
 		let rowCount = 0;
+		const len = this.hash.length;
+		const tlen = target.length;
 		for (const row of list3) {
 			const cols = JSON.parse(row);
 			const hash = cols[1];
-			if (hash.indexOf(this.hash) === 1) {
+			this.log(`row:${row}`);
+			if (hash.indexOf(this.hash) === 1 && hash.indexOf(target) >= tlen) {
 				isOffer = true;
 				rowCount++;
 			}
-			if (hash.indexOf(this.hash) >= this.hash.length) {
+			if (hash.indexOf(this.hash) >= len && hash.indexOf(target) === 1) {
 				isOffer = false;
 				rowCount++;
 			}
@@ -179,7 +182,7 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.load(conf.pxO).then((data) => {
+				this.load(conf.pxOs).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
@@ -197,7 +200,7 @@ export class TestClass6 {
 				} else {
 					return;
 				}
-				this.load(conf.pxA).then((data) => {
+				this.load(conf.pxAs).then((data) => {
 					this.threads.pop(1);
 					const d = this.decode(data);
 					if (d && !this.cache[data]) {
@@ -218,7 +221,7 @@ export class TestClass6 {
 		this.log('START1');
 		const offer = await this.makeOffer();
 		this.log(`START2 setOnRecieve OFFER send offer:${offer}`);
-		await this.send(conf.pxA, offer);
+		await this.send(conf.pxAt, offer);
 		this.log('START3');
 	}
 	async send(group, dataObj, cmd = 'g') {
@@ -237,11 +240,12 @@ export class TestClass6 {
 		return JSON.stringify([group, target]);
 	}
 	getConf(group, target) {
-		const key = this.getConKey(group, target);
-		let conf = this.confs[key];
+		const k = this.getConKey(group, target);
+		const s = this.getConKey(group, this.hash);
+		let conf = this.confs[k];
 		if (!conf) {
-			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxA: key + ANSWER, pxO: key + OFFER, isStop: false };
-			this.confs[key] = conf;
+			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxAt: k + ANSWER, pxOt: k + OFFER, pxAs: s + ANSWER, pxOs: s + OFFER, isStop: false };
+			this.confs[k] = conf;
 		}
 		return conf;
 	}
@@ -259,14 +263,14 @@ export class TestClass6 {
 				this.log(`A px:${px}`);
 				if (!conf.isGetFirst) {
 					this.setOnCandidates(async (candidates) => {
-						await this.send(conf.pxO, candidates);
+						await this.send(conf.pxOt, candidates);
 					});
 					const answer = await this.makeAnswer(value);
 					conf.isGetFirst = true;
 					this.log(`==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 					this.log(answer);
 					this.log('==============LISTENER==answer=B================');
-					await this.send(conf.pxO, answer);
+					await this.send(conf.pxOt, answer);
 				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==answer candidats=A================');
@@ -285,7 +289,7 @@ export class TestClass6 {
 					this.log(candidates);
 					this.log('==============LISTENER==candidates=B================');
 					conf.isGetFirst = true;
-					await this.send(conf.pxA, candidates);
+					await this.send(conf.pxAt, candidates);
 				} else if (!conf.isExcangedCandidates) {
 					const candidats = await this.setCandidates(JSON.parse(value));
 					this.log('==============LISTENER==offer candidats=A================');
