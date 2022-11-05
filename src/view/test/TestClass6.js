@@ -112,9 +112,9 @@ export class TestClass6 {
 			if (row.expire < now) {
 				continue;
 			}
-			this.log(`A row:${row}`);
+			this.log(`A row:${JSON.stringify(row)}`);
 			const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-			if (v.hash.length > a) {
+			if (v.hash.length < a) {
 				continue;
 			}
 			list3.push(JSON.stringify([row.expire, v.hash]));
