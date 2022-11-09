@@ -253,14 +253,17 @@ export class ESWebRTCConnecterU {
 			this.l.log(`A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px}`);
 			if (!conf.isGetFirst) {
 				conf.w.setOnCandidates(async (candidates) => {
+					while (!conf.isGetFirst) {
+						await sleep(200);
+					}
 					await this.send(conf.pxOt, candidates);
 				});
 				const answer = await conf.w.answer(this.parseSdp(value));
-				conf.isGetFirst = true;
 				this.l.log(`==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 				this.l.log(answer);
 				this.l.log('==============LISTENER==answer=B================');
 				await this.send(conf.pxOt, answer);
+				conf.isGetFirst = true;
 			} else if (!conf.isExcangedCandidates) {
 				const candidats = await conf.w.setCandidates(JSON.parse(value));
 				this.l.log('==============LISTENER==answer candidats=A================');
