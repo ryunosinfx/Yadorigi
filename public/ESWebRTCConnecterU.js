@@ -69,19 +69,20 @@ export class ESWebRTCConnecterU {
 			count++;
 			const list = await this.getWaitList(group);
 			if (!Array.isArray(list)) {
-				this.l.log(list);
-				const now = Date.now();
-				for (const row of list) {
-					if (row.expire < now) {
-						continue;
-					}
-					const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-					console.log(row);
-					if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
-						console.log(`sendWaitNotify group:${group}`);
-						await this.onCatchAnother(group, now, v.hash);
-						break;
-					}
+				continue;
+			}
+			this.l.log(list);
+			const now = Date.now();
+			for (const row of list) {
+				if (row.expire < now) {
+					continue;
+				}
+				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+				console.log(row);
+				if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
+					console.log(`sendWaitNotify group:${group}`);
+					await this.onCatchAnother(group, now, v.hash);
+					break;
 				}
 			}
 		}
