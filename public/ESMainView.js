@@ -8,7 +8,6 @@ export class ESMainView {
 		const frame = ViewUtil.add(null, 'div', {}, { margin: '10px' });
 		const body = document.getElementsByTagName('body')[0];
 		body.appendChild(frame);
-		ViewUtil.add(frame, 'h1', { text: 'Yadorigi' });
 
 		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');

@@ -23,6 +23,7 @@ export class ESTester {
 		groupInputElm.addEventListener('input', this.cb);
 		passwordInputElm.addEventListener('input', this.cb);
 		deviceNameInputElm.addEventListener('input', this.cb);
+		this.cb();
 	}
 	log(text) {
 		this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text}`;
