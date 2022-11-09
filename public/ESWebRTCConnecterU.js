@@ -265,27 +265,27 @@ export class ESWebRTCConnecterU {
 				await this.send(conf.pxOt, answer);
 				conf.isGetFirst = true;
 			} else if (!conf.isExcangedCandidates) {
+				conf.isExcangedCandidates = true;
 				const candidats = await conf.w.setCandidates(JSON.parse(value));
 				this.l.log('==============LISTENER==answer candidats=A================');
 				this.l.log(candidats);
-				conf.isExcangedCandidates = true;
 				this.l.log('==============LISTENER==answer candidats=B================');
 			}
 		} else if (!conf.isAnaswer && px === OFFER) {
 			this.l.log(`B AS OFFER conf.isAnaswer:${conf.isAnaswer}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
-				const candidates = await this.connect(conf, value);
-				this.l.log('==============LISTENER==candidates=A================');
-				this.l.log(candidates);
-				this.l.log('==============LISTENER==candidates=B================');
 				conf.isGetFirst = true;
+				const candidates = await this.connect(conf, value);
+				this.l.log('==============LISTENER==make offer candidates=A================');
+				this.l.log(candidates);
+				this.l.log('==============LISTENER==make offer candidates=B================');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
 				const candidats = value ? await conf.w.setCandidates(JSON.parse(value)) : null;
-				this.l.log('==============LISTENER==offer candidats=A================');
+				this.l.log('==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
 				conf.isExcangedCandidates = true;
-				this.l.log('==============LISTENER==offer candidats=B================');
+				this.l.log('==============LISTENER==set offer candidats=B================');
 			}
 		}
 	}
