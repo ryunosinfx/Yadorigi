@@ -278,7 +278,7 @@ export class ESWebRTCConnecterU {
 				conf.isGetFirst = true;
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
-				const candidats = await conf.w.setCandidates(JSON.parse(value));
+				const candidats = value ? await conf.w.setCandidates(JSON.parse(value)) : null;
 				this.l.log('==============LISTENER==offer candidats=A================');
 				this.l.log(candidats);
 				conf.isExcangedCandidates = true;
@@ -524,7 +524,11 @@ class WebRTCConnecter {
 		}
 	}
 	async setCandidates(candidatesInput) {
-		this.WebRTCPeerCurrent.setCandidates(typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput));
+		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
+		if (!Array.isArray(candidates)) {
+			return `candidates:${candidates}`;
+		}
+		this.WebRTCPeerCurrent.setCandidates(candidates);
 	}
 	close() {
 		this.WebRTCPeerOffer.close();
