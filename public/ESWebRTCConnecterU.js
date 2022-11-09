@@ -199,7 +199,7 @@ export class ESWebRTCConnecterU {
 		}
 	}
 	async stopWaitAutoConnect() {
-		for (const key of this.confs) {
+		for (const key in this.confs) {
 			this.confs[key].isStop = true;
 		}
 		this.isStopAuto = true;
@@ -556,11 +556,10 @@ export class WebRTCPeer {
 			};
 			peer.onicecandidate = (evt) => {
 				if (evt.candidate) {
-					console.log(evt.candidate);
+					// console.log(evt.candidate);
 					this.candidates.push(evt.candidate);
 				} else {
-					console.log('-1--onicecandidate--- empty ice event');
-					this.sendSdp(peer.localDescription);
+					console.log(`-1--onicecandidate--- empty ice event peer.localDescription:${peer.localDescription}`);
 				}
 			};
 
@@ -641,9 +640,9 @@ export class WebRTCPeer {
 		};
 		this.dataChannel = dataChannel;
 	}
-	sendSdp(sessionDescription) {
-		console.log(`---sending sdp ---${sessionDescription.sdp}`);
-	}
+	// sendSdp(sessionDescription) {
+	// 	console.log(`---sending sdp ---${sessionDescription.sdp}`);
+	// }
 	async makeOffer() {
 		console.log('--makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
