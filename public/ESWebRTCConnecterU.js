@@ -515,16 +515,19 @@ class WebRTCConnecter {
 	}
 	async setOnCandidates(func) {
 		if (await this.init()) {
-			let count = 0;
+			let count = 1;
 			while (count < 100) {
 				await sleep(20 * count);
+				count += 1;
+				if (!this.WebRTCPeerCurrent) {
+					continue;
+				}
 				const candidates = this.WebRTCPeerCurrent.getCandidates();
 				console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
 				if (Array.isArray(candidates) && candidates.length > 0) {
 					func(candidates);
 					break;
 				}
-				count += 1;
 			}
 		}
 	}
