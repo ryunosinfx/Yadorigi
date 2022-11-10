@@ -56,17 +56,18 @@ export class ESWebRTCConnecterU {
 	async startWaitAutoConnect() {
 		await this.inited;
 		this.isStopAuto = false;
-		let count = 0;
+		let count = 3;
 		this.isWaiting = false;
 		while (this.isStopAuto === false) {
 			const group = this.group;
 			this.gropuHash = await Hasher.digest(group);
 			await sleep(WAIT_AUTO_INTERVAL / 4);
-			if (count === 3) {
+			if (count === 0) {
 				await this.sendWait(group);
-				count = 0;
+				count = 3;
+			} else {
+				count--;
 			}
-			count++;
 			const list = await this.getWaitList(group);
 			if (!Array.isArray(list)) {
 				continue;
@@ -685,16 +686,16 @@ export class WebRTCPeer {
 		return true;
 	}
 	async makeAnswer() {
-		console.log('sending Answer. Creating remote session description...');
+		console.log('makeAnswer sending Answer. Creating remote session description...');
 		if (!this.peer) {
-			console.error('peerConnection NOT exist!');
+			console.error('makeAnswer peerConnection NOT exist!');
 			return;
 		}
 		try {
 			const answer = await this.peer.createAnswer();
-			console.log('createAnswer() succsess in promise');
+			console.log('makeAnswer createAnswer() succsess in promise');
 			await this.peer.setLocalDescription(answer);
-			console.log('setLocalDescription() succsess in promise');
+			console.log(`makeAnswer setLocalDescription() succsess in promise${this.peer.localDescription}`);
 			return this.peer.localDescription;
 		} catch (err) {
 			console.error(err);
@@ -710,13 +711,13 @@ export class WebRTCPeer {
 					sdp: sdp,
 				});
 				if (this.peer) {
-					console.error('peerConnection alreay exist!');
+					console.error('setOfferAndAswer peerConnection alreay exist!');
 				}
 				this.peer = await this.prepareNewConnection(true);
 				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
 				console.warn(`setOfferAndAswer offer ${offer}`);
-				console.log(`setRemoteDescription(answer) succsess in promise name:${this.name}`);
+				console.log(`setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
 				console.warn(`setOfferAndAswer ans ${ans}`);
 				if (this.candidates.length < 1 || !ans) {
