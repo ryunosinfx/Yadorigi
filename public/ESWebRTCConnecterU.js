@@ -173,11 +173,12 @@ export class ESWebRTCConnecterU {
 					return;
 				}
 				this.load(conf.pxOs).then((data) => {
+					const cacheKey = conf.pxOs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					if (d && !this.cache[data]) {
-						this.cache[data] = 1;
-						this.listoner(conf, OFFER, d);
+					if (d && !this.cache[cacheKey]) {
+						this.cache[cacheKey] = 1;
+						this.listener(conf, OFFER, d);
 					}
 				});
 			}, SleepMs);
@@ -190,11 +191,12 @@ export class ESWebRTCConnecterU {
 					return;
 				}
 				this.load(conf.pxAs).then((data) => {
+					const cacheKey = conf.pxAs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					if (d && !this.cache[data]) {
-						this.cache[data] = 1;
-						this.listoner(conf, ANSWER, d);
+					if (d && !this.cache[cacheKey]) {
+						this.cache[cacheKey] = 1;
+						this.listener(conf, ANSWER, d);
 					}
 				});
 			}, SleepMs);
@@ -254,7 +256,7 @@ export class ESWebRTCConnecterU {
 		conf.isExcangedCandidates = false;
 		conf.isStop = false;
 	}
-	async listoner(conf, px, value) {
+	async listener(conf, px, value) {
 		this.l.log('==============LISTENER==RECEIVE=A================');
 		this.l.log(`getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
 		this.l.log(`==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
