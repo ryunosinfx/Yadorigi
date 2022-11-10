@@ -160,6 +160,9 @@ export class ESWebRTCConnecterU {
 		conf.w.setOnOpne(() => {
 			conf.isStop = true;
 		});
+		setTimeout(() => {
+			conf.isStop = true;
+		}, WAIT_AUTO_INTERVAL);
 		while (conf.isStop === false && this.isStopAuto === false) {
 			setTimeout(() => {
 				if (conf.isAnaswer) {
@@ -197,12 +200,16 @@ export class ESWebRTCConnecterU {
 			}, SleepMs);
 			await sleep();
 		}
+		this.resetConf(conf);
 	}
 	async stopWaitAutoConnect() {
 		for (const key in this.confs) {
 			this.confs[key].isStop = true;
 		}
 		this.isStopAuto = true;
+		for (const key in this.confs) {
+			this.resetConf(this.confs[key]);
+		}
 	}
 	async offer(conf) {
 		conf.isAnaswer = false;
@@ -240,6 +247,12 @@ export class ESWebRTCConnecterU {
 			this.confs[k] = conf;
 		}
 		return conf;
+	}
+	resetConf(conf) {
+		conf.isAnaswer = true;
+		conf.isGetFirst = false;
+		conf.isExcangedCandidates = false;
+		conf.isStop = false;
 	}
 	async listoner(conf, px, value) {
 		this.l.log('==============LISTENER==RECEIVE=A================');
@@ -311,6 +324,7 @@ export class ESWebRTCConnecterU {
 			const conf = this.confs[key];
 			if (conf && conf.w && conf.w.isOpend) {
 				conf.w.close();
+				this.resetConf(conf);
 			}
 		}
 	}
@@ -318,6 +332,7 @@ export class ESWebRTCConnecterU {
 		const conf = this.getConf(this.group, hash);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.close();
+			this.resetConf(conf);
 		}
 	}
 	// setOnMessage(
