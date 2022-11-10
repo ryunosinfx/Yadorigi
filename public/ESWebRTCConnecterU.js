@@ -176,8 +176,9 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxOs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					if (d && !this.cache[cacheKey]) {
-						this.cache[cacheKey] = 1;
+					this.log(`=ANSWER====data:${data}`);
+					if (d && !conf.cache[cacheKey]) {
+						conf.cache[cacheKey] = 1;
 						this.listener(conf, OFFER, d);
 					}
 				});
@@ -194,8 +195,9 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxAs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					if (d && !this.cache[cacheKey]) {
-						this.cache[cacheKey] = 1;
+					this.log(`=OFFER====data:${data}`);
+					if (d && !conf.cache[cacheKey]) {
+						conf.cache[cacheKey] = 1;
 						this.listener(conf, ANSWER, d);
 					}
 				});
@@ -241,7 +243,7 @@ export class ESWebRTCConnecterU {
 		const s = this.getConKey(group, this.hash);
 		let conf = this.confs[k];
 		if (!conf) {
-			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxAt: k + ANSWER, pxOt: k + OFFER, pxAs: s + ANSWER, pxOs: s + OFFER, isStop: false };
+			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxAt: k + ANSWER, pxOt: k + OFFER, pxAs: s + ANSWER, pxOs: s + OFFER, isStop: false, cache: {} };
 			conf.w = new WebRTCConnecter();
 			conf.w.setOnMessage((msg) => {
 				this.onReciveCallBack(target, msg);
@@ -255,6 +257,10 @@ export class ESWebRTCConnecterU {
 		conf.isGetFirst = false;
 		conf.isExcangedCandidates = false;
 		conf.isStop = false;
+		const ckeys = Object.keys(conf.cache);
+		for (const key of ckeys) {
+			delete conf.cache[key];
+		}
 	}
 	async listener(conf, px, value) {
 		this.l.log('==============LISTENER==RECEIVE=A================');
