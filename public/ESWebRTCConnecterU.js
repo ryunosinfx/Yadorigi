@@ -214,7 +214,7 @@ export class ESWebRTCConnecterU {
 		this.isStopAuto = true;
 		for (const key in this.confs) {
 			this.resetConf(this.confs[key]);
-		}ESWebRTCConnecterU
+		}
 	}
 	async offer(conf) {
 		conf.isAnaswer = false;
@@ -264,7 +264,9 @@ export class ESWebRTCConnecterU {
 	async listener(conf, px, value) {
 		this.l.log('ESWebRTCConnecterU==============LISTENER==RECEIVE=A================');
 		this.l.log(`ESWebRTCConnecterU getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
-		this.l.log(`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
+		this.l.log(
+			`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
+		);
 		if (value === true || value === null || value === 'null') {
 			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}`);
 			return;
@@ -609,8 +611,8 @@ export class WebRTCPeer {
 					resolve(peer);
 				} catch (e) {
 					reject(e);
-					console.error('WebRTCPeer setLocalDescription(offer) ERROR: ', else);
-					ef(e)
+					console.error(`WebRTCPeer setLocalDescription(offer) ERROR: ${e}`);
+					ef(e);
 				}
 			};
 
@@ -699,7 +701,7 @@ export class WebRTCPeer {
 			return this.peer.localDescription;
 		} catch (e) {
 			console.error('WebRTCPeer makeAnswer ERROR: ', e);
-			ef(e)
+			ef(e);
 		}
 	}
 	async setOfferAndAswer(sdp) {
@@ -728,7 +730,7 @@ export class WebRTCPeer {
 			}
 		} catch (e) {
 			console.error('WebRTCPeer setRemoteDescription(offer) ERROR: ', e);
-			ef(e)
+			ef(e);
 		}
 		return null;
 	}
