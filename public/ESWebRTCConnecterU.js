@@ -43,12 +43,12 @@ export class ESWebRTCConnecterU {
 		this.onReciveCallBack = onReciveCallBack;
 	}
 	async init(url, group, passwd, deviceName) {
-		this.l.log('INIT START');
+		this.l.log('ESWebRTCConnecterU INIT START');
 		this.url = url;
 		this.group = group;
 		this.passwd = passwd;
 		this.hash = await this.mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
-		this.l.log(`INIT END this.hash:${this.hash}`);
+		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
 	}
 	async mkHash(seeds = [location.origin, navigator.userAgent, Date.now()], stretch = Math.floor(Math.random() * 100) + (Date.now() % 100) + 1) {
 		return await Hasher.digest(JSON.stringify(seeds), stretch);
@@ -81,7 +81,7 @@ export class ESWebRTCConnecterU {
 				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 				console.log(row);
 				if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
-					console.log(`sendWaitNotify group:${group}`);
+					console.log(`ESWebRTCConnecterU sendWaitNotify group:${group}`);
 					await this.onCatchAnother(group, now, v.hash);
 					break;
 				}
@@ -177,7 +177,7 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxOs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					this.l.log(`=ANSWER====data:${data}`);
+					this.l.log(`ESWebRTCConnecterU=ANSWER====data:${data}`);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, OFFER, d);
@@ -196,7 +196,7 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxAs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					this.l.log(`=OFFER====data:${data}`);
+					this.l.log(`ESWebRTCConnecterU=OFFER====data:${data}`);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, ANSWER, d);
@@ -214,26 +214,24 @@ export class ESWebRTCConnecterU {
 		this.isStopAuto = true;
 		for (const key in this.confs) {
 			this.resetConf(this.confs[key]);
-		}
+		}ESWebRTCConnecterU
 	}
 	async offer(conf) {
 		conf.isAnaswer = false;
-		this.l.log('START1');
 		const offer = await conf.w.getOfferSdp();
-		this.l.log(`START2 setOnRecieve OFFER send offer:${offer}`);
+		this.l.log(`ESWebRTCConnecterU setOnRecieve OFFER send offer:${offer}`);
 		await this.send(conf.pxAt, offer);
-		this.l.log('START3');
 	}
 	async send(group, dataObj, cmd = 'g') {
 		const now = Date.now();
 		const data = await this.postToGAS(this.url, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
-		this.l.log(`================send=================${group}/${cmd} d:${Date.now() - now} data:${data}`);
+		this.l.log(`ESWebRTCConnecterU================send=================${group}/${cmd} d:${Date.now() - now} data:${data}`);
 	}
 	async load(group, cmd = 'g') {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const data = await this.getTextGAS(this.url, { group, cmd });
-		this.l.log(`==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:${data}`);
+		this.l.log(`ESWebRTCConnecterU==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:${data}`);
 		return data;
 	}
 	getConKey(group, target) {
@@ -264,15 +262,15 @@ export class ESWebRTCConnecterU {
 		}
 	}
 	async listener(conf, px, value) {
-		this.l.log('==============LISTENER==RECEIVE=A================');
-		this.l.log(`getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
-		this.l.log(`==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
+		this.l.log('ESWebRTCConnecterU==============LISTENER==RECEIVE=A================');
+		this.l.log(`ESWebRTCConnecterU getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
+		this.l.log(`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`);
 		if (value === true || value === null || value === 'null') {
-			this.l.log(`==============LISTENER==END=================value:${value}`);
+			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}`);
 			return;
 		}
 		if (conf.isAnaswer && px === ANSWER) {
-			this.l.log(`A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px}`);
+			this.l.log(`ESWebRTCConnecterU A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px}`);
 			if (!conf.isGetFirst) {
 				conf.w.setOnCandidates(async (candidates) => {
 					while (!conf.isGetFirst) {
@@ -282,39 +280,39 @@ export class ESWebRTCConnecterU {
 					await this.send(conf.pxOt, candidates);
 				});
 				const answer = await conf.w.answer(this.parseSdp(value));
-				this.l.log(`==============LISTENER==answer=A================typeof answer :${typeof answer}`);
+				this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 				this.l.log(answer);
-				this.l.log('==============LISTENER==answer=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
 				await this.send(conf.pxOt, answer);
 				conf.isGetFirst = true;
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = await conf.w.setCandidates(JSON.parse(value));
-				this.l.log('==============LISTENER==answer candidats=A================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================');
 				this.l.log(candidats);
-				this.l.log('==============LISTENER==answer candidats=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=B================');
 			}
 		} else if (!conf.isAnaswer && px === OFFER) {
-			this.l.log(`B AS OFFER conf.isAnaswer:${conf.isAnaswer}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
+			this.l.log(`ESWebRTCConnecterU B AS OFFER conf.isAnaswer:${conf.isAnaswer}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
 				conf.isGetFirst = true;
 				const candidates = await this.connect(conf, value);
-				this.l.log('==============LISTENER==make offer candidates=A================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=A================');
 				this.l.log(candidates);
-				this.l.log('==============LISTENER==make offer candidates=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
 				const candidats = value ? await conf.w.setCandidates(JSON.parse(value)) : null;
-				this.l.log('==============LISTENER==set offer candidats=A================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
 				conf.isExcangedCandidates = true;
-				this.l.log('==============LISTENER==set offer candidats=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=B================');
 			}
 		}
 	}
 	parseSdp(sdpInput) {
 		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
-		this.l.log(`parseSdp ${typeof sdpInput}/sdpInput:${sdpInput}`);
+		this.l.log(`ESWebRTCConnecterU parseSdp ${typeof sdpInput}/sdpInput:${sdpInput}`);
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		this.l.log(sdp);
 		return sdp.sdp;
@@ -359,13 +357,13 @@ export class ESWebRTCConnecterU {
 	/////////////////////////////////////////////////////////////////
 	sendMessage(hash, msg) {
 		const conf = this.getConf(this.group, hash);
-		this.l.log(`sendMessage msg:${msg}`);
+		this.l.log(`ESWebRTCConnecterU sendMessage msg:${msg}`);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.send(msg);
 		}
 	}
 	broadcastMessage(msg) {
-		this.l.log(`sendMessage msg:${msg}`);
+		this.l.log(`ESWebRTCConnecterU sendMessage msg:${msg}`);
 		for (const key in this.confs) {
 			const conf = this.confs[key];
 			if (conf && conf.w && conf.w.isOpend) {
@@ -382,7 +380,7 @@ export class ESWebRTCConnecterU {
 			: data;
 	}
 	async getTextGAS(path, data = {}) {
-		console.log('----getTextGAS--A------------');
+		console.log('ESWebRTCConnecterU----getTextGAS--A------------');
 		const r = await fetch(`${path}?${this.convertObjToQueryParam(data)}`, {
 			method: 'GET',
 			redirect: 'follow',
@@ -392,7 +390,7 @@ export class ESWebRTCConnecterU {
 		return await r.text();
 	}
 	async postToGAS(path, data) {
-		console.log('----postToGAS--A------------');
+		console.log('ESWebRTCConnecterU----postToGAS--A------------');
 		const r = await fetch(`${path}`, {
 			method: 'POST',
 			redirect: 'follow',
@@ -429,10 +427,10 @@ class WebRTCConnecter {
 		this.l = logger;
 	}
 	async init() {
-		this.l.log('--init--0----------WebRTCConnecter--------------------------------------');
+		this.l.log('-WebRTCConnecter-init--0----------WebRTCConnecter--------------------------------------');
 		this.close();
 		const result = await this.WebRTCPeerOffer.makeOffer();
-		this.l.log(`--init--1----------WebRTCConnecter--------------------------------------result:${result}`);
+		this.l.log(`-WebRTCConnecter-init--1----------WebRTCConnecter--------------------------------------result:${result}`);
 		const self = this;
 		const onOpenAtOffer = (event) => {
 			if (self.WebRTCPeerAnswer.isOpend) {
@@ -441,7 +439,7 @@ class WebRTCConnecter {
 				self.onOpenCallBack(event);
 				self.WebRTCPeer = self.WebRTCPeerOffer;
 			}
-			self.l.log('--onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
+			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
 			self.WebRTCPeer.onError = self.onErrorCallBack;
@@ -454,7 +452,7 @@ class WebRTCConnecter {
 				self.onOpenCallBack(event);
 				self.WebRTCPeer = self.WebRTCPeerAnswer;
 			}
-			self.l.log('--onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
+			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
 			self.WebRTCPeer.onError = self.onErrorCallBack;
@@ -462,8 +460,8 @@ class WebRTCConnecter {
 		};
 		this.WebRTCPeerAnswer.onOpen = onOpenAtAnswer;
 		this.WebRTCPeerOffer.onOpen = onOpenAtOffer;
-		this.l.log(`--init--3----------WebRTCConnecter--------------------------------------WebRTCPeerOffer:${this.WebRTCPeerOffer.name}`);
-		this.l.log(`--init--4----------WebRTCConnecter--------------------------------------WebRTCPeerAnswer:${this.WebRTCPeerAnswer.name}`);
+		this.l.log(`-WebRTCConnecter-init--3----------WebRTCConnecter--------------------------------------WebRTCPeerOffer:${this.WebRTCPeerOffer.name}`);
+		this.l.log(`-WebRTCConnecter-init--4----------WebRTCConnecter--------------------------------------WebRTCPeerAnswer:${this.WebRTCPeerAnswer.name}`);
 		return result;
 	}
 
@@ -492,25 +490,25 @@ class WebRTCConnecter {
 	}
 	setOnOpne(callback) {
 		this.onOpenCallBack = (event) => {
-			console.warn(`--onOpenCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
+			console.warn(`-WebRTCConnecter-onOpenCallBack--1------------------------------------------------event:${event}`);
 			callback(event);
 		};
 	}
 	setOnClose(callback) {
 		this.onCloseCallBack = (event) => {
-			console.warn(`--onCloseCallBack--1----------WebRTCConnecter--------------------------------------event:${event}`);
+			console.warn(`-WebRTCConnecter-onCloseCallBack--1------------------------------------------------event:${event}`);
 			callback(event);
 		};
 	}
 	setOnMessage(callback) {
 		this.onMessageCallBack = (msg) => {
-			console.warn(`--onMessageCallBack--1----------WebRTCConnecter--------------------------------------msg:${msg}`);
+			console.warn(`-WebRTCConnecter-onMessageCallBack--1------------------------------------------------msg:${msg}`);
 			callback(msg);
 		};
 	}
 	setOnError(callback) {
 		this.onErrorCallBack = (error) => {
-			console.warn(`--onErrorCallBack--1----------WebRTCConnecter--------------------------------------error:${error}`);
+			console.warn(`-WebRTCConnecter-onErrorCallBack--1------------------------------------------------error:${error}`);
 			callback(error);
 		};
 	}
@@ -548,7 +546,7 @@ class WebRTCConnecter {
 					continue;
 				}
 				const candidates = this.WebRTCPeerCurrent.getCandidates();
-				console.log(`setOnCandidates count:${count}/candidates:${candidates}`);
+				console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
 				if (Array.isArray(candidates) && candidates.length > 0) {
 					func(candidates);
 					break;
@@ -559,7 +557,7 @@ class WebRTCConnecter {
 	async setCandidates(candidatesInput) {
 		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
 		if (!Array.isArray(candidates)) {
-			return `candidates:${candidates}`;
+			return `setCandidates candidates:${candidates}`;
 		}
 		this.WebRTCPeerCurrent.setCandidates(candidates);
 	}
@@ -579,44 +577,45 @@ export class WebRTCPeer {
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
-			console.warn('--prepareNewConnection--0----------WebRTCPeer--------------------------------------');
+			console.warn('-WebRTCPeer-prepareNewConnection--0----------WebRTCPeer--------------------------------------');
 			const peer = new RTCPeerConnection(this.config, addOption);
-			console.warn('--prepareNewConnection--1----------WebRTCPeer--------------------------------------');
+			console.warn('-WebRTCPeer-prepareNewConnection--1----------WebRTCPeer--------------------------------------');
 			peer.ontrack = (evt) => {
-				console.log(`-- peer.ontrack()vevt:${evt}`);
+				console.log(`-WebRTCPeer- peer.ontrack()vevt:${evt}`);
 			};
 			// peer.onaddstream = evt => {
 			// 	console.log('-- peer.onaddstream()vevt:' + evt);
 			// };
 			peer.onremovestream = (evt) => {
-				console.log(`-- peer.onremovestream()vevt:${evt}`);
+				console.log(`-WebRTCPeer- peer.onremovestream()vevt:${evt}`);
 			};
 			peer.onicecandidate = (evt) => {
 				if (evt.candidate) {
 					// console.log(evt.candidate);
 					this.candidates.push(evt.candidate);
 				} else {
-					console.log(`-1--onicecandidate--- empty ice event peer.localDescription:${peer.localDescription}`);
+					console.log(`-WebRTCPeer--onicecandidate--- empty ice event peer.localDescription:${peer.localDescription}`);
 				}
 			};
 
 			peer.onnegotiationneeded = async () => {
 				try {
-					console.log(`-1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
+					console.log(`-WebRTCPeer1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
 					const offer = await peer.createOffer();
-					console.log(`-2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${peer.iceConnectionState}`);
+					console.log(`-WebRTCPeer2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${peer.iceConnectionState}`);
 					await peer.setLocalDescription(offer);
-					console.log(`-3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${peer.iceConnectionState}`);
+					console.log(`-WebRTCPeer3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${peer.iceConnectionState}`);
 					this.sdp = peer.localDescription;
 					resolve(peer);
-				} catch (err) {
-					reject(err);
-					console.error('setLocalDescription(offer) ERROR: ', err);
+				} catch (e) {
+					reject(e);
+					console.error('WebRTCPeer setLocalDescription(offer) ERROR: ', else);
+					ef(e)
 				}
 			};
 
 			peer.oniceconnectionstatechange = () => {
-				console.log(`ICE connection Status has changed to ${peer.iceConnectionState}`);
+				console.log(`WebRTCPeer ICE connection Status has changed to ${peer.iceConnectionState}`);
 				switch (peer.iceConnectionState) {
 					case 'closed':
 					case 'failed':
@@ -629,11 +628,11 @@ export class WebRTCPeer {
 				}
 			};
 			peer.ondatachannel = (evt) => {
-				console.warn(`--ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
+				console.warn(`-WebRTCPeer-ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
 				this.dataChannelSetup(evt.channel);
-				console.warn(`--ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
+				console.warn(`-WebRTCPeer-ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
-			console.warn(`--prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
+			console.warn(`-WebRTCPeer-prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
 				const dc = peer.createDataChannel(`chat${Date.now()}`);
 				this.dataChannelSetup(dc);
@@ -658,20 +657,20 @@ export class WebRTCPeer {
 	}
 	dataChannelSetup(dataChannel) {
 		dataChannel.onerror = (error) => {
-			console.log('Data Channel Error:', error);
+			console.log('WebRTCPeer Data Channel Error:', error);
 			this.onError(error);
 		};
 		dataChannel.onmessage = (event) => {
-			console.log('Got Data Channel Message:', event.data);
+			console.log('WebRTCPeer Got Data Channel Message:', event.data);
 			this.onMessage(event.data);
 		};
 		dataChannel.onopen = (event) => {
-			dataChannel.send('dataChannel Hello World! OPEN SUCCESS!');
+			dataChannel.send('WebRTCPeer dataChannel Hello World! OPEN SUCCESS!');
 			this.isOpend = true;
 			this.onOpen(event);
 		};
 		dataChannel.onclose = () => {
-			console.log('The Data Channel is Closed');
+			console.log('WebRTCPeer The Data Channel is Closed');
 			this.isOpend = false;
 			this.onClose();
 		};
@@ -681,29 +680,30 @@ export class WebRTCPeer {
 	// 	console.log(`---sending sdp ---${sessionDescription.sdp}`);
 	// }
 	async makeOffer() {
-		console.log('--makeOffer--1----------WebRTCPeer--------------------------------------');
+		console.log('-WebRTCPeer-makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
-		console.log('--makeOffer--2----------WebRTCPeer--------------------------------------');
+		console.log('-WebRTCPeer-makeOffer--2----------WebRTCPeer--------------------------------------');
 		return true;
 	}
 	async makeAnswer() {
-		console.log('makeAnswer sending Answer. Creating remote session description...');
+		console.log('WebRTCPeer makeAnswer sending Answer. Creating remote session description...');
 		if (!this.peer) {
-			console.error('makeAnswer peerConnection NOT exist!');
+			console.error('WebRTCPeer makeAnswer peerConnection NOT exist!');
 			return;
 		}
 		try {
 			const answer = await this.peer.createAnswer();
-			console.log('makeAnswer createAnswer() succsess in promise');
+			console.log('WebRTCPeer makeAnswer createAnswer() succsess in promise');
 			await this.peer.setLocalDescription(answer);
-			console.log(`makeAnswer setLocalDescription() succsess in promise${this.peer.localDescription}`);
+			console.log(`WebRTCPeer makeAnswer setLocalDescription() succsess in promise${this.peer.localDescription}`);
 			return this.peer.localDescription;
-		} catch (err) {
-			console.error(err);
+		} catch (e) {
+			console.error('WebRTCPeer makeAnswer ERROR: ', e);
+			ef(e)
 		}
 	}
 	async setOfferAndAswer(sdp) {
-		console.warn(`setOfferAndAswer sdp ${sdp}`);
+		console.warn(`WebRTCPeer setOfferAndAswer sdp ${sdp}`);
 		console.warn(sdp);
 		try {
 			while (this.candidates.length < 1) {
@@ -712,22 +712,23 @@ export class WebRTCPeer {
 					sdp: sdp,
 				});
 				if (this.peer) {
-					console.error('setOfferAndAswer peerConnection alreay exist!');
+					console.error('WebRTCPeer setOfferAndAswer peerConnection alreay exist!');
 				}
 				this.peer = await this.prepareNewConnection(true);
-				console.warn(`setOfferAndAswer this.peer ${this.peer}`);
+				console.warn(`WebRTCPeer setOfferAndAswer this.peer ${this.peer}`);
 				await this.peer.setRemoteDescription(offer);
-				console.warn(`setOfferAndAswer offer ${offer}`);
-				console.log(`setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`);
+				console.warn(`WebRTCPeer setOfferAndAswer offer ${offer}`);
+				console.log(`WebRTCPeer setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
-				console.warn(`setOfferAndAswer ans ${ans}`);
+				console.warn(`WebRTCPeer setOfferAndAswer ans ${ans}`);
 				if (this.candidates.length < 1 || ans) {
 					return ans;
 				}
 				await sleep(Math.floor(Math.random() * 1000) + 1000);
 			}
-		} catch (err) {
-			console.error('setRemoteDescription(offer) ERROR: ', err);
+		} catch (e) {
+			console.error('WebRTCPeer setRemoteDescription(offer) ERROR: ', e);
+			ef(e)
 		}
 		return null;
 	}
@@ -737,10 +738,10 @@ export class WebRTCPeer {
 			sdp: typeof sdp === 'object' ? JSON.parse(sdp) : sdp,
 		});
 		if (!this.peer) {
-			throw 'peerConnection NOT exist!';
+			throw 'WebRTCPeer peerConnection NOT exist!';
 		}
 		await this.peer.setRemoteDescription(answer);
-		console.log('setRemoteDescription(answer) succsess in promise');
+		console.log('WebRTCPeer setRemoteDescription(answer) succsess in promise');
 		return true;
 	}
 	send(msg) {
@@ -753,14 +754,14 @@ export class WebRTCPeer {
 				this.peer = null;
 			}
 		}
-		console.log('peerConnection is closed.');
+		console.log('WebRTCPeer peerConnection is closed.');
 	}
 	getCandidates() {
 		return this.candidates;
 	}
 	async setCandidates(candidates) {
 		for (const candidate of candidates) {
-			console.log('receiverCandidatesStr adding candidate', candidate);
+			console.log(`WebRTCPeer setCandidates candidate:${candidate}`);
 			this.peer.addIceCandidate(candidate).catch(ef);
 		}
 	}
