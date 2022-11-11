@@ -221,19 +221,19 @@ export class ESWebRTCConnecterU {
 	async offer(conf) {
 		conf.isAnaswer = false;
 		const offer = await conf.w.getOfferSdp();
-		this.l.log(`ESWebRTCConnecterU setOnRecieve OFFER send offer:${offer}`);
+		this.l.log('ESWebRTCConnecterU setOnRecieve OFFER send offer:', offer);
 		await this.send(conf.pxAt, offer);
 	}
 	async send(group, dataObj, cmd = 'g') {
 		const now = Date.now();
 		const data = await this.postToGAS(this.url, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
-		this.l.log(`ESWebRTCConnecterU================send=================${group}/${cmd} d:${Date.now() - now} data:${data}`);
+		this.l.log(`ESWebRTCConnecterU================send=================${group}/${cmd} d:${Date.now() - now} data:`, data);
 	}
 	async load(group, cmd = 'g') {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
 		const data = await this.getTextGAS(this.url, { group, cmd });
-		this.l.log(`ESWebRTCConnecterU==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:${data}`);
+		this.l.log(`ESWebRTCConnecterU==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:`, data);
 		return data;
 	}
 	getConKey(group, target) {
@@ -309,10 +309,10 @@ export class ESWebRTCConnecterU {
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
+				conf.isExcangedCandidates = true;
 				const candidats = value ? conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
-				conf.isExcangedCandidates = true;
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=B================');
 			}
 		}

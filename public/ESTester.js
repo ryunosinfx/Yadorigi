@@ -27,7 +27,7 @@ export class ESTester {
 	}
 	log(text, value) {
 		this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text} ${value}`;
-		console.log(text, value);
+		console.log(`${Date.now()} ${text}`, value);
 	}
 	async openNewWindow() {
 		this.window = window.open(new URL(location.href).href, 'newOne');
