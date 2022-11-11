@@ -294,7 +294,7 @@ export class ESWebRTCConnecterU {
 				conf.isGetFirst = true;
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
-				const candidats = await conf.w.setCandidates(JSON.parse(value), Date.now());
+				const candidats = conf.w.setCandidates(JSON.parse(value), Date.now());
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================');
 				this.l.log(candidats);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=B================');
@@ -309,7 +309,7 @@ export class ESWebRTCConnecterU {
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
-				const candidats = value ? await conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
+				const candidats = value ? conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
 				conf.isExcangedCandidates = true;
@@ -561,7 +561,7 @@ class WebRTCConnecter {
 			}
 		}
 	}
-	async setCandidates(candidatesInput) {
+	setCandidates(candidatesInput) {
 		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
 		if (!Array.isArray(candidates)) {
 			return `setCandidates candidates:${candidates}`;
@@ -766,13 +766,14 @@ export class WebRTCPeer {
 	getCandidates() {
 		return this.candidates;
 	}
-	async setCandidates(candidates, id) {
+	setCandidates(candidates, id) {
 		for (const candidate of candidates) {
-			console.log(`WebRTCPeer setCandidates candidate:${candidate} ${JSON.stringify(candidate)}`);
+			console.log('WebRTCPeer setCandidates candidate', candidate);
 			this.peer.addIceCandidate(candidate).catch((e) => {
 				ef(e, id);
 			});
 		}
+		return 'setCandidates OK';
 	}
 }
 
