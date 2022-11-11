@@ -58,12 +58,14 @@ export class ESWebRTCConnecterU {
 		this.isStopAuto = false;
 		let count = 3;
 		this.isWaiting = false;
+		let isFirst = true;
 		while (this.isStopAuto === false) {
 			const group = this.group;
 			this.gropuHash = await Hasher.digest(group);
 			await sleep(WAIT_AUTO_INTERVAL / 4);
-			if (count === 0) {
+			if (count === 0 || isFirst) {
 				await this.sendWait(group);
+				isFirst = false;
 				count = 3;
 			} else {
 				count--;
@@ -284,6 +286,9 @@ export class ESWebRTCConnecterU {
 				const answer = await conf.w.answer(this.parseSdp(value));
 				this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 				this.l.log(answer);
+				if (!answer) {
+					this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=0================value:${value}`);
+				}
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
 				await this.send(conf.pxOt, answer);
 				conf.isGetFirst = true;
