@@ -179,7 +179,7 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxOs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					this.l.log(`ESWebRTCConnecterU=ANSWER====data:${data}`);
+					this.l.log('ESWebRTCConnecterU=ANSWER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, OFFER, d);
@@ -198,7 +198,7 @@ export class ESWebRTCConnecterU {
 					const cacheKey = conf.pxAs + data;
 					this.threads.pop(1);
 					const d = decode(data);
-					this.l.log(`ESWebRTCConnecterU=OFFER====data:${data}`);
+					this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, ANSWER, d);
