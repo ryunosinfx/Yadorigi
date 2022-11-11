@@ -720,7 +720,7 @@ export class WebRTCPeer {
 				console.log(`setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
 				console.warn(`setOfferAndAswer ans ${ans}`);
-				if (this.candidates.length < 1 || !ans) {
+				if (this.candidates.length < 1 || ans) {
 					return ans;
 				}
 				await sleep(Math.floor(Math.random() * 1000) + 1000);
