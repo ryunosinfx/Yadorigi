@@ -6,9 +6,9 @@ const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
-const ef = (e) => {
-	console.log(e.message);
-	console.log(e.stack);
+const ef = (e, id = '') => {
+	console.warn(`${id} ${e.message}`);
+	console.warn(e.stack);
 };
 function sleep(ms = SleepMs) {
 	return new Promise((r) => {
@@ -294,7 +294,7 @@ export class ESWebRTCConnecterU {
 				conf.isGetFirst = true;
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
-				const candidats = await conf.w.setCandidates(JSON.parse(value));
+				const candidats = await conf.w.setCandidates(JSON.parse(value), Date.now());
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================');
 				this.l.log(candidats);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=B================');
@@ -309,7 +309,7 @@ export class ESWebRTCConnecterU {
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
-				const candidats = value ? await conf.w.setCandidates(JSON.parse(value)) : null;
+				const candidats = value ? await conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
 				conf.isExcangedCandidates = true;
@@ -766,10 +766,12 @@ export class WebRTCPeer {
 	getCandidates() {
 		return this.candidates;
 	}
-	async setCandidates(candidates) {
+	async setCandidates(candidates, id) {
 		for (const candidate of candidates) {
-			console.log(`WebRTCPeer setCandidates candidate:${candidate}`);
-			this.peer.addIceCandidate(candidate).catch(ef);
+			console.log(`WebRTCPeer setCandidates candidate:${candidate} ${JSON.stringify(candidate)}`);
+			this.peer.addIceCandidate(candidate).catch((e) => {
+				ef(e, id);
+			});
 		}
 	}
 }
