@@ -278,6 +278,7 @@ export class ESWebRTCConnecterU {
 					while (!conf.isGetFirst) {
 						await sleep(200);
 					}
+					await sleep(2000);
 					await this.send(conf.pxOt, candidates);
 				});
 				const answer = await conf.w.answer(this.parseSdp(value));
