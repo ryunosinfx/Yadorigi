@@ -215,6 +215,10 @@ export class ESWebRTCConnecterU {
 		}
 		this.isStopAuto = true;
 		for (const key in this.confs) {
+			this.confs[key].isStop = true;
+		}
+		await sleep(2000);
+		for (const key in this.confs) {
 			this.resetConf(this.confs[key]);
 		}
 	}
@@ -424,7 +428,6 @@ class WebRTCConnecter {
 		this.WebRTCPeerOffer = new WebRTCPeer('OFFER', stunServer);
 		this.WebRTCPeerAnswer = new WebRTCPeer('ANSWER', stunServer);
 		this.WebRTCPeer = null;
-		this.WebRTCPeerCurrent = null;
 		this.peerMap = {};
 		this.onOpenCallBack = () => {};
 		this.onCloseCallBack = () => {};
@@ -437,10 +440,8 @@ class WebRTCConnecter {
 	async init() {
 		this.l.log('-WebRTCConnecter-init--0----------WebRTCConnecter--------------------------------------');
 		this.close();
-		const result = await this.WebRTCPeerOffer.makeOffer();
-		this.l.log(`-WebRTCConnecter-init--1----------WebRTCConnecter--------------------------------------result:${result}`);
 		const self = this;
-		const onOpenAtOffer = (event) => {
+		this.WebRTCPeerOffer.onOpen = (event) => {
 			if (self.WebRTCPeerAnswer.isOpend) {
 				self.selectActiveConnection();
 			} else {
@@ -453,7 +454,7 @@ class WebRTCConnecter {
 			self.WebRTCPeer.onError = self.onErrorCallBack;
 			self.isOpend = true;
 		};
-		const onOpenAtAnswer = (event) => {
+		this.WebRTCPeerAnswer.onOpen = (event) => {
 			if (self.WebRTCPeerOffer.isOpend) {
 				self.selectActiveConnection();
 			} else {
@@ -466,18 +467,13 @@ class WebRTCConnecter {
 			self.WebRTCPeer.onError = self.onErrorCallBack;
 			self.isOpend = true;
 		};
-		this.WebRTCPeerAnswer.onOpen = onOpenAtAnswer;
-		this.WebRTCPeerOffer.onOpen = onOpenAtOffer;
 		this.l.log(`-WebRTCConnecter-init--3----------WebRTCConnecter--------------------------------------WebRTCPeerOffer:${this.WebRTCPeerOffer.name}`);
 		this.l.log(`-WebRTCConnecter-init--4----------WebRTCConnecter--------------------------------------WebRTCPeerAnswer:${this.WebRTCPeerAnswer.name}`);
-		return result;
+		return true;
 	}
 
 	async getOfferSdp() {
-		if (await this.inited) {
-			return this.getSdp();
-		}
-		return '';
+		return (await this.inited) ? await this.WebRTCPeerOffer.makeOffer() : '';
 	}
 	selectActiveConnection() {
 		const hashList = [];
@@ -523,21 +519,16 @@ class WebRTCConnecter {
 	send(msg) {
 		this.WebRTCPeer.send(msg);
 	}
-	getSdp() {
-		return this.WebRTCPeer ? this.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
-	}
 	async answer(sdp) {
-		if (await this.inited()) {
+		if (await this.inited) {
 			const hash = await Hasher.digest(sdp);
 			this.peerMap[hash] = this.WebRTCPeerAnswer;
-			this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
 			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 		}
 	}
 	async connect(sdp, func) {
 		const hash = await Hasher.digest(sdp);
 		this.peerMap[hash] = this.WebRTCPeerOffer;
-		this.WebRTCPeerCurrent = this.WebRTCPeerOffer;
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
 		if (result && func) {
 			this.setOnCandidates(func);
@@ -545,15 +536,15 @@ class WebRTCConnecter {
 		return result;
 	}
 	async setOnCandidates(func) {
-		if (await this.inited()) {
+		if (await this.inited) {
 			let count = 1;
 			while (count < 100) {
 				await sleep(20 * count);
 				count += 1;
-				if (!this.WebRTCPeerCurrent) {
+				if (!this.WebRTCPeer) {
 					continue;
 				}
-				const candidates = this.WebRTCPeerCurrent.getCandidates();
+				const candidates = this.WebRTCPeer.getCandidates();
 				console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
 				if (Array.isArray(candidates) && candidates.length > 0) {
 					func(candidates);
@@ -564,10 +555,7 @@ class WebRTCConnecter {
 	}
 	setCandidates(candidatesInput) {
 		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
-		if (!Array.isArray(candidates)) {
-			return `setCandidates candidates:${candidates}`;
-		}
-		this.WebRTCPeerCurrent.setCandidates(candidates);
+		return !Array.isArray(candidates) ? `setCandidates candidates:${candidates}` : this.WebRTCPeer.setCandidates(candidates);
 	}
 	close() {
 		this.WebRTCPeerOffer.close();
