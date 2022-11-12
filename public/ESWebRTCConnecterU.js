@@ -210,8 +210,9 @@ class ESWebRTCConnecterUnit {
 		return obj ? obj.message : null;
 	}
 	isOpend(conf) {
-		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${conf.w.isOpend}`);
-		return conf.w.isOpend;
+		const isOpen = conf.w.isOpened();
+		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${isOpen}`);
+		return isOpen;
 	}
 	async startNegosiation(conf) {
 		conf.isStop = false;
@@ -634,7 +635,6 @@ export class WebRTCPeer {
 	constructor(name, stunServers, logger = null) {
 		this.name = name;
 		this.peer = null;
-		this.isOpend = false;
 		this.candidates = [];
 		this.config = { iceServers: stunServers };
 		this.l = logger;
@@ -723,7 +723,6 @@ export class WebRTCPeer {
 	dataChannelSetup(dataChannel) {
 		dataChannel.onerror = (error) => {
 			console.error('WebRTCPeer Data Channel Error:', error);
-			this.isOpend = false;
 			this.onError(error);
 		};
 		dataChannel.onmessage = (event) => {
@@ -732,12 +731,10 @@ export class WebRTCPeer {
 		};
 		dataChannel.onopen = (event) => {
 			dataChannel.send('WebRTCPeer dataChannel Hello World! OPEN SUCCESS!');
-			this.isOpend = true;
 			this.onOpen(event);
 		};
 		dataChannel.onclose = () => {
 			console.log('WebRTCPeer The Data Channel is Closed');
-			this.isOpend = false;
 			this.onClose();
 		};
 		this.dataChannel = dataChannel;
@@ -807,6 +804,24 @@ export class WebRTCPeer {
 		console.log('WebRTCPeer setRemoteDescription(answer) succsess in promise');
 		return true;
 	}
+	isOpened() {
+		const dc = this.dataChannel;
+		if (!dc) {
+			return false;
+		}
+		let isOpend = false;
+		switch (dc.readyState) {
+			case 'connecting':
+			case 'open':
+				isOpend = true;
+				break;
+			case 'closing':
+			case 'closed':
+				isOpend = false;
+				break;
+		}
+		return isOpend;
+	}
 	send(msg) {
 		const dc = this.dataChannel;
 		switch (dc.readyState) {
@@ -826,7 +841,6 @@ export class WebRTCPeer {
 			case 'closed':
 				console.warn('Error! Attempt to send while connection closed.');
 				this.queue.push(msg);
-				this.isOpend = false;
 				this.close();
 				break;
 		}
