@@ -331,9 +331,12 @@ export class ESWebRTCConnecterU {
 		return sdp.sdp;
 	}
 	connect(conf, sdpInput) {
+		console.warn(`★connect0 sdpInput:${sdpInput}`);
 		const func = async (resolve) => {
 			this.l.log(sdpInput);
+			console.warn('★connect1');
 			return await conf.w.connect(this.parseSdp(sdpInput), (candidates) => {
+				console.warn('★connect2');
 				resolve(candidates);
 			});
 		};
@@ -430,7 +433,6 @@ class WebRTCConnecter {
 		this.WebRTCPeerOffer = new WebRTCPeer('OFFER', stunServer);
 		this.WebRTCPeerAnswer = new WebRTCPeer('ANSWER', stunServer);
 		this.WebRTCPeer = null;
-		this.peerMap = {};
 		this.onOpenCallBack = () => {};
 		this.onCloseCallBack = () => {};
 		this.onMessageCallBack = () => {};
@@ -444,12 +446,9 @@ class WebRTCConnecter {
 		this.close();
 		const self = this;
 		this.WebRTCPeerOffer.onOpen = (event) => {
-			if (self.WebRTCPeerAnswer.isOpend) {
-				self.selectActiveConnection();
-			} else {
-				self.onOpenCallBack(event);
-				self.WebRTCPeer = self.WebRTCPeerOffer;
-			}
+			self.onOpenCallBack(event);
+			self.WebRTCPeer = self.WebRTCPeerOffer;
+
 			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
@@ -457,12 +456,9 @@ class WebRTCConnecter {
 			self.isOpend = true;
 		};
 		this.WebRTCPeerAnswer.onOpen = (event) => {
-			if (self.WebRTCPeerOffer.isOpend) {
-				self.selectActiveConnection();
-			} else {
-				self.onOpenCallBack(event);
-				self.WebRTCPeer = self.WebRTCPeerAnswer;
-			}
+			self.onOpenCallBack(event);
+			self.WebRTCPeer = self.WebRTCPeerAnswer;
+
 			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
@@ -476,23 +472,6 @@ class WebRTCConnecter {
 
 	async getOfferSdp() {
 		return (await this.inited) ? await this.WebRTCPeerOffer.makeOffer() : '';
-	}
-	selectActiveConnection() {
-		const hashList = [];
-		for (const hash in this.peerMap) {
-			hashList.push(hash);
-		}
-		if (hashList.length > 1) {
-			hashList.sort();
-			const closeTarget = hashList.pop();
-			const mainTarget = hashList.pop();
-			this.WebRTCPeer = this.peerMap[mainTarget];
-
-			this.WebRTCPeer.onClose = this.onCloseCallBack;
-			const peerClose = this.peerMap[closeTarget];
-			peerClose.onClose = () => {};
-			peerClose.close();
-		}
 	}
 	setOnOpne(callback) {
 		this.onOpenCallBack = (event) => {
@@ -523,14 +502,10 @@ class WebRTCConnecter {
 	}
 	async answer(sdp) {
 		if (await this.inited) {
-			const hash = await Hasher.digest(sdp);
-			this.peerMap[hash] = this.WebRTCPeerAnswer;
 			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 		}
 	}
 	async connect(sdp, func) {
-		const hash = await Hasher.digest(sdp);
-		this.peerMap[hash] = this.WebRTCPeerOffer;
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
 		if (result && func) {
 			this.setOnCandidates(func);
