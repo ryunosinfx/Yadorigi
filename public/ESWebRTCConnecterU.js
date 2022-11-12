@@ -209,6 +209,7 @@ class ESWebRTCConnecterUnit {
 		return obj ? obj.message : null;
 	}
 	isOpend(conf) {
+		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpen:${conf.w.isOpen}`);
 		return conf.w.isOpen;
 	}
 	async startNegosiation(conf) {
