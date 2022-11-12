@@ -506,24 +506,35 @@ class WebRTCConnecter {
 		}
 	}
 	async connect(sdp, func) {
+		console.warn('★connect A0');
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
+		console.warn('★connect A1', result);
 		if (result && func) {
+			console.warn('★connect A2', result);
 			this.setOnCandidates(func);
+			console.warn('★connect A3', result);
 		}
+		console.warn('★connect A4', result);
 		return result;
 	}
 	async setOnCandidates(func) {
+		console.warn('setOnCandidates 0');
 		// if (await this.inited) {
 		let count = 1;
 		while (count < 100) {
 			await sleep(20 * count);
 			count += 1;
+			console.warn(`setOnCandidates 1 count:${count}`);
 			if (!this.WebRTCPeer) {
+				console.warn('setOnCandidates 2');
 				continue;
 			}
+			console.warn('setOnCandidates 3');
 			const candidates = this.WebRTCPeer.getCandidates();
 			console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
+			console.warn('setOnCandidates 4');
 			if (Array.isArray(candidates) && candidates.length > 0) {
+				console.warn('setOnCandidates 5');
 				func(candidates);
 				break;
 			}
