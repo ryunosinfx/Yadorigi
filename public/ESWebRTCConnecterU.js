@@ -6,6 +6,7 @@ const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
+///////////////////////////
 const ef = (e, id = '', logger = null) => {
 	console.warn(`${id} ${e.message}`);
 	console.warn(e.stack);
@@ -36,7 +37,45 @@ function decode(data, id, logger) {
 	}
 	return null;
 }
+async function mkHash(seeds = [location.origin, navigator.userAgent, Date.now()], stretch = Math.floor(Math.random() * 100) + (Date.now() % 100) + 1) {
+	return await Hasher.digest(JSON.stringify(seeds), stretch);
+}
+///////////////////////////
 export class ESWebRTCConnecterU {
+	constructor(
+		logger = console,
+		onReciveCallBack = (hash, msg) => {
+			console.log(`hash:${hash},msg:${msg}`);
+		}
+	) {
+		this.i = ESWebRTCConnecterUnit(logger, onReciveCallBack);
+	}
+	setOnOpenFunc(fn) {
+		this.i.onOpenFunc = fn;
+	}
+	setOnCloseFunc(fn) {
+		this.i.onCloseFunc = fn;
+	}
+	async startWaitAutoConnect() {
+		await this.i.startWaitAutoConnect();
+	}
+	async stopWaitAutoConnect() {
+		await this.i.stopWaitAutoConnect();
+	}
+	closeAll() {
+		this.i.closeAll();
+	}
+	close(hash) {
+		this.i.close(hash);
+	}
+	sendMessage(hash, msg) {
+		this.i.sendMessage(hash, msg);
+	}
+	broadcastMessage(msg) {
+		this.i.broadcastMessage(msg);
+	}
+}
+class ESWebRTCConnecterUnit {
 	constructor(
 		logger = console,
 		onReciveCallBack = (hash, msg) => {
@@ -56,11 +95,8 @@ export class ESWebRTCConnecterU {
 		this.url = url;
 		this.group = group;
 		this.passwd = passwd;
-		this.hash = await this.mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
+		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
-	}
-	async mkHash(seeds = [location.origin, navigator.userAgent, Date.now()], stretch = Math.floor(Math.random() * 100) + (Date.now() % 100) + 1) {
-		return await Hasher.digest(JSON.stringify(seeds), stretch);
 	}
 	async startWaitAutoConnect() {
 		await this.inited;
@@ -189,11 +225,11 @@ export class ESWebRTCConnecterU {
 				} else {
 					return;
 				}
-				this.load(conf.pxOs).then((data) => {
-					const cacheKey = conf.pxOs + data;
+				this.load(conf.pxOs).then(async (data) => {
+					const cacheKey = await Hasher.digest(conf.pxOs + data);
 					this.threads.pop(1);
 					const d = decode(data, conf.id, this.l);
-					this.l.log('ESWebRTCConnecterU=ANSWER====data:', data);
+					// this.l.log('ESWebRTCConnecterU=ANSWER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, OFFER, d);
@@ -208,11 +244,11 @@ export class ESWebRTCConnecterU {
 				} else {
 					return;
 				}
-				this.load(conf.pxAs).then((data) => {
-					const cacheKey = conf.pxAs + data;
+				this.load(conf.pxAs).then(async (data) => {
+					const cacheKey = await Hasher.digest(conf.pxOs + data);
 					this.threads.pop(1);
 					const d = decode(data, conf.id, this.l);
-					this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
+					// this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
 						this.listener(conf, ANSWER, d);
@@ -244,14 +280,14 @@ export class ESWebRTCConnecterU {
 	}
 	async send(group, dataObj, cmd = 'g') {
 		const now = Date.now();
-		const data = await this.postToGAS(this.url, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
+		const data = await GASAccessor.postToGAS(this.url, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
 		this.l.log(`ESWebRTCConnecterU================send=================${group}/${cmd} d:${Date.now() - now} data:`, data);
 	}
 	async load(group, cmd = 'g') {
 		const now = Date.now();
 		const key = `${now}_${Math.floor(Math.random() * 1000)}`;
-		const data = await this.getTextGAS(this.url, { group, cmd });
-		this.l.log(`ESWebRTCConnecterU==${key}==============load=B========${group}/${cmd} ========${Date.now() - now} data:`, data);
+		const data = await GASAccessor.getTextGAS(this.url, { group, cmd });
+		this.l.log(`ESWebRTCConnecterU==${key}==============load========${group}/${cmd} ========${Date.now() - now} data:`, data);
 		return data;
 	}
 	getConKey(group, target) {
@@ -263,6 +299,7 @@ export class ESWebRTCConnecterU {
 		let conf = this.confs[k];
 		if (!conf) {
 			conf = {
+				target,
 				isAnaswer: true,
 				isGetFirst: false,
 				isExcangedCandidates: false,
@@ -274,9 +311,17 @@ export class ESWebRTCConnecterU {
 				cache: {},
 				id: `${Date.now()} ${this.hash}`,
 			};
-			conf.w = new WebRTCConnecter();
+			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage((msg) => {
+				this.l.log(`############★###OPEN！###★###############target:${target}`);
 				this.onReciveCallBack(target, msg);
+			});
+			conf.w.onOpenCallBack((event) => {
+				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
+				this.onOpenFunc(event, group, target);
+			});
+			conf.w.onCloseCallBack((event) => {
+				this.onCloseFunc(event, group, target);
 			});
 			this.confs[k] = conf;
 		}
@@ -344,6 +389,9 @@ export class ESWebRTCConnecterU {
 	parseSdp(sdpInput) {
 		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
 		this.l.log(`ESWebRTCConnecterU parseSdp ${typeof sdpInput}/sdpInput:${sdpInput}`);
+		if (!sdp.sdp) {
+			return null;
+		}
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		this.l.log(sdp);
 		return sdp.sdp;
@@ -413,17 +461,19 @@ export class ESWebRTCConnecterU {
 			}
 		}
 	}
+}
+class GASAccessor {
 	//////Fetcher Core///////////////////////////////////////////////
-	convertObjToQueryParam(data) {
+	static convertObjToQueryParam(data) {
 		return data && typeof data === 'object'
 			? Object.keys(data)
 					.map((key) => `${key}=${encodeURIComponent(data[key])}`)
 					.join('&')
 			: data;
 	}
-	async getTextGAS(path, data = {}) {
-		console.log('ESWebRTCConnecterU----getTextGAS--A------------');
-		const r = await fetch(`${path}?${this.convertObjToQueryParam(data)}`, {
+	static async getTextGAS(path, data = {}) {
+		console.log('GASAccessor----getTextGAS--A------------');
+		const r = await fetch(`${path}?${GASAccessor.convertObjToQueryParam(data)}`, {
 			method: 'GET',
 			redirect: 'follow',
 			Accept: 'application/json',
@@ -431,14 +481,14 @@ export class ESWebRTCConnecterU {
 		});
 		return await r.text();
 	}
-	async postToGAS(path, data) {
-		console.warn('ESWebRTCConnecterU----postToGAS--A------------', data);
+	static async postToGAS(path, data) {
+		console.warn('GASAccessor----postToGAS--A------------', data);
 		const r = await fetch(`${path}`, {
 			method: 'POST',
 			redirect: 'follow',
 			Accept: 'application/json',
 			'Content-Type': contentType,
-			body: `${this.convertObjToQueryParam(data)}`,
+			body: `${GASAccessor.convertObjToQueryParam(data)}`,
 			headers: {
 				'Content-Type': contentType,
 			},
@@ -474,7 +524,6 @@ class WebRTCConnecter {
 		this.WebRTCPeerOffer.onOpen = (event) => {
 			self.onOpenCallBack(event);
 			self.WebRTCPeer = self.WebRTCPeerOffer;
-
 			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerOffer---------WebRTCConnecter--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
@@ -484,7 +533,6 @@ class WebRTCConnecter {
 		this.WebRTCPeerAnswer.onOpen = (event) => {
 			self.onOpenCallBack(event);
 			self.WebRTCPeer = self.WebRTCPeerAnswer;
-
 			self.l.log('-WebRTCConnecter-onOpen--1-WebRTCPeerAnswer---------WebRTCPeerAnswer--------------------------------------');
 			self.WebRTCPeer.onClose = self.onCloseCallBack;
 			self.WebRTCPeer.onMessage = self.onMessageCallBack;
@@ -527,11 +575,16 @@ class WebRTCConnecter {
 		this.WebRTCPeer.send(msg);
 	}
 	async answer(sdp) {
-		if (await this.inited) {
+		if (!sdp) {
+			return null;
+		} else if (await this.inited) {
 			return await this.WebRTCPeerAnswer.setOfferAndAswer(sdp);
 		}
 	}
 	async connect(sdp, func) {
+		if (!sdp) {
+			return null;
+		}
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(getEF(Date.now(), this.l));
 		this.WebRTCPeer = this.WebRTCPeerOffer;
 		if (result && func) {
