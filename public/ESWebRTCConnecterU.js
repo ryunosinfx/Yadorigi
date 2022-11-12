@@ -209,8 +209,8 @@ class ESWebRTCConnecterUnit {
 		return obj ? obj.message : null;
 	}
 	isOpend(conf) {
-		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpen:${conf.w.isOpen}`);
-		return conf.w.isOpen;
+		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${conf.w.isOpend}`);
+		return conf.w.isOpend;
 	}
 	async startNegosiation(conf) {
 		conf.isStop = false;
@@ -346,7 +346,7 @@ class ESWebRTCConnecterUnit {
 		this.l.log(
 			`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
 		);
-		if (conf.w.isOpen || conf.isStop || value === true || value === null || value === 'null') {
+		if (conf.w.isOpend || conf.isStop || value === true || value === null || value === 'null') {
 			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}/conf.isStop:${conf.isStop}`);
 			return;
 		}
