@@ -6,9 +6,13 @@ const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
-const ef = (e, id = '') => {
+const ef = (e, id = '', logger = null) => {
 	console.warn(`${id} ${e.message}`);
 	console.warn(e.stack);
+	if (logger && logger.log) {
+		logger.log(`${id} ${e.message}`);
+		logger.log(e.stack);
+	}
 };
 function sleep(ms = SleepMs) {
 	return new Promise((r) => {
@@ -92,13 +96,16 @@ export class ESWebRTCConnecterU {
 	}
 	async onCatchAnother(group, now, target) {
 		const conf = this.getConf(group, target);
+		if (conf.isOpend()) {
+			return;
+		}
 		await this.sendWaitNotify(group, target);
 		const l = await this.getWaitList(group);
 		if (!Array.isArray(l) || l.length < 1) {
 			return;
 		}
 		let isHotStamdby = false;
-		const list3 = [];
+		const newTargetList = [];
 		const len = this.hash.length;
 		const tlen = target.length;
 		const a = len + tlen;
@@ -107,18 +114,17 @@ export class ESWebRTCConnecterU {
 			if (row.expire < now || v.hash.length < a) {
 				continue;
 			}
-			list3.push(JSON.stringify([row.expire, v.hash]));
+			newTargetList.push(JSON.stringify([row.expire, v.hash]));
 		}
-		if (list3.length < 1) {
+		if (newTargetList.length < 1) {
 			return;
 		}
-		list3.sort();
-		list3.reverse();
+		newTargetList.sort();
+		newTargetList.reverse();
 		let isOffer = false;
 		let rowCount = 0;
-		for (const row of list3) {
-			const cols = JSON.parse(row);
-			const hash = cols[1];
+		for (const row of newTargetList) {
+			const hash = JSON.parse(row)[1];
 			if (hash.indexOf(this.hash) === 1 && hash.indexOf(target) >= tlen) {
 				isOffer = true;
 				rowCount++;
@@ -157,6 +163,9 @@ export class ESWebRTCConnecterU {
 		const data = await this.load(group, WAIT);
 		const obj = data ? JSON.parse(data) : null;
 		return obj ? obj.message : null;
+	}
+	isOpend(conf) {
+		return conf.w.isOpen;
 	}
 	async startNegosiation(conf) {
 		conf.isStop = false;
@@ -657,9 +666,6 @@ export class WebRTCPeer {
 		};
 		this.dataChannel = dataChannel;
 	}
-	// sendSdp(sessionDescription) {
-	// 	console.log(`---sending sdp ---${sessionDescription.sdp}`);
-	// }
 	async makeOffer() {
 		console.log('-WebRTCPeer-makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
