@@ -50,6 +50,9 @@ export class ESWebRTCConnecterU {
 	) {
 		this.i = new ESWebRTCConnecterUnit(logger, onReciveCallBack);
 	}
+	async init(url, group, passwd, deviceName) {
+		await this.i.init(url, group, passwd, deviceName);
+	}
 	setOnOpenFunc(fn) {
 		this.i.onOpenFunc = fn;
 	}
