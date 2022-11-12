@@ -821,9 +821,13 @@ export class WebRTCPeer {
 				break;
 			case 'closing':
 				console.log(`Attempted to send message while closing: ${msg}`);
+				this.queue.push(msg);
 				break;
 			case 'closed':
-				console.log('Error! Attempt to send while connection closed.');
+				console.warn('Error! Attempt to send while connection closed.');
+				this.queue.push(msg);
+				this.isOpend = false;
+				this.close();
 				break;
 		}
 		return dc.readyState;
