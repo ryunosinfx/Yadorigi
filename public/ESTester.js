@@ -60,11 +60,11 @@ export class ESTester {
 		};
 	}
 	sendMessage(hash, msg) {
-		this.l.log(`sendMessage hash:${hash} /msg:${msg}`);
+		this.log(`sendMessage hash:${hash} /msg:${msg}`);
 		this.u.sendMessage(hash, msg);
 	}
 	broadcastMessage(msg) {
-		this.l.log(`broadcastMessage msg:${msg}`);
+		this.log(`broadcastMessage msg:${msg}`);
 		this.u.broadcastMessage(msg);
 	}
 }
