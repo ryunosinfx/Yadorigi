@@ -23,19 +23,19 @@ export class ESMainView {
 		const colCgroup01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCgroup01, 'h4', { text: 'Group' }, { margin: '5px 0px 2px 0px' });
 		const colCgroup02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCgroup = ViewUtil.add(colCgroup02, 'input', {}, { margin: '5px', width: '20vw' });
+		const inputCgroup = ViewUtil.add(colCgroup02, 'input', {}, { margin: '5px', width: '80vw' });
 		inputCgroup.value = Math.floor(Date.now() / 1000); //Group
 		////DEVICENAME
 		const colCdevice01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCdevice01, 'h4', { text: 'DeviceName' }, { margin: '5px 0px 2px 0px' });
 		const colCdevice02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCdevice = ViewUtil.add(colCdevice02, 'input', {}, { margin: '5px', width: '20vw' });
+		const inputCdevice = ViewUtil.add(colCdevice02, 'input', {}, { margin: '5px', width: '80vw' });
 		// inputCdevice.value = Math.floor(Date.now() / 1000); //Group
 		////Passwd
 		const colCpasswd01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCpasswd01, 'h4', { text: 'Passwd' }, { margin: '5px 0px 2px 0px' });
 		const colCpasswd02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCpasswd = ViewUtil.add(colCpasswd02, 'input', { type: 'password' }, { margin: '5px', width: '20vw' });
+		const inputCpasswd = ViewUtil.add(colCpasswd02, 'input', { type: 'password' }, { margin: '5px', width: '80vw' });
 		// inputCgroup.value = Math.floor(Date.now() / 1000); //Group
 		const rowC = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
 		ViewUtil.add(rowC, 'h4', { text: 'start' }, { margin: '5px 0px 2px 0px' });
