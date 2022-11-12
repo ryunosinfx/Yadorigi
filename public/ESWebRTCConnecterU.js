@@ -273,8 +273,8 @@ export class ESWebRTCConnecterU {
 		this.l.log(
 			`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
 		);
-		if (value === true || value === null || value === 'null') {
-			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}`);
+		if (conf.isStop || value === true || value === null || value === 'null') {
+			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}/conf.isStop:${conf.isStop}`);
 			return;
 		}
 		if (conf.isAnaswer && px === ANSWER) {
