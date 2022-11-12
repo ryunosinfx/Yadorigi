@@ -432,6 +432,7 @@ class WebRTCConnecter {
 		this.onErrorCallBack = () => {};
 		this.isOpend = false;
 		this.l = logger;
+		this.inited = this.init();
 	}
 	async init() {
 		this.l.log('-WebRTCConnecter-init--0----------WebRTCConnecter--------------------------------------');
@@ -473,7 +474,7 @@ class WebRTCConnecter {
 	}
 
 	async getOfferSdp() {
-		if (await this.init()) {
+		if (await this.inited) {
 			return this.getSdp();
 		}
 		return '';
@@ -526,7 +527,7 @@ class WebRTCConnecter {
 		return this.WebRTCPeer ? this.WebRTCPeer.sdp : this.WebRTCPeerOffer.sdp;
 	}
 	async answer(sdp) {
-		if (await this.init()) {
+		if (await this.inited()) {
 			const hash = await Hasher.digest(sdp);
 			this.peerMap[hash] = this.WebRTCPeerAnswer;
 			this.WebRTCPeerCurrent = this.WebRTCPeerAnswer;
@@ -544,7 +545,7 @@ class WebRTCConnecter {
 		return result;
 	}
 	async setOnCandidates(func) {
-		if (await this.init()) {
+		if (await this.inited()) {
 			let count = 1;
 			while (count < 100) {
 				await sleep(20 * count);
