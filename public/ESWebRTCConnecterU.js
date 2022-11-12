@@ -601,7 +601,6 @@ export class WebRTCPeer {
 					console.log(`-WebRTCPeer2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${peer.iceConnectionState}`);
 					await peer.setLocalDescription(offer);
 					console.log(`-WebRTCPeer3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${peer.iceConnectionState}`);
-					this.sdp = peer.localDescription;
 					resolve(peer);
 				} catch (e) {
 					reject(e);
@@ -679,7 +678,7 @@ export class WebRTCPeer {
 		console.log('-WebRTCPeer-makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
 		console.log('-WebRTCPeer-makeOffer--2----------WebRTCPeer--------------------------------------');
-		return true;
+		return this.peer.localDescription;
 	}
 	async makeAnswer() {
 		console.log('WebRTCPeer makeAnswer sending Answer. Creating remote session description...');
@@ -744,11 +743,9 @@ export class WebRTCPeer {
 		this.dataChannel.send(msg);
 	}
 	close() {
-		if (this.peer) {
-			if (this.peer.iceConnectionState !== 'closed') {
-				this.peer.close();
-				this.peer = null;
-			}
+		if (this.peer && this.peer.iceConnectionState !== 'closed') {
+			this.peer.close();
+			this.peer = null;
 		}
 		console.log('WebRTCPeer peerConnection is closed.');
 	}
