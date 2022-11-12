@@ -273,7 +273,7 @@ export class ESWebRTCConnecterU {
 		this.l.log(
 			`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
 		);
-		if (conf.isStop || value === true || value === null || value === 'null') {
+		if (conf.w.isOpen || conf.isStop || value === true || value === null || value === 'null') {
 			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}/conf.isStop:${conf.isStop}`);
 			return;
 		}
@@ -325,21 +325,30 @@ export class ESWebRTCConnecterU {
 	}
 	async answer(conf, offerSdpInput) {
 		setTimeout(async () => {
+			if (conf.isStop) {
+				return;
+			}
 			const candidates = await conf.w.connectAnswer();
 			while (!conf.isGetFirst) {
 				await sleep(200);
 			}
 			await this.send(conf.pxOt, candidates);
 		});
+		if (conf.isStop) {
+			return;
+		}
 		return await conf.w.answer(this.parseSdp(offerSdpInput));
 	}
 	connect(conf, sdpInput) {
-		console.warn(`★connect0 sdpInput:${sdpInput}`);
+		if (conf.isStop) {
+			return;
+		}
 		const func = async (resolve) => {
 			this.l.log(sdpInput);
-			console.warn('★connect1');
+			if (conf.isStop) {
+				return;
+			}
 			return await conf.w.connect(this.parseSdp(sdpInput), (candidates) => {
-				console.warn('★connect2');
 				resolve(candidates);
 			});
 		};
@@ -362,17 +371,6 @@ export class ESWebRTCConnecterU {
 			this.resetConf(conf);
 		}
 	}
-	// setOnMessage(
-	// 	hash,
-	// 	cb = (msg) => {
-	// 		this.l.log(`setOnMessage msg:${msg}`);
-	// 	}
-	// ) {
-	// 	const conf = this.confs[hash];
-	// 	if (conf && conf.w) {
-	// 		conf.w.setOnMessage(cb);
-	// 	}
-	// }
 	/////////////////////////////////////////////////////////////////
 	sendMessage(hash, msg) {
 		const conf = this.getConf(this.group, hash);
@@ -509,16 +507,11 @@ class WebRTCConnecter {
 		}
 	}
 	async connect(sdp, func) {
-		console.warn('★connect A0');
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
 		this.WebRTCPeer = this.WebRTCPeerOffer;
-		console.warn('★connect A1', result);
 		if (result && func) {
-			console.warn('★connect A2', result);
 			this.setOnCandidates(func);
-			console.warn('★connect A3', result);
 		}
-		console.warn('★connect A4', result);
 		return result;
 	}
 	connectAnswer() {
@@ -531,28 +524,20 @@ class WebRTCConnecter {
 		});
 	}
 	async setOnCandidates(func) {
-		console.warn('setOnCandidates 0');
-		// if (await this.inited) {
 		let count = 1;
-		while (count < 100) {
+		while (count < 100 && !this.isOpend) {
 			await sleep(20 * count);
 			count += 1;
-			console.warn(`setOnCandidates 1 count:${count}`);
 			if (!this.WebRTCPeer) {
-				console.warn('setOnCandidates 2');
 				continue;
 			}
-			console.warn('setOnCandidates 3');
 			const candidates = this.WebRTCPeer.getCandidates();
 			console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
-			console.warn('setOnCandidates 4');
 			if (Array.isArray(candidates) && candidates.length > 0) {
-				console.warn('setOnCandidates 5');
 				func(candidates);
 				break;
 			}
 		}
-		// }
 	}
 	setCandidates(candidatesInput) {
 		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
