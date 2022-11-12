@@ -96,7 +96,7 @@ export class ESWebRTCConnecterU {
 	}
 	async onCatchAnother(group, now, target) {
 		const conf = this.getConf(group, target);
-		if (conf.isOpend()) {
+		if (this.isOpend(conf)) {
 			return;
 		}
 		await this.sendWaitNotify(group, target);
