@@ -9,11 +9,16 @@ const contentType = 'application/x-www-form-urlencoded';
 const ef = (e, id = '', logger = null) => {
 	console.warn(`${id} ${e.message}`);
 	console.warn(e.stack);
-	if (logger && logger.log) {
+	if (logger && logger.log && logger !== console) {
 		logger.log(`${id} ${e.message}`);
 		logger.log(e.stack);
 	}
 };
+function getEF(id, logger) {
+	return (e) => {
+		ef(e, id, logger);
+	};
+}
 function sleep(ms = SleepMs) {
 	return new Promise((r) => {
 		setTimeout(() => {
@@ -21,13 +26,13 @@ function sleep(ms = SleepMs) {
 		}, ms);
 	});
 }
-function decode(data) {
+function decode(data, id, logger) {
 	try {
 		const obj = typeof data === 'string' ? JSON.parse(data) : data;
 		const result = obj && obj.message ? obj.message : null;
 		return result;
 	} catch (e) {
-		ef(e);
+		ef(e, id, logger);
 	}
 	return null;
 }
@@ -137,11 +142,11 @@ export class ESWebRTCConnecterU {
 				break;
 			}
 		}
-		this.startNegosiation(conf).catch(ef);
+		this.startNegosiation(conf).catch(getEF(now, this.l));
 		await sleep(100);
 		if (isOffer) {
 			await sleep(1000);
-			this.offer(conf).catch(ef);
+			this.offer(conf).catch(getEF(now, this.l));
 		}
 		setTimeout(() => {
 			isHotStamdby = false;
@@ -187,7 +192,7 @@ export class ESWebRTCConnecterU {
 				this.load(conf.pxOs).then((data) => {
 					const cacheKey = conf.pxOs + data;
 					this.threads.pop(1);
-					const d = decode(data);
+					const d = decode(data, conf.id, this.l);
 					this.l.log('ESWebRTCConnecterU=ANSWER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
@@ -206,7 +211,7 @@ export class ESWebRTCConnecterU {
 				this.load(conf.pxAs).then((data) => {
 					const cacheKey = conf.pxAs + data;
 					this.threads.pop(1);
-					const d = decode(data);
+					const d = decode(data, conf.id, this.l);
 					this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
 					if (d && !conf.cache[cacheKey]) {
 						conf.cache[cacheKey] = 1;
@@ -257,7 +262,18 @@ export class ESWebRTCConnecterU {
 		const s = this.getConKey(group, this.hash);
 		let conf = this.confs[k];
 		if (!conf) {
-			conf = { isAnaswer: true, isGetFirst: false, isExcangedCandidates: false, pxAt: k + ANSWER, pxOt: k + OFFER, pxAs: s + ANSWER, pxOs: s + OFFER, isStop: false, cache: {} };
+			conf = {
+				isAnaswer: true,
+				isGetFirst: false,
+				isExcangedCandidates: false,
+				pxAt: k + ANSWER,
+				pxOt: k + OFFER,
+				pxAs: s + ANSWER,
+				pxOs: s + OFFER,
+				isStop: false,
+				cache: {},
+				id: `${Date.now()} ${this.hash}`,
+			};
 			conf.w = new WebRTCConnecter();
 			conf.w.setOnMessage((msg) => {
 				this.onReciveCallBack(target, msg);
@@ -516,7 +532,7 @@ class WebRTCConnecter {
 		}
 	}
 	async connect(sdp, func) {
-		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
+		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(getEF(Date.now(), this.l));
 		this.WebRTCPeer = this.WebRTCPeerOffer;
 		if (result && func) {
 			this.setOnCandidates(func);
@@ -559,12 +575,14 @@ class WebRTCConnecter {
 }
 const addOption = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
 export class WebRTCPeer {
-	constructor(name, stunServers) {
+	constructor(name, stunServers, logger = null) {
 		this.name = name;
 		this.peer = null;
 		this.isOpend = false;
 		this.candidates = [];
 		this.config = { iceServers: stunServers };
+		this.l = logger;
+		this.id = `${Date.now()} ${this.name}`;
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
@@ -600,7 +618,7 @@ export class WebRTCPeer {
 				} catch (e) {
 					reject(e);
 					console.error(`WebRTCPeer setLocalDescription(offer) ERROR: ${e}`);
-					ef(e);
+					ef(e, this.id, this.l);
 				}
 			};
 
@@ -686,7 +704,7 @@ export class WebRTCPeer {
 			return this.peer.localDescription;
 		} catch (e) {
 			console.error('WebRTCPeer makeAnswer ERROR: ', e);
-			ef(e);
+			ef(e, this.id, this.l);
 		}
 	}
 	async setOfferAndAswer(sdp) {
@@ -715,7 +733,7 @@ export class WebRTCPeer {
 			}
 		} catch (e) {
 			console.error('WebRTCPeer setRemoteDescription(offer) ERROR: ', e);
-			ef(e);
+			ef(e, this.id, this.l);
 		}
 		return null;
 	}
@@ -744,11 +762,11 @@ export class WebRTCPeer {
 	getCandidates() {
 		return this.candidates;
 	}
-	setCandidates(candidates, id) {
+	setCandidates(candidates) {
 		for (const candidate of candidates) {
 			console.log('WebRTCPeer setCandidates candidate', candidate);
 			this.peer.addIceCandidate(candidate).catch((e) => {
-				ef(e, id);
+				ef(e, this.id, this.l);
 			});
 		}
 		return 'setCandidates OK';
