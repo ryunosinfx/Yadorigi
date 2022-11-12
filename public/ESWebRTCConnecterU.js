@@ -296,6 +296,7 @@ export class ESWebRTCConnecterU {
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
 				await this.send(conf.pxOt, answer);
 				conf.isGetFirst = true;
+				console.warn('★★conf.isGetFirst = true;');
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = conf.w.setCandidates(JSON.parse(value), Date.now());
@@ -311,6 +312,7 @@ export class ESWebRTCConnecterU {
 				this.l.log(candidates);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				conf.isGetFirst = true;
+				console.warn('★★★conf.isGetFirst = true;');
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
