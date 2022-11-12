@@ -78,6 +78,7 @@ export class ESWebRTCConnecterU {
 		this.i.broadcastMessage(msg);
 	}
 }
+///////////////////////////
 class ESWebRTCConnecterUnit {
 	constructor(
 		logger = console,
@@ -198,10 +199,10 @@ class ESWebRTCConnecterUnit {
 		this.isStop = false;
 	}
 	async sendWait(group) {
-		await this.send(group, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+		await this.post(group, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async sendWaitNotify(group, tagetHash) {
-		await this.send(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+		await this.post(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async getWaitList(group) {
 		const data = await this.load(group, WAIT);
@@ -278,13 +279,13 @@ class ESWebRTCConnecterUnit {
 	async offer(conf) {
 		conf.isAnaswer = false;
 		const offer = await conf.w.getOfferSdp();
-		this.l.log('ESWebRTCConnecterU setOnRecieve OFFER send offer:', offer);
-		await this.send(conf.pxAt, offer);
+		this.l.log('ESWebRTCConnecterU setOnRecieve OFFER post offer:', offer);
+		await this.post(conf.pxAt, offer);
 	}
-	async send(group, dataObj, cmd = 'g') {
+	async post(group, dataObj, cmd = 'g') {
 		const now = Date.now();
 		const data = await GASAccessor.postToGAS(this.url, { group, cmd, data: typeof dataObj !== 'string' ? JSON.stringify(dataObj) : dataObj });
-		this.l.log(`ESWebRTCConnecterU================send=================${group}/${cmd} d:${Date.now() - now} data:`, data);
+		this.l.log(`ESWebRTCConnecterU================post=================${group}/${cmd} d:${Date.now() - now} data:`, data);
 	}
 	async load(group, cmd = 'g') {
 		const now = Date.now();
@@ -360,9 +361,9 @@ class ESWebRTCConnecterUnit {
 					this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=0================value:${value}`);
 				}
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
-				await this.send(conf.pxOt, answer);
+				await this.post(conf.pxOt, answer);
 				conf.isGetFirst = true;
-				console.warn('★★conf.isGetFirst = true;');
+				console.warn('★★ANSWER conf.isGetFirst = true;');
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = conf.w.setCandidates(JSON.parse(value), Date.now());
@@ -378,8 +379,8 @@ class ESWebRTCConnecterUnit {
 				this.l.log(candidates);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				conf.isGetFirst = true;
-				console.warn('★★★conf.isGetFirst = true;');
-				await this.send(conf.pxAt, candidates);
+				console.warn('★★★OFFER conf.isGetFirst = true;');
+				await this.post(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = value ? conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
@@ -398,7 +399,7 @@ class ESWebRTCConnecterUnit {
 			while (!conf.isGetFirst) {
 				await sleep(200);
 			}
-			await this.send(conf.pxOt, candidates);
+			await this.post(conf.pxOt, candidates);
 		});
 		if (conf.isStop) {
 			return;
@@ -574,7 +575,7 @@ class WebRTCConnecter {
 		};
 	}
 	send(msg) {
-		this.WebRTCPeer.send(msg);
+		return this.WebRTCPeer.send(msg);
 	}
 	async answer(sdp) {
 		if (!sdp) {
@@ -638,6 +639,7 @@ export class WebRTCPeer {
 		this.config = { iceServers: stunServers };
 		this.l = logger;
 		this.id = `${Date.now()} ${this.name}`;
+		this.queue = [];
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
@@ -720,7 +722,8 @@ export class WebRTCPeer {
 	}
 	dataChannelSetup(dataChannel) {
 		dataChannel.onerror = (error) => {
-			console.log('WebRTCPeer Data Channel Error:', error);
+			console.error('WebRTCPeer Data Channel Error:', error);
+			this.isOpend = false;
 			this.onError(error);
 		};
 		dataChannel.onmessage = (event) => {
@@ -805,7 +808,33 @@ export class WebRTCPeer {
 		return true;
 	}
 	send(msg) {
-		this.dataChannel.send(msg);
+		const dc = this.dataChannel;
+		switch (dc.readyState) {
+			case 'connecting':
+				console.log(`Connection not open; queueing: ${msg}`);
+				this.queue.push(msg);
+				break;
+			case 'open':
+				this.sendOnQueue();
+				dc.send(msg);
+				this.lastSend = Date.now();
+				break;
+			case 'closing':
+				console.log(`Attempted to send message while closing: ${msg}`);
+				break;
+			case 'closed':
+				console.log('Error! Attempt to send while connection closed.');
+				break;
+		}
+		return dc.readyState;
+	}
+	sendOnQueue() {
+		const l = this.queue.length;
+		if (l > 0) {
+			for (let i = 0; i < l; i++) {
+				this.dataChannel.send(this.queue.shift());
+			}
+		}
 	}
 	close() {
 		if (this.peer && this.peer.iceConnectionState !== 'closed') {
