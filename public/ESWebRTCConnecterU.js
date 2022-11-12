@@ -278,7 +278,7 @@ export class ESWebRTCConnecterU {
 			return;
 		}
 		if (conf.isAnaswer && px === ANSWER) {
-			this.l.log(`ESWebRTCConnecterU A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px}`);
+			this.l.log(`ESWebRTCConnecterU A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px} conf.isGetFirst:${conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
 				conf.w.setOnCandidates(async (candidates) => {
 					while (!conf.isGetFirst) {
@@ -306,11 +306,11 @@ export class ESWebRTCConnecterU {
 		} else if (!conf.isAnaswer && px === OFFER) {
 			this.l.log(`ESWebRTCConnecterU B AS OFFER conf.isAnaswer:${conf.isAnaswer}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
-				conf.isGetFirst = true;
 				const candidates = await this.connect(conf, value);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=A================');
 				this.l.log(candidates);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
+				conf.isGetFirst = true;
 				await this.send(conf.pxAt, candidates);
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
