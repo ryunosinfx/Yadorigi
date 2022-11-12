@@ -401,7 +401,7 @@ export class ESWebRTCConnecterU {
 		return await r.text();
 	}
 	async postToGAS(path, data) {
-		console.log('ESWebRTCConnecterU----postToGAS--A------------');
+		console.warn('ESWebRTCConnecterU----postToGAS--A------------', data);
 		const r = await fetch(`${path}`, {
 			method: 'POST',
 			redirect: 'follow',
