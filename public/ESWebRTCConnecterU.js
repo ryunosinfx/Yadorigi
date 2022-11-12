@@ -315,14 +315,14 @@ class ESWebRTCConnecterUnit {
 			};
 			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage((msg) => {
-				this.l.log(`############★###OPEN！###★###############target:${target}`);
 				this.onReciveCallBack(target, msg);
 			});
 			conf.w.onOpenCallBack((event) => {
-				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
+				this.l.log(`############★###OPEN！###★###############target:${target}`);
 				this.onOpenFunc(event, group, target);
 			});
 			conf.w.onCloseCallBack((event) => {
+				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
 				this.onCloseFunc(event, group, target);
 			});
 			this.confs[k] = conf;

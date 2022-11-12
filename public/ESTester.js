@@ -55,8 +55,8 @@ export class ESTester {
 		};
 	}
 	getOnMessage() {
-		return (msg) => {
-			this.log(`setOnMessage msg:${msg}`);
+		return (hash, msg) => {
+			this.log(`setOnMessage hash:${hash} msg:${msg}`);
 		};
 	}
 	sendMessage(hash, msg) {
