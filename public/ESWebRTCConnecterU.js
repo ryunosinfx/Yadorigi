@@ -538,22 +538,22 @@ class WebRTCConnecter {
 		return result;
 	}
 	async setOnCandidates(func) {
-		if (await this.inited) {
-			let count = 1;
-			while (count < 100) {
-				await sleep(20 * count);
-				count += 1;
-				if (!this.WebRTCPeer) {
-					continue;
-				}
-				const candidates = this.WebRTCPeer.getCandidates();
-				console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
-				if (Array.isArray(candidates) && candidates.length > 0) {
-					func(candidates);
-					break;
-				}
+		// if (await this.inited) {
+		let count = 1;
+		while (count < 100) {
+			await sleep(20 * count);
+			count += 1;
+			if (!this.WebRTCPeer) {
+				continue;
+			}
+			const candidates = this.WebRTCPeer.getCandidates();
+			console.log(`WebRTCConnecter setOnCandidates count:${count}/candidates:${candidates}`);
+			if (Array.isArray(candidates) && candidates.length > 0) {
+				func(candidates);
+				break;
 			}
 		}
+		// }
 	}
 	setCandidates(candidatesInput) {
 		const candidates = typeof candidatesInput === 'object' ? candidatesInput : JSON.parse(candidatesInput);
