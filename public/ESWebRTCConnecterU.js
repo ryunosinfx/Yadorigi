@@ -48,7 +48,7 @@ export class ESWebRTCConnecterU {
 			console.log(`hash:${hash},msg:${msg}`);
 		}
 	) {
-		this.i = ESWebRTCConnecterUnit(logger, onReciveCallBack);
+		this.i = new ESWebRTCConnecterUnit(logger, onReciveCallBack);
 	}
 	setOnOpenFunc(fn) {
 		this.i.onOpenFunc = fn;
@@ -210,12 +210,11 @@ class ESWebRTCConnecterUnit {
 	}
 	async startNegosiation(conf) {
 		conf.isStop = false;
-		conf.w.setOnOpne(() => {
+		const stopFunc = () => {
 			conf.isStop = true;
-		});
-		setTimeout(() => {
-			conf.isStop = true;
-		}, WAIT_AUTO_INTERVAL);
+		};
+		conf.w.setOnOpne(stopFunc);
+		setTimeout(stopFunc, WAIT_AUTO_INTERVAL);
 		while (conf.isStop === false && this.isStopAuto === false) {
 			setTimeout(() => {
 				if (conf.isAnaswer) {
@@ -245,7 +244,7 @@ class ESWebRTCConnecterUnit {
 					return;
 				}
 				this.load(conf.pxAs).then(async (data) => {
-					const cacheKey = await Hasher.digest(conf.pxOs + data);
+					const cacheKey = await Hasher.digest(conf.pxAs + data);
 					this.threads.pop(1);
 					const d = decode(data, conf.id, this.l);
 					// this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
@@ -386,16 +385,6 @@ class ESWebRTCConnecterUnit {
 			}
 		}
 	}
-	parseSdp(sdpInput) {
-		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
-		this.l.log(`ESWebRTCConnecterU parseSdp ${typeof sdpInput}/sdpInput:${sdpInput}`);
-		if (!sdp.sdp) {
-			return null;
-		}
-		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
-		this.l.log(sdp);
-		return sdp.sdp;
-	}
 	async answer(conf, offerSdpInput) {
 		setTimeout(async () => {
 			if (conf.isStop) {
@@ -410,18 +399,17 @@ class ESWebRTCConnecterUnit {
 		if (conf.isStop) {
 			return;
 		}
-		return await conf.w.answer(this.parseSdp(offerSdpInput));
+		return await conf.w.answer(ESWebRTCConnecterUtil.parseSdp(offerSdpInput, this.l));
 	}
 	connect(conf, sdpInput) {
 		if (conf.isStop) {
 			return;
 		}
 		const func = async (resolve) => {
-			this.l.log(sdpInput);
 			if (conf.isStop) {
 				return;
 			}
-			return await conf.w.connect(this.parseSdp(sdpInput), (candidates) => {
+			return await conf.w.connect(ESWebRTCConnecterUtil.parseSdp(sdpInput, this.l), (candidates) => {
 				resolve(candidates);
 			});
 		};
@@ -446,20 +434,30 @@ class ESWebRTCConnecterUnit {
 	}
 	/////////////////////////////////////////////////////////////////
 	sendMessage(hash, msg) {
-		const conf = this.getConf(this.group, hash);
-		this.l.log(`ESWebRTCConnecterU sendMessage msg:${msg}`);
+		ESWebRTCConnecterUtil(this.getConf(this.group, hash), msg, this.l);
+	}
+	broadcastMessage(msg) {
+		for (const key in this.confs) {
+			ESWebRTCConnecterUtil(this.confs[key], msg, this.l);
+		}
+	}
+}
+class ESWebRTCConnecterUtil {
+	static sendOnDC(conf, msg, logger = console) {
+		logger.log(`ESWebRTCConnecterUtil sendMessage msg:${msg}`);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.send(msg);
 		}
 	}
-	broadcastMessage(msg) {
-		this.l.log(`ESWebRTCConnecterU sendMessage msg:${msg}`);
-		for (const key in this.confs) {
-			const conf = this.confs[key];
-			if (conf && conf.w && conf.w.isOpend) {
-				conf.w.send(msg);
-			}
+	static parseSdp(sdpInput, logger = console) {
+		const sdp = typeof sdpInput === 'string' ? JSON.parse(sdpInput) : sdpInput;
+		logger.log(`ESWebRTCConnecterU parseSdp ${typeof sdpInput}/sdpInput:${sdpInput}`);
+		if (!sdp.sdp) {
+			return null;
 		}
+		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
+		logger.log(sdp);
+		return sdp.sdp;
 	}
 }
 class GASAccessor {
