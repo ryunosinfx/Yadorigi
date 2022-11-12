@@ -437,11 +437,11 @@ class ESWebRTCConnecterUnit {
 	}
 	/////////////////////////////////////////////////////////////////
 	sendMessage(hash, msg) {
-		ESWebRTCConnecterUtil(this.getConf(this.group, hash), msg, this.l);
+		ESWebRTCConnecterUtil.sendOnDC(this.getConf(this.group, hash), msg, this.l);
 	}
 	broadcastMessage(msg) {
 		for (const key in this.confs) {
-			ESWebRTCConnecterUtil(this.confs[key], msg, this.l);
+			ESWebRTCConnecterUtil.sendOnDC(this.confs[key], msg, this.l);
 		}
 	}
 }
