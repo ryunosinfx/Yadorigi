@@ -280,14 +280,7 @@ export class ESWebRTCConnecterU {
 		if (conf.isAnaswer && px === ANSWER) {
 			this.l.log(`ESWebRTCConnecterU A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px} conf.isGetFirst:${conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
-				conf.w.setOnCandidates(async (candidates) => {
-					while (!conf.isGetFirst) {
-						await sleep(200);
-					}
-					await sleep(500);
-					await this.send(conf.pxOt, candidates);
-				});
-				const answer = await conf.w.answer(this.parseSdp(value));
+				const answer = await this.answer(conf, value);
 				this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof answer}`);
 				this.l.log(answer);
 				if (!answer) {
@@ -329,6 +322,16 @@ export class ESWebRTCConnecterU {
 		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
 		this.l.log(sdp);
 		return sdp.sdp;
+	}
+	async answer(conf, offerSdpInput) {
+		setTimeout(async () => {
+			const candidates = await conf.w.connectAnswer();
+			while (!conf.isGetFirst) {
+				await sleep(200);
+			}
+			await this.send(conf.pxOt, candidates);
+		});
+		return await conf.w.answer(this.parseSdp(offerSdpInput));
 	}
 	connect(conf, sdpInput) {
 		console.warn(`★connect0 sdpInput:${sdpInput}`);
@@ -508,6 +511,7 @@ class WebRTCConnecter {
 	async connect(sdp, func) {
 		console.warn('★connect A0');
 		const result = await this.WebRTCPeerOffer.setAnswer(sdp).catch(ef);
+		this.WebRTCPeer = this.WebRTCPeerOffer;
 		console.warn('★connect A1', result);
 		if (result && func) {
 			console.warn('★connect A2', result);
@@ -516,6 +520,15 @@ class WebRTCConnecter {
 		}
 		console.warn('★connect A4', result);
 		return result;
+	}
+	connectAnswer() {
+		return new Promise((resolve) => {
+			this.WebRTCPeer = this.WebRTCPeerAnswer;
+			this.setOnCandidates(async (candidates) => {
+				await sleep(500);
+				resolve(candidates);
+			});
+		});
 	}
 	async setOnCandidates(func) {
 		console.warn('setOnCandidates 0');
