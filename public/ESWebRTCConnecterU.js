@@ -916,7 +916,7 @@ class WebRTCPeer {
 	}
 }
 //////Hash Core///////////////////////////////////////////////
-class Hasher {
+export class Hasher {
 	static async digest(message, stretchCount = 1, algo = 'SHA-256') {
 		let result = te.encode(message);
 		for (let i = 0; i < stretchCount; i++) {
