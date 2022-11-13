@@ -729,30 +729,30 @@ export class WebRTCPeer {
 		console.log(`WebRTCPeer.onClose is not Overrided name:${this.name}`);
 		console.log('close');
 	}
-	dataChannelSetup(dataChannel) {
-		dataChannel.isOpen = false;
-		dataChannel.onerror = (error) => {
+	dataChannelSetup(dc) {
+		dc.isOpen = false;
+		dc.onerror = (error) => {
 			console.error('WebRTCPeer Data Channel Error:', error);
 			this.onError(error);
 		};
-		dataChannel.onmessage = (event) => {
+		dc.onmessage = (event) => {
 			console.log('WebRTCPeer Got Data Channel Message:', event.data);
 			this.onMessage(event.data);
 		};
-		dataChannel.onopen = (event) => {
+		dc.onopen = (event) => {
 			console.warn(event);
-			if (!dataChannel.isOpen) {
-				dataChannel.send('WebRTCPeer dataChannel Hello World! OPEN SUCCESS!');
+			if (!dc.isOpen) {
+				dc.send(`WebRTCPeer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id}`);
 				this.onOpen(event);
-				dataChannel.isOpen = true;
+				dc.isOpen = true;
 			}
 		};
-		dataChannel.onclose = () => {
+		dc.onclose = () => {
 			console.log('WebRTCPeer The Data Channel is Closed');
 			this.onClose();
-			dataChannel.isOpen = false;
+			dc.isOpen = false;
 		};
-		this.dataChannel = dataChannel;
+		this.dataChannel = dc;
 	}
 	async makeOffer() {
 		console.log('-WebRTCPeer-makeOffer--1----------WebRTCPeer--------------------------------------');
@@ -863,10 +863,8 @@ export class WebRTCPeer {
 	}
 	sendOnQueue() {
 		const l = this.queue.length;
-		if (l > 0) {
-			for (let i = 0; i < l; i++) {
-				this.dataChannel.send(this.queue.shift());
-			}
+		for (let i = 0; i < l; i++) {
+			this.dataChannel.send(this.queue.shift());
 		}
 	}
 	close() {
