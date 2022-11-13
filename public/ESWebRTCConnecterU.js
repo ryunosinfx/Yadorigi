@@ -319,12 +319,12 @@ class ESWebRTCConnecterUnit {
 			conf.w.setOnMessage((msg) => {
 				this.onReciveCallBack(target, msg);
 			});
-			conf.w.onOpenCallBack((event) => {
+			conf.w.setOnOpen((event) => {
 				this.l.log(`############★###OPEN！###★###############target:${target}`);
 				this.onOpenFunc(event, group, target);
 				conf.isStop = true;
 			});
-			conf.w.onCloseCallBack((event) => {
+			conf.w.setOnClose((event) => {
 				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
 				this.onCloseFunc(event, group, target);
 				conf.isStop = false;
@@ -557,7 +557,7 @@ class WebRTCConnecter {
 	async getOfferSdp() {
 		return (await this.inited) ? await this.WebRTCPeerOffer.makeOffer() : '';
 	}
-	setOnOpne(callback) {
+	setOnOpen(callback) {
 		this.onOpenCallBack = (event) => {
 			console.warn(`-WebRTCConnecter-onOpenCallBack--1------------------------------------------------event:${event}`);
 			callback(event);
