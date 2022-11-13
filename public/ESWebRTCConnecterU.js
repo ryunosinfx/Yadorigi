@@ -649,6 +649,7 @@ export class WebRTCPeer {
 		this.l = logger;
 		this.id = `${Date.now()} ${this.name}`;
 		this.queue = [];
+		this.isOpenDc = false;
 	}
 	prepareNewConnection(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
@@ -735,7 +736,6 @@ export class WebRTCPeer {
 			// this.dataChannel.close();
 			// this.dataChannel = null;
 		}
-		this.isOpenDc = false;
 		dc.onerror = (error) => {
 			console.error('WebRTCPeer Data Channel Error:', error);
 			this.onError(error);
