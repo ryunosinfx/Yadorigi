@@ -45,8 +45,8 @@ export class ESMainView {
 		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLOSE = ViewUtil.add(colC1, 'button', { text: 'testClose' }, { margin: '1px' });
-		const statusSTART = ViewUtil.add(colC1, 'span', { text: '-stop-' }, { margin: '1px' });
-		const statusConn = ViewUtil.add(colC1, 'span', { text: '-close-' }, { margin: '1px' });
+		const statusSTART = ViewUtil.add(colC1, 'span', { text: '-stop-' }, { margin: '1px', fontSize: '120%' });
+		const statusConn = ViewUtil.add(colC1, 'span', { text: '-close-' }, { margin: '1px', fontSize: '60%' });
 		const colClog = ViewUtil.add(rowC, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const est = new ESTester(colClog, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn);
 		const colC3 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
