@@ -1,11 +1,12 @@
 import { ESWebRTCConnecterU, Hasher } from './ESWebRTCConnecterU.js';
 export class ESTester {
-	constructor(logElm, urlInputElm, groupInputElm, passwordInputElm, deviceNameInputElm) {
+	constructor(logElm, urlInputElm, groupInputElm, passwordInputElm, deviceNameInputElm, statusConnElm) {
 		this.logElm = logElm;
 		this.urlInputElm = urlInputElm;
 		this.groupInputElm = groupInputElm;
 		this.passwordInputElm = passwordInputElm;
 		this.deviceNameInputElm = deviceNameInputElm;
+		this.statusConnElm = statusConnElm;
 		this.u = new ESWebRTCConnecterU(this, this.getOnMessage());
 		this.cb = this.getOnUpdate();
 		if (!groupInputElm.value) {
@@ -24,6 +25,23 @@ export class ESTester {
 		passwordInputElm.addEventListener('input', this.cb);
 		deviceNameInputElm.addEventListener('input', this.cb);
 		this.cb();
+		this.connectedList = {};
+		this.u.setOnOpenFunc((event, group, target) => {
+			const key = JSON.stringify([group, target]);
+			this.connectedList[key] = 1;
+		});
+		this.u.setOnCloseFunc((event, group, target) => {
+			const key = JSON.stringify([group, target]);
+			this.connectedList[key] = 0;
+		});
+	}
+	onStatusChange() {
+		const statuss = [];
+		for (const key in this.connectedList) {
+			const l = JSON.parse(key);
+			statuss.push(`${l[0]} ${l[1]}:${this.connectedList[key] ? 'OPEN' : 'CLOSE'}`);
+		}
+		this.statusConnElm.textContent = statuss.join(',');
 	}
 	log(text, value) {
 		this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text} ${value}`;

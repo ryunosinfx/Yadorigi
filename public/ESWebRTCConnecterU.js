@@ -40,6 +40,9 @@ function decode(data, id, logger) {
 async function mkHash(seeds = [location.origin, navigator.userAgent, Date.now()], stretch = Math.floor(Math.random() * 100) + (Date.now() % 100) + 1) {
 	return await Hasher.digest(JSON.stringify(seeds), stretch);
 }
+async function dummyCallBack(event, group, target) {
+	return event + group + target;
+}
 ///////////////////////////
 export class ESWebRTCConnecterU {
 	constructor(
@@ -53,10 +56,10 @@ export class ESWebRTCConnecterU {
 	async init(url, group, passwd, deviceName) {
 		await this.i.init(url, group, passwd, deviceName);
 	}
-	setOnOpenFunc(fn) {
+	setOnOpenFunc(fn = dummyCallBack) {
 		this.i.onOpenFunc = fn;
 	}
-	setOnCloseFunc(fn) {
+	setOnCloseFunc(fn = dummyCallBack) {
 		this.i.onCloseFunc = fn;
 	}
 	async startWaitAutoConnect() {

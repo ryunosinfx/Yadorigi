@@ -45,24 +45,29 @@ export class ESMainView {
 		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLOSE = ViewUtil.add(colC1, 'button', { text: 'testClose' }, { margin: '1px' });
+		const statusSTART = ViewUtil.add(colC1, 'span', { text: '-stop-' }, { margin: '1px' });
+		const statusConn = ViewUtil.add(colC1, 'span', { text: '-close-' }, { margin: '1px' });
 		const colClog = ViewUtil.add(rowC, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
-		const est = new ESTester(colClog, inputCurl, inputCgroup, inputCpasswd, inputCdevice);
+		const est = new ESTester(colClog, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn);
 		const colC3 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
 
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDNewWindows, async () => {
 			est.openNewWindow();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
+			statusSTART.textContent = '-START-';
 			est.start();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
+			statusSTART.textContent = '-STOP-';
 			est.stop();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDCLEAR, async () => {
 			est.clear();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDCLOSE, async () => {
-			est.clear();
+			statusConn.textContent = '-STOP-';
+			est.close();
 		});
 		const textareaT6 = ViewUtil.add(colC3, 'textarea', { text: '' });
 		ViewUtil.setOnInput(textareaT6, () => {
