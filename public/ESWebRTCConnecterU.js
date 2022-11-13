@@ -735,7 +735,7 @@ export class WebRTCPeer {
 			this.dataChannel.close();
 			this.dataChannel = null;
 		}
-		dc.isOpen = false;
+		this.isOpenDc = false;
 		dc.onerror = (error) => {
 			console.error('WebRTCPeer Data Channel Error:', error);
 			this.onError(error);
@@ -746,10 +746,10 @@ export class WebRTCPeer {
 		};
 		dc.onopen = (event) => {
 			console.warn(event);
-			if (!dc.isOpen) {
+			if (!this.isOpenDc) {
 				dc.send(`WebRTCPeer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id}`);
 				this.onOpen(event);
-				dc.isOpen = true;
+				this.isOpenDc = true;
 			}
 		};
 		dc.onclose = () => {
@@ -831,10 +831,13 @@ export class WebRTCPeer {
 		}
 		let isOpend = false;
 		switch (dc.readyState) {
+			case 'connecting':
+				isOpend = Date.now() - this.lastSend < 20000;
+				break;
 			case 'open':
 				isOpend = true;
+				this.lastSend = Date.now();
 				break;
-			case 'connecting':
 			case 'closing':
 			case 'closed':
 				isOpend = false;
