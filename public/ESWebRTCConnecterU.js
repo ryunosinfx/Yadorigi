@@ -858,11 +858,11 @@ export class WebRTCPeer {
 		}
 	}
 	close() {
-		if (this.peer && this.peer.iceConnectionState !== 'closed') {
+		if (this.peer && (this.dataChannel.readyState !== 'closed' || this.peer.iceConnectionState !== 'closed')) {
 			this.peer.close();
 			this.peer = null;
+			console.log('WebRTCPeer peerConnection is closed.');
 		}
-		console.log('WebRTCPeer peerConnection is closed.');
 	}
 	getCandidates() {
 		return this.candidates;
