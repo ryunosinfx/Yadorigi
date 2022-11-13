@@ -1,4 +1,5 @@
-export const te = new TextEncoder('utf-8');
+const te = new TextEncoder('utf-8');
+const td = new TextDecoder('utf-8');
 const OFFER = '_OFFER';
 const ANSWER = '_ANSWER';
 const SleepMs = 100;
@@ -45,40 +46,41 @@ async function dummyCallBack(event, group, target) {
 }
 ///////////////////////////
 export class ESWebRTCConnecterU {
+	#i = null;
 	constructor(
 		logger = console,
 		onReciveCallBack = (hash, msg) => {
 			console.log(`hash:${hash},msg:${msg}`);
 		}
 	) {
-		this.i = new ESWebRTCConnecterUnit(logger, onReciveCallBack);
+		this.#i = new ESWebRTCConnecterUnit(logger, onReciveCallBack);
 	}
 	async init(url, group, passwd, deviceName) {
-		await this.i.init(url, group, passwd, deviceName);
+		await this.#i.init(url, group, passwd, deviceName);
 	}
 	setOnOpenFunc(fn = dummyCallBack) {
-		this.i.onOpenFunc = fn;
+		this.#i.onOpenFunc = fn;
 	}
 	setOnCloseFunc(fn = dummyCallBack) {
-		this.i.onCloseFunc = fn;
+		this.#i.onCloseFunc = fn;
 	}
 	async startWaitAutoConnect() {
-		await this.i.startWaitAutoConnect();
+		await this.#i.startWaitAutoConnect();
 	}
 	async stopWaitAutoConnect() {
-		await this.i.stopWaitAutoConnect();
+		await this.#i.stopWaitAutoConnect();
 	}
 	closeAll() {
-		this.i.closeAll();
+		this.#i.closeAll();
 	}
 	close(hash) {
-		this.i.close(hash);
+		this.#i.close(hash);
 	}
 	sendMessage(hash, msg) {
-		this.i.sendMessage(hash, msg);
+		this.#i.sendMessage(hash, msg);
 	}
 	broadcastMessage(msg) {
-		this.i.broadcastMessage(msg);
+		this.#i.broadcastMessage(msg);
 	}
 }
 ///////////////////////////
@@ -103,7 +105,16 @@ class ESWebRTCConnecterUnit {
 		this.group = group;
 		this.passwd = passwd;
 		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
+		this.singHash = await mkHash([url, group, passwd], HASH_SCRATCH_COUNT);
+		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
+		this.signHash = this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
+	}
+	async encrypt(obj) {
+		return await Cryptor.encodeStrAES256GCM(JSON.stringify(obj), this.singHash);
+	}
+	async decrypt(encryptedStr) {
+		return await Cryptor.decodeAES256GCMasStr(encryptedStr, this.singHash);
 	}
 	async startWaitAutoConnect() {
 		await this.inited;
@@ -640,7 +651,7 @@ class WebRTCConnecter {
 	}
 }
 const addOption = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
-export class WebRTCPeer {
+class WebRTCPeer {
 	constructor(name, stunServers, logger = null) {
 		this.name = name;
 		this.peer = null;
@@ -904,9 +915,8 @@ export class WebRTCPeer {
 		return 'setCandidates OK';
 	}
 }
-
 //////Hash Core///////////////////////////////////////////////
-export class Hasher {
+class Hasher {
 	static async digest(message, stretchCount = 1, algo = 'SHA-256') {
 		let result = te.encode(message);
 		for (let i = 0; i < stretchCount; i++) {
@@ -925,5 +935,144 @@ export class Hasher {
 			retList.push(String.fromCharCode(e));
 		}
 		return retList.join('');
+	}
+}
+class Base64Util {
+	static stringToU8A(str) {
+		return te.encode(str);
+	}
+	static u8aToString(u8a) {
+		return td.decode(new Uint8Array(u8a.buffer));
+	}
+	static ab2Base64(abInput) {
+		const ab = abInput.buffer ? abInput.buffer : abInput;
+		return window.btoa(Base64Util.uint8Array2BinaryString(new Uint8Array(ab)));
+	}
+	static ab2Base64Url(abInput) {
+		return Base64Util.toBase64Url(Base64Util.ab2Base64(abInput));
+	}
+	static base64ToAB(base64) {
+		const bs = window.atob(base64);
+		return Base64Util.binaryString2Uint8Array(bs);
+	}
+	static base64UrlToAB(base64url) {
+		return Base64Util.base64ToAB(Base64Util.toBase64(base64url));
+	}
+	static toBase64Url(base64) {
+		return base64 ? base64.split('+').join('-').split('/').join('_').split('=').join('') : base64;
+	}
+	static toBase64(base64Url) {
+		const len = base64Url.length;
+		const count = len % 4 > 0 ? 4 - (len % 4) : 0;
+		let resultBase64 = base64Url.split('-').join('+').split('_').join('/');
+		for (let i = 0; i < count; i++) {
+			resultBase64 += '=';
+		}
+		return resultBase64;
+	}
+	static uint8Array2BinaryString(u8a) {
+		const retList = [];
+		for (const e of u8a) {
+			retList.push(String.fromCharCode(e));
+		}
+		return retList.join('');
+	}
+	static binaryString2Uint8Array(binaryString) {
+		const rawLength = binaryString.length;
+		const array = new Uint8Array(new ArrayBuffer(rawLength));
+		for (let i = 0; i < rawLength; i++) {
+			array[i] = binaryString.charCodeAt(i);
+		}
+		return array;
+	}
+}
+class Cryptor {
+	static async getKey(passphraseText, salt) {
+		console.log(`Cryptor getKey salt:${salt}/passphraseText:${passphraseText}`);
+		const passphrase = Base64Util.stringToU8A(passphraseText).buffer;
+		const digest = await Hasher.digest(passphrase, 100);
+		console.log(`Cryptor getKey digest:${digest}`);
+		const keyMaterial = await crypto.subtle.importKey('raw', digest, { name: 'PBKDF2' }, false, ['deriveKey']);
+		console.log(`Cryptor getKey keyMaterial:${keyMaterial}`);
+		const key = await crypto.subtle.deriveKey(
+			{
+				name: 'PBKDF2',
+				salt,
+				iterations: 100000,
+				hash: 'SHA-256',
+			},
+			keyMaterial,
+			{ name: 'AES-GCM', length: 256 },
+			false,
+			['encrypt', 'decrypt']
+		);
+		console.log(`key:${key}`);
+		return [key, salt];
+	}
+	static getSalt(saltInput, isAB) {
+		return saltInput ? (isAB ? new Uint8Array(saltInput) : Base64Util.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
+	}
+	static async importKeyAESGCM(keyArrayBuffer, usages = ['encrypt', 'decrypt']) {
+		return await crypto.subtle.importKey('raw', keyArrayBuffer, { name: 'AES-GCM' }, true, usages);
+	}
+	static getFixedField() {
+		return crypto.getRandomValues(new Uint8Array(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
+	}
+	static getInvocationField() {
+		return crypto.getRandomValues(new Uint32Array(1));
+	}
+	static secureMathRandom() {
+		return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
+	}
+	static async encodeStrAES256GCM(inputStr, passphraseTextOrKey) {
+		return await Cryptor.encodeAES256GCM(Base64Util.stringToU8A(inputStr), passphraseTextOrKey);
+	}
+	static async encodeAES256GCM(inputU8a, passphraseTextOrKey, saltInput = null, isAB) {
+		const salt = Cryptor.getSalt(saltInput, isAB);
+		const key = await Cryptor.loadKey(passphraseTextOrKey, salt);
+		const fixedPart = Cryptor.getFixedField();
+		const invocationPart = Cryptor.getInvocationField();
+		const iv = Uint8Array.from([...fixedPart, ...new Uint8Array(invocationPart.buffer)]);
+		console.log(`encodeAES256GCM 0 inputU8a:${inputU8a}`, iv);
+		const encryptedDataAB = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, inputU8a.buffer);
+		console.log(`encodeAES256GCM 1 encryptedDataAB:${encryptedDataAB}`);
+		console.log(`encodeAES256GCM 2 iv${Base64Util.ab2Base64Url(iv)}/${iv.byteLength}`);
+		console.log(`encodeAES256GCM 3 salt${Base64Util.ab2Base64Url(salt)}/${salt.byteLength}`);
+		console.log(`encodeAES256GCM 5 encryptedDataAB:${Base64Util.ab2Base64Url(encryptedDataAB)}`);
+		return [
+			Base64Util.ab2Base64Url(encryptedDataAB), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
+			Base64Util.ab2Base64Url(iv.buffer),
+			Base64Util.ab2Base64Url(salt.buffer),
+		].join(',');
+	}
+	static async decodeAES256GCMasStr(encryptedResultStr, passphraseTextOrKey) {
+		return Base64Util.u8aToString(await Cryptor.decodeAES256GCM(encryptedResultStr, passphraseTextOrKey));
+	}
+	static async loadKey(passphraseTextOrKey, salt) {
+		console.log(`loadKey passphraseTextOrKey:${passphraseTextOrKey}/ salt:${salt}`);
+		const saltU8A = typeof salt === 'string' ? new Uint8Array(Base64Util.base64UrlToAB(salt)) : salt;
+		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, saltU8A) : { passphraseTextOrKey };
+		return key;
+	}
+	static async decodeAES256GCM(encryptedResultStr, passphraseTextOrKey) {
+		const [encryptedDataBase64Url, invocationPart, salt] = encryptedResultStr.split(',');
+		console.log(`encryptedDataBase64Url.length:${encryptedDataBase64Url.length}/${encryptedDataBase64Url}`);
+		console.log(`decodeAES256GCM 1 salt:${salt}`);
+		const iv = new Uint8Array(Base64Util.base64UrlToAB(invocationPart));
+		console.log(`decodeAES256GCM 2 iv:${iv}`, iv);
+		const encryptedData = Base64Util.base64UrlToAB(encryptedDataBase64Url);
+		console.log(`decodeAES256GCM 3 encryptedData:${encryptedData}`);
+		const key = await Cryptor.loadKey(passphraseTextOrKey, salt);
+		console.log(`decodeAES256GCM 4 key:${key}`);
+		let decryptedData = null;
+		try {
+			decryptedData = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
+		} catch (e) {
+			ef(e);
+			return null;
+		}
+		console.log(`decodeAES256GCM 7 decryptedData:${decryptedData}/${Base64Util.ab2Base64Url(decryptedData)}`);
+		console.log(`decodeAES256GCM 8 decryptedData:${decryptedData}/${Base64Util.u8aToString(new Uint8Array(decryptedData))}`);
+		return new Uint8Array(decryptedData);
 	}
 }
