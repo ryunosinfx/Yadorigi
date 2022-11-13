@@ -858,9 +858,15 @@ export class WebRTCPeer {
 		}
 	}
 	close() {
-		if (this.peer && (this.dataChannel.readyState !== 'closed' || this.peer.iceConnectionState !== 'closed')) {
-			this.peer.close();
-			this.peer = null;
+		if (this.peer || this.dataChannel) {
+			if (this.peer && this.peer.iceConnectionState !== 'closed') {
+				this.peer.close();
+				this.peer = null;
+			}
+			if (this.dataChannel && this.dataChannel.readyState !== 'closed') {
+				this.dataChannel.close();
+				this.dataChannel = null;
+			}
 			console.log('WebRTCPeer peerConnection is closed.');
 		}
 	}
