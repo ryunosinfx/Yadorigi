@@ -30,11 +30,13 @@ export class ESTester {
 			console.log('☆☆setOnOpenFunc☆☆');
 			const key = JSON.stringify([group, target]);
 			this.connectedList[key] = 1;
+			this.onStatusChange();
 		});
 		this.u.setOnCloseFunc((event, group, target) => {
 			console.log('☆☆setOnCloseFunc☆☆');
 			const key = JSON.stringify([group, target]);
 			this.connectedList[key] = 0;
+			this.onStatusChange();
 		});
 	}
 	onStatusChange() {
