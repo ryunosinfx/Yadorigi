@@ -730,10 +730,10 @@ export class WebRTCPeer {
 		console.log('close');
 	}
 	dataChannelSetup(dc) {
-		if (this.dataChannel && dc.id !== this.dataChannel.id) {
+		if (this.dataChannel && dc.id !== this.dataChannel.id && this.isOpenDc) {
 			console.log(`WebRTCPeer The Data Channel be Closed. readyState:${this.dataChannel.readyState} /${dc.id} !== ${this.dataChannel.id}`);
-			this.dataChannel.close();
-			this.dataChannel = null;
+			// this.dataChannel.close();
+			// this.dataChannel = null;
 		}
 		this.isOpenDc = false;
 		dc.onerror = (error) => {
