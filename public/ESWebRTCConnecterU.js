@@ -917,12 +917,12 @@ class WebRTCPeer {
 }
 //////Hash Core///////////////////////////////////////////////
 export class Hasher {
-	static async digest(message, stretchCount = 1, algo = 'SHA-256') {
+	static async digest(message, stretchCount = 1, algo = 'SHA-256', isAB = false) {
 		let result = te.encode(message);
 		for (let i = 0; i < stretchCount; i++) {
 			result = await window.crypto.subtle.digest(algo, result);
 		}
-		return this.ab2Base64Url(result);
+		return isAB ? result : this.ab2Base64Url(result);
 	}
 	static ab2Base64Url(abInput) {
 		const ab = abInput.buffer ? abInput.buffer : abInput;
@@ -990,7 +990,7 @@ class Cryptor {
 	static async getKey(passphraseText, salt) {
 		console.log(`Cryptor getKey salt:${salt}/passphraseText:${passphraseText}`);
 		const passphrase = Base64Util.stringToU8A(passphraseText).buffer;
-		const digest = await Hasher.digest(passphrase, 100);
+		const digest = await Hasher.digest(passphrase, 100, 'SHA-256', true);
 		console.log(`Cryptor getKey digest:${digest}`);
 		const keyMaterial = await crypto.subtle.importKey('raw', digest, { name: 'PBKDF2' }, false, ['deriveKey']);
 		console.log(`Cryptor getKey keyMaterial:${keyMaterial}`);
