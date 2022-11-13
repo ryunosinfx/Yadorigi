@@ -629,6 +629,9 @@ class WebRTCConnecter {
 		this.WebRTCPeerOffer.close();
 		this.WebRTCPeerAnswer.close();
 	}
+	isOpened() {
+		return this.WebRTCPeer ? this.WebRTCPeer.isOpened() : false;
+	}
 }
 const addOption = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
 export class WebRTCPeer {
