@@ -219,11 +219,7 @@ class ESWebRTCConnecterUnit {
 	}
 	async startNegosiation(conf) {
 		conf.isStop = false;
-		const stopFunc = () => {
-			conf.isStop = true;
-		};
-		conf.w.setOnOpne(stopFunc);
-		setTimeout(stopFunc, WAIT_AUTO_INTERVAL);
+		setTimeout(ESWebRTCConnecterUtil.getStopFunc(conf), WAIT_AUTO_INTERVAL);
 		while (conf.isStop === false && this.isStopAuto === false) {
 			setTimeout(() => {
 				if (conf.isAnaswer) {
@@ -326,10 +322,12 @@ class ESWebRTCConnecterUnit {
 			conf.w.onOpenCallBack((event) => {
 				this.l.log(`############★###OPEN！###★###############target:${target}`);
 				this.onOpenFunc(event, group, target);
+				conf.isStop = true;
 			});
 			conf.w.onCloseCallBack((event) => {
 				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
 				this.onCloseFunc(event, group, target);
+				conf.isStop = false;
 			});
 			this.confs[k] = conf;
 		}
@@ -452,6 +450,11 @@ class ESWebRTCConnecterUnit {
 	}
 }
 class ESWebRTCConnecterUtil {
+	static getStopFunc(conf) {
+		return () => {
+			conf.isStop = true;
+		};
+	}
 	static sendOnDC(conf, msg, logger = console) {
 		logger.log(`ESWebRTCConnecterUtil sendMessage msg:${msg}`);
 		if (conf && conf.w && conf.w.isOpend) {
