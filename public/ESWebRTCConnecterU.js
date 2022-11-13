@@ -214,7 +214,7 @@ class ESWebRTCConnecterUnit {
 	}
 	isOpend(conf) {
 		const isOpen = conf.w.isOpened();
-		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${isOpen}`);
+		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${isOpen}:${conf.target}`);
 		return isOpen;
 	}
 	async startNegosiation(conf) {
