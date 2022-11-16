@@ -104,17 +104,24 @@ class ESWebRTCConnecterUnit {
 		this.url = url;
 		this.group = group;
 		this.passwd = passwd;
+		this.deviceName = deviceName;
 		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
 		this.singHash = await mkHash([url, group, passwd], HASH_SCRATCH_COUNT);
 		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
-		this.signHash = this.encrypt({ hash: this.nowHash, group, deviceName });
+		this.signalingHash = this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
 	}
-	async encrypt(obj) {
-		return await Cryptor.encodeStrAES256GCM(JSON.stringify(obj), this.singHash);
+	async encrypt(obj, key = this.singHash) {
+		return await Cryptor.encodeStrAES256GCM(JSON.stringify(obj), key);
 	}
-	async decrypt(encryptedStr) {
-		return await Cryptor.decodeAES256GCMasStr(encryptedStr, this.singHash);
+	async decrypt(encryptedStr, key = this.singHash) {
+		try {
+			const decryptStr = await Cryptor.decodeAES256GCMasStr(encryptedStr, key);
+			return JSON.parse(decryptStr);
+		} catch (e) {
+			ef(e, encryptedStr, this.l);
+		}
+		return null;
 	}
 	async startWaitAutoConnect() {
 		await this.inited;
@@ -133,7 +140,7 @@ class ESWebRTCConnecterUnit {
 			} else {
 				count--;
 			}
-			const list = await this.getWaitList(group);
+			const list = await this.getWaitList(this.gropuHash);
 			if (!Array.isArray(list)) {
 				continue;
 			}
@@ -145,28 +152,28 @@ class ESWebRTCConnecterUnit {
 				}
 				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 				console.log(row);
-				if (v.hash !== this.hash && v.hash.indexOf(this.hash) < 0) {
-					console.log(`ESWebRTCConnecterU sendWaitNotify group:${group}`);
-					await this.onCatchAnother(group, now, v.hash);
+				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
+					console.log(`ESWebRTCConnecterU sendWaitNotify group:${group}/${this.gropuHash}`);
+					await this.onCatchAnother(this.gropuHash, now, v.hash);
 					break;
 				}
 			}
 		}
 	}
-	async onCatchAnother(group, now, target) {
-		const conf = this.getConf(group, target);
+	async onCatchAnother(gropuHash, now, targetSignalingHash) {
+		const conf = this.getConf(gropuHash, targetSignalingHash);
 		if (this.isOpend(conf)) {
 			return;
 		}
-		await this.sendWaitNotify(group, target);
-		const l = await this.getWaitList(group);
+		await this.sendWaitNotify(gropuHash, targetSignalingHash);
+		const l = await this.getWaitList(gropuHash);
 		if (!Array.isArray(l) || l.length < 1) {
 			return;
 		}
 		let isHotStamdby = false;
 		const newTargetList = [];
-		const len = this.hash.length;
-		const tlen = target.length;
+		const len = this.signalingHash.length;
+		const tlen = targetSignalingHash.length;
 		const a = len + tlen;
 		for (const row of l) {
 			const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
@@ -184,11 +191,11 @@ class ESWebRTCConnecterUnit {
 		let rowCount = 0;
 		for (const row of newTargetList) {
 			const hash = JSON.parse(row)[1];
-			if (hash.indexOf(this.hash) === 1 && hash.indexOf(target) >= tlen) {
+			if (hash.indexOf(this.signalingHash) === 1 && hash.indexOf(targetSignalingHash) >= tlen) {
 				isOffer = true;
 				rowCount++;
 			}
-			if (hash.indexOf(this.hash) >= len && hash.indexOf(target) === 1) {
+			if (hash.indexOf(this.signalingHash) >= len && hash.indexOf(targetSignalingHash) === 1) {
 				isOffer = false;
 				rowCount++;
 			}
@@ -213,10 +220,10 @@ class ESWebRTCConnecterUnit {
 		this.isStop = false;
 	}
 	async sendWait(group) {
-		await this.post(group, { msg: WAIT, hash: this.hash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+		await this.post(group, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
-	async sendWaitNotify(group, tagetHash) {
-		await this.post(group, { msg: WAIT, hash: `/${this.hash}/${tagetHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+	async sendWaitNotify(group, targetSignalingHash) {
+		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
 	}
 	async getWaitList(group) {
 		const data = await this.load(group, WAIT);
@@ -291,7 +298,7 @@ class ESWebRTCConnecterUnit {
 		conf.isAnaswer = false;
 		const offer = await conf.w.getOfferSdp();
 		this.l.log('ESWebRTCConnecterU setOnRecieve OFFER post offer:', offer);
-		await this.post(conf.pxAt, offer);
+		await this.post(conf.pxAt, await this.encrypt(offer, conf.nowHashKey));
 	}
 	async post(group, dataObj, cmd = 'g') {
 		const now = Date.now();
@@ -305,16 +312,18 @@ class ESWebRTCConnecterUnit {
 		this.l.log(`ESWebRTCConnecterU==${key}==============load========${group}/${cmd} ========${Date.now() - now} data:`, data);
 		return data;
 	}
-	getConKey(group, target) {
-		return JSON.stringify([group, target]);
+	getConKey(group, signalingHash) {
+		const obj = this.decrypt(signalingHash);
+		return [JSON.stringify([group, obj.deviceName]), obj];
 	}
-	getConf(group, target) {
-		const k = this.getConKey(group, target);
-		const s = this.getConKey(group, this.hash);
+	getConf(group, targetSignalingHash) {
+		const [k, objT] = this.getConKey(group, targetSignalingHash);
+		const [s] = this.getConKey(group, this.signalingHash);
 		let conf = this.confs[k];
+		const targetDeviceName = objT.deviceName;
 		if (!conf) {
 			conf = {
-				target,
+				targetDeviceName,
 				isAnaswer: true,
 				isGetFirst: false,
 				isExcangedCandidates: false,
@@ -324,24 +333,25 @@ class ESWebRTCConnecterUnit {
 				pxOs: s + OFFER,
 				isStop: false,
 				cache: {},
-				id: `${Date.now()} ${this.hash}`,
+				id: `${Date.now()} ${this.deviceName}`,
 			};
 			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage((msg) => {
-				this.onReciveCallBack(target, msg);
+				this.onReciveCallBack(targetDeviceName, msg);
 			});
 			conf.w.setOnOpen((event) => {
-				this.l.log(`############★###OPEN！###★###############target:${target}`);
-				this.onOpenFunc(event, group, target);
+				this.l.log(`############★###OPEN！###★###############targetDeviceName:${targetDeviceName}`);
+				this.onOpenFunc(event, group, targetDeviceName);
 				conf.isStop = true;
 			});
 			conf.w.setOnClose((event) => {
-				this.l.log(`############☆###CLOSE###☆###############target:${target}`);
-				this.onCloseFunc(event, group, target);
+				this.l.log(`############☆###CLOSE###☆###############targetDeviceName:${targetDeviceName}`);
+				this.onCloseFunc(event, group, targetDeviceName);
 				conf.isStop = false;
 			});
 			this.confs[k] = conf;
 		}
+		conf.nowHashKey = objT.nowHash;
 		return conf;
 	}
 	resetConf(conf) {
@@ -354,7 +364,8 @@ class ESWebRTCConnecterUnit {
 			delete conf.cache[key];
 		}
 	}
-	async listener(conf, px, value) {
+	async listener(conf, px, valueEnclipted) {
+		const value = await this.decrypt(valueEnclipted, this.nowHash);
 		this.l.log('ESWebRTCConnecterU==============LISTENER==RECEIVE=A================');
 		this.l.log(`ESWebRTCConnecterU getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
 		this.l.log(
@@ -374,7 +385,7 @@ class ESWebRTCConnecterUnit {
 					this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=0================value:${value}`);
 				}
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
-				await this.post(conf.pxOt, answer);
+				await this.post(conf.pxOt, await this.encrypt(answer, conf.nowHashKey));
 				conf.isGetFirst = true;
 				console.warn('★★ANSWER conf.isGetFirst = true;');
 			} else if (!conf.isExcangedCandidates) {
@@ -393,7 +404,7 @@ class ESWebRTCConnecterUnit {
 				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
 				conf.isGetFirst = true;
 				console.warn('★★★OFFER conf.isGetFirst = true;');
-				await this.post(conf.pxAt, candidates);
+				await this.post(conf.pxAt, await this.encrypt(candidates, conf.nowHashKey));
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = value ? conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
@@ -937,7 +948,7 @@ export class Hasher {
 		return retList.join('');
 	}
 }
-class Base64Util {
+class B64U {
 	static stringToU8A(str) {
 		return te.encode(str);
 	}
@@ -946,17 +957,17 @@ class Base64Util {
 	}
 	static ab2Base64(abInput) {
 		const ab = abInput.buffer ? abInput.buffer : abInput;
-		return window.btoa(Base64Util.uint8Array2BinaryString(new Uint8Array(ab)));
+		return window.btoa(B64U.uint8Array2BinaryString(new Uint8Array(ab)));
 	}
 	static ab2Base64Url(abInput) {
-		return Base64Util.toBase64Url(Base64Util.ab2Base64(abInput));
+		return B64U.toBase64Url(B64U.ab2Base64(abInput));
 	}
 	static base64ToAB(base64) {
 		const bs = window.atob(base64);
-		return Base64Util.binaryString2Uint8Array(bs);
+		return B64U.binaryString2Uint8Array(bs);
 	}
 	static base64UrlToAB(base64url) {
-		return Base64Util.base64ToAB(Base64Util.toBase64(base64url));
+		return B64U.base64ToAB(B64U.toBase64(base64url));
 	}
 	static toBase64Url(base64) {
 		return base64 ? base64.split('+').join('-').split('/').join('_').split('=').join('') : base64;
@@ -989,7 +1000,7 @@ class Base64Util {
 class Cryptor {
 	static async getKey(passphraseText, salt) {
 		console.log(`Cryptor getKey salt:${salt}/passphraseText:${passphraseText}`);
-		const passphrase = Base64Util.stringToU8A(passphraseText).buffer;
+		const passphrase = B64U.stringToU8A(passphraseText).buffer;
 		const digest = await Hasher.digest(passphrase, 100, 'SHA-256', true);
 		console.log(`Cryptor getKey digest:${digest}`);
 		const keyMaterial = await crypto.subtle.importKey('raw', digest, { name: 'PBKDF2' }, false, ['deriveKey']);
@@ -1010,7 +1021,7 @@ class Cryptor {
 		return [key, salt];
 	}
 	static getSalt(saltInput, isAB) {
-		return saltInput ? (isAB ? new Uint8Array(saltInput) : Base64Util.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
+		return saltInput ? (isAB ? new Uint8Array(saltInput) : B64U.stringToU8A(saltInput)) : crypto.getRandomValues(new Uint8Array(16));
 	}
 	static async importKeyAESGCM(keyArrayBuffer, usages = ['encrypt', 'decrypt']) {
 		return await crypto.subtle.importKey('raw', keyArrayBuffer, { name: 'AES-GCM' }, true, usages);
@@ -1025,7 +1036,7 @@ class Cryptor {
 		return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
 	}
 	static async encodeStrAES256GCM(inputStr, passphraseTextOrKey) {
-		return await Cryptor.encodeAES256GCM(Base64Util.stringToU8A(inputStr), passphraseTextOrKey);
+		return await Cryptor.encodeAES256GCM(B64U.stringToU8A(inputStr), passphraseTextOrKey);
 	}
 	static async encodeAES256GCM(inputU8a, passphraseTextOrKey, saltInput = null, isAB) {
 		const salt = Cryptor.getSalt(saltInput, isAB);
@@ -1036,21 +1047,21 @@ class Cryptor {
 		console.log(`encodeAES256GCM 0 inputU8a:${inputU8a}`, iv);
 		const encryptedDataAB = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, inputU8a.buffer);
 		console.log(`encodeAES256GCM 1 encryptedDataAB:${encryptedDataAB}`);
-		console.log(`encodeAES256GCM 2 iv${Base64Util.ab2Base64Url(iv)}/${iv.byteLength}`);
-		console.log(`encodeAES256GCM 3 salt${Base64Util.ab2Base64Url(salt)}/${salt.byteLength}`);
-		console.log(`encodeAES256GCM 5 encryptedDataAB:${Base64Util.ab2Base64Url(encryptedDataAB)}`);
+		console.log(`encodeAES256GCM 2 iv${B64U.ab2Base64Url(iv)}/${iv.byteLength}`);
+		console.log(`encodeAES256GCM 3 salt${B64U.ab2Base64Url(salt)}/${salt.byteLength}`);
+		console.log(`encodeAES256GCM 5 encryptedDataAB:${B64U.ab2Base64Url(encryptedDataAB)}`);
 		return [
-			Base64Util.ab2Base64Url(encryptedDataAB), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
-			Base64Util.ab2Base64Url(iv.buffer),
-			Base64Util.ab2Base64Url(salt.buffer),
+			B64U.ab2Base64Url(encryptedDataAB), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
+			B64U.ab2Base64Url(iv.buffer),
+			B64U.ab2Base64Url(salt.buffer),
 		].join(',');
 	}
 	static async decodeAES256GCMasStr(encryptedResultStr, passphraseTextOrKey) {
-		return Base64Util.u8aToString(await Cryptor.decodeAES256GCM(encryptedResultStr, passphraseTextOrKey));
+		return B64U.u8aToString(await Cryptor.decodeAES256GCM(encryptedResultStr, passphraseTextOrKey));
 	}
 	static async loadKey(passphraseTextOrKey, salt) {
 		console.log(`loadKey passphraseTextOrKey:${passphraseTextOrKey}/ salt:${salt}`);
-		const saltU8A = typeof salt === 'string' ? new Uint8Array(Base64Util.base64UrlToAB(salt)) : salt;
+		const saltU8A = typeof salt === 'string' ? new Uint8Array(B64U.base64UrlToAB(salt)) : salt;
 		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, saltU8A) : { passphraseTextOrKey };
 		return key;
 	}
@@ -1058,9 +1069,9 @@ class Cryptor {
 		const [encryptedDataBase64Url, invocationPart, salt] = encryptedResultStr.split(',');
 		console.log(`encryptedDataBase64Url.length:${encryptedDataBase64Url.length}/${encryptedDataBase64Url}`);
 		console.log(`decodeAES256GCM 1 salt:${salt}`);
-		const iv = new Uint8Array(Base64Util.base64UrlToAB(invocationPart));
+		const iv = new Uint8Array(B64U.base64UrlToAB(invocationPart));
 		console.log(`decodeAES256GCM 2 iv:${iv}`, iv);
-		const encryptedData = Base64Util.base64UrlToAB(encryptedDataBase64Url);
+		const encryptedData = B64U.base64UrlToAB(encryptedDataBase64Url);
 		console.log(`decodeAES256GCM 3 encryptedData:${encryptedData}`);
 		const key = await Cryptor.loadKey(passphraseTextOrKey, salt);
 		console.log(`decodeAES256GCM 4 key:${key}`);
@@ -1071,8 +1082,8 @@ class Cryptor {
 			ef(e);
 			return null;
 		}
-		console.log(`decodeAES256GCM 7 decryptedData:${decryptedData}/${Base64Util.ab2Base64Url(decryptedData)}`);
-		console.log(`decodeAES256GCM 8 decryptedData:${decryptedData}/${Base64Util.u8aToString(new Uint8Array(decryptedData))}`);
+		console.log(`decodeAES256GCM 7 decryptedData:${decryptedData}/${B64U.ab2Base64Url(decryptedData)}`);
+		console.log(`decodeAES256GCM 8 decryptedData:${decryptedData}/${B64U.u8aToString(new Uint8Array(decryptedData))}`);
 		return new Uint8Array(decryptedData);
 	}
 }
