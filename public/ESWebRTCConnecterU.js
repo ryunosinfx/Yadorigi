@@ -392,7 +392,7 @@ class ESWebRTCConnecterUnit {
 				console.warn('★★ANSWER conf.isGetFirst = true;');
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
-				const candidats = conf.w.setCandidates(JSON.parse(value), Date.now());
+				const candidats = conf.w.setCandidates(typeof value === 'string' ? JSON.parse(value) : value, Date.now());
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================');
 				this.l.log(candidats);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=B================');
@@ -409,7 +409,7 @@ class ESWebRTCConnecterUnit {
 				await this.post(conf.pxAt, await this.encrypt(candidates, conf.nowHashKey));
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
-				const candidats = value ? conf.w.setCandidates(JSON.parse(value), Date.now()) : null;
+				const candidats = value ? conf.w.setCandidates(typeof value === 'string' ? JSON.parse(value) : value, Date.now()) : null;
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
 				this.l.log(candidats);
 				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=B================');
