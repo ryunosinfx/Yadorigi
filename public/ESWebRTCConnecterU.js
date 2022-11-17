@@ -108,9 +108,9 @@ class ESWebRTCConnecterUnit {
 		this.passwd = passwd;
 		this.deviceName = deviceName;
 		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
-		this.singHash = await mkHash([url, group, passwd], HASH_SCRATCH_COUNT);
+		this.singHash = await mkHash([url, group, passwd, salt], HASH_SCRATCH_COUNT);
 		this.groupHash = await mkHash([url, group, passwd, salt], HASH_SCRATCH_COUNT);
-		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
+		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName, salt], HASH_SCRATCH_COUNT);
 		this.signalingHash = await this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
 	}
@@ -425,7 +425,7 @@ class ESWebRTCConnecterUnit {
 			while (!conf.isGetFirst) {
 				await sleep(200);
 			}
-			await this.post(conf.pxOt, candidates);
+			await this.post(conf.pxOt, await this.encrypt(candidates, conf.nowHashKey));
 		});
 		if (conf.isStop) {
 			return;
