@@ -108,7 +108,7 @@ class ESWebRTCConnecterUnit {
 		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
 		this.singHash = await mkHash([url, group, passwd], HASH_SCRATCH_COUNT);
 		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
-		this.signalingHash = this.encrypt({ hash: this.nowHash, group, deviceName });
+		this.signalingHash = await this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
 	}
 	async encrypt(obj, key = this.singHash) {
@@ -161,7 +161,7 @@ class ESWebRTCConnecterUnit {
 		}
 	}
 	async onCatchAnother(gropuHash, now, targetSignalingHash) {
-		const conf = this.getConf(gropuHash, targetSignalingHash);
+		const conf = await this.getConf(gropuHash, targetSignalingHash);
 		if (this.isOpend(conf)) {
 			return;
 		}
@@ -312,13 +312,13 @@ class ESWebRTCConnecterUnit {
 		this.l.log(`ESWebRTCConnecterU==${key}==============load========${group}/${cmd} ========${Date.now() - now} data:`, data);
 		return data;
 	}
-	getConKey(group, signalingHash) {
-		const obj = this.decrypt(signalingHash);
+	async getConKey(group, signalingHash) {
+		const obj = await this.decrypt(signalingHash);
 		return [JSON.stringify([group, obj.deviceName]), obj];
 	}
-	getConf(group, targetSignalingHash) {
-		const [k, objT] = this.getConKey(group, targetSignalingHash);
-		const [s] = this.getConKey(group, this.signalingHash);
+	async getConf(group, targetSignalingHash) {
+		const [k, objT] = await this.getConKey(group, targetSignalingHash);
+		const [s] = await this.getConKey(group, this.signalingHash);
 		let conf = this.confs[k];
 		const targetDeviceName = objT.deviceName;
 		if (!conf) {
@@ -454,16 +454,16 @@ class ESWebRTCConnecterUnit {
 			}
 		}
 	}
-	close(hash) {
-		const conf = this.getConf(this.group, hash);
+	async close(hash) {
+		const conf = await this.getConf(this.group, hash);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.close();
 			this.resetConf(conf);
 		}
 	}
 	/////////////////////////////////////////////////////////////////
-	sendMessage(hash, msg) {
-		ESWebRTCConnecterUtil.sendOnDC(this.getConf(this.group, hash), msg, this.l);
+	async sendMessage(hash, msg) {
+		ESWebRTCConnecterUtil.sendOnDC(await this.getConf(this.group, hash), msg, this.l);
 	}
 	broadcastMessage(msg) {
 		for (const key in this.confs) {
