@@ -7,6 +7,8 @@ const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
+const SALT =
+	'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
 ///////////////////////////
 const ef = (e, id = '', logger = null) => {
 	console.warn(`${id} ${e.message}`);
@@ -99,7 +101,7 @@ class ESWebRTCConnecterUnit {
 		this.connections = {};
 		this.onReciveCallBack = onReciveCallBack;
 	}
-	async init(url, group, passwd, deviceName) {
+	async init(url, group, passwd, deviceName, salt = SALT) {
 		this.l.log('ESWebRTCConnecterU INIT START');
 		this.url = url;
 		this.group = group;
@@ -107,6 +109,7 @@ class ESWebRTCConnecterUnit {
 		this.deviceName = deviceName;
 		this.hash = await mkHash([url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
 		this.singHash = await mkHash([url, group, passwd], HASH_SCRATCH_COUNT);
+		this.groupHash = await mkHash([url, group, passwd, salt], HASH_SCRATCH_COUNT);
 		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName], HASH_SCRATCH_COUNT);
 		this.signalingHash = await this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
@@ -130,17 +133,16 @@ class ESWebRTCConnecterUnit {
 		this.isWaiting = false;
 		let isFirst = true;
 		while (this.isStopAuto === false) {
-			const group = this.group;
-			this.gropuHash = await Hasher.digest(group);
+			const groupHash = this.groupHash;
 			await sleep(WAIT_AUTO_INTERVAL / 4);
 			if (count === 0 || isFirst) {
-				await this.sendWait(group);
+				await this.sendWait(groupHash);
 				isFirst = false;
 				count = 3;
 			} else {
 				count--;
 			}
-			const list = await this.getWaitList(this.gropuHash);
+			const list = await this.getWaitList(groupHash);
 			if (!Array.isArray(list)) {
 				continue;
 			}
@@ -153,20 +155,20 @@ class ESWebRTCConnecterUnit {
 				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 				console.log(row);
 				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
-					console.log(`ESWebRTCConnecterU sendWaitNotify group:${group}/${this.gropuHash}`);
-					await this.onCatchAnother(this.gropuHash, now, v.hash);
+					console.log(`ESWebRTCConnecterU sendWaitNotify group:${groupHash}/${this.group}`);
+					await this.onCatchAnother(groupHash, now, v.hash);
 					break;
 				}
 			}
 		}
 	}
-	async onCatchAnother(gropuHash, now, targetSignalingHash) {
-		const conf = await this.getConf(gropuHash, targetSignalingHash);
+	async onCatchAnother(groupHash, now, targetSignalingHash) {
+		const conf = await this.getConf(groupHash, targetSignalingHash);
 		if (this.isOpend(conf)) {
 			return;
 		}
-		await this.sendWaitNotify(gropuHash, targetSignalingHash);
-		const l = await this.getWaitList(gropuHash);
+		await this.sendWaitNotify(groupHash, targetSignalingHash);
+		const l = await this.getWaitList(groupHash);
 		if (!Array.isArray(l) || l.length < 1) {
 			return;
 		}
@@ -933,19 +935,7 @@ export class Hasher {
 		for (let i = 0; i < stretchCount; i++) {
 			result = await window.crypto.subtle.digest(algo, result);
 		}
-		return isAB ? result : this.ab2Base64Url(result);
-	}
-	static ab2Base64Url(abInput) {
-		const ab = abInput.buffer ? abInput.buffer : abInput;
-		const base64 = window.btoa(Hasher.arrayBuffer2BinaryString(new Uint8ClampedArray(ab)));
-		return base64 ? base64.split('+').join('-').split('/').join('_').split('=').join('') : base64;
-	}
-	static arrayBuffer2BinaryString(u8a) {
-		const retList = [];
-		for (const e of u8a) {
-			retList.push(String.fromCharCode(e));
-		}
-		return retList.join('');
+		return isAB ? result : B64U.ab2Base64Url(result);
 	}
 }
 class B64U {
