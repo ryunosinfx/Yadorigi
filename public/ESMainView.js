@@ -12,7 +12,7 @@ export class ESMainView {
 		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Auto Vanilla ICE in Browser Tabse By ServerC' });
-		const form = ViewUtil.add(frame, 'form', { action: './', method: 'GET', onsubmit: 'alert("WebRTC SIGNALING START");return false;' });
+		const form = ViewUtil.add(frame, 'form', { action: './', method: 'GET', onsubmit: 'return false;' });
 		const rowCurl = ViewUtil.add(form, 'div', {}, { margin: '10px' });
 		////URL
 		const colCurl01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
