@@ -44,7 +44,7 @@ export class ESMainView {
 		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(colC1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(
 			colC1,
-			'submit',
+			'button',
 			{ text: 'testAutoSTART' },
 			{ margin: '1px', padding: '2px', border: '#000 solid 1px', 'border-radius': '3px', cursor: 'pointer' }
 		);
@@ -63,7 +63,11 @@ export class ESMainView {
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
 			statusSTART.textContent = '-START-';
+			form.submit();
+		});
+		ViewUtil.setEventHandler(form, 'submit', async () => {
 			est.start();
+			return false;
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
 			statusSTART.textContent = '-STOP-';
