@@ -63,16 +63,13 @@ export class ESMainView {
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
 			statusSTART.textContent = '-START-';
-			const action = form.getAttribute('action');
+			const formData = new FormData(form);
+			const action = `${form.getAttribute('action')}?h=${await est.getHash(formData)}`;
 			const options = {
 				method: 'GET',
 			};
 			fetch(action, options).then((e) => {
-				if (e.status === 200) {
-					alert('保存しました。');
-					return;
-				}
-				alert('保存できませんでした。');
+				console.log(e);
 			});
 			est.start();
 		});

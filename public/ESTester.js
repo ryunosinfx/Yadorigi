@@ -57,6 +57,15 @@ export class ESTester {
 		this.window = window.open(new URL(location.href).href, 'newOne');
 		await this.sleep(1000);
 	}
+	async getHash(obj) {
+		return await Hasher.digest(`${Date.now()},${JSON.stringify(obj)}`)
+			.split('+')
+			.join('-')
+			.split('/')
+			.join('_')
+			.split('=')
+			.join('');
+	}
 	start() {
 		this.u.startWaitAutoConnect();
 	}
