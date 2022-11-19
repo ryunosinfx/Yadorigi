@@ -63,11 +63,9 @@ export class ESMainView {
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
 			statusSTART.textContent = '-START-';
-			const formData = new FormData(form);
 			const action = form.getAttribute('action');
 			const options = {
 				method: 'GET',
-				body: formData,
 			};
 			fetch(action, options).then((e) => {
 				if (e.status === 200) {
