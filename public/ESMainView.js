@@ -12,7 +12,8 @@ export class ESMainView {
 		//----------------------------------------------------------------------------------------
 		ViewUtil.add(frame, 'hr');
 		ViewUtil.add(frame, 'h2', { text: 'Test Auto Vanilla ICE in Browser Tabse By ServerC' });
-		const rowCurl = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		const form = ViewUtil.add(frame, 'form', { action: './', method: 'GET', onsubmit: 'return false;' });
+		const rowCurl = ViewUtil.add(form, 'div', {}, { margin: '10px' });
 		////URL
 		const colCurl01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCurl01, 'h4', { text: 'ServerC(Cache) GAS App URL ' }, { margin: '5px 0px 2px 0px' });
@@ -37,19 +38,20 @@ export class ESMainView {
 		const colCpasswd02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		const inputCpasswd = ViewUtil.add(colCpasswd02, 'input', { type: 'password' }, { margin: '5px', width: '80vw' });
 		// inputCgroup.value = Math.floor(Date.now() / 1000); //Group
-		const rowC = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
+		const rowC = ViewUtil.add(form, 'div', {}, { margin: '10px' });
 		ViewUtil.add(rowC, 'h4', { text: 'start' }, { margin: '5px 0px 2px 0px' });
 		const colC1 = ViewUtil.add(rowC, 'div', {}, { margin: '10px' });
 		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(colC1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(colC1, 'button', { text: 'testAutoSTART' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(colC1, 'submit', { text: 'testAutoSTART' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
 		const buttonICEWithSameBrowserTabsDCLOSE = ViewUtil.add(colC1, 'button', { text: 'testClose' }, { margin: '1px' });
 		const statusSTART = ViewUtil.add(colC1, 'span', { text: '-stop-' }, { margin: '1px', fontSize: '120%' });
 		const statusConn = ViewUtil.add(colC1, 'span', { text: '-close-' }, { margin: '1px', fontSize: '60%' });
-		const colClog = ViewUtil.add(rowC, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
+		const rowD = ViewUtil.add(form, 'div', {}, { margin: '10px' });
+		const colClog = ViewUtil.add(rowD, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const est = new ESTester(colClog, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn);
-		const colC3 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
+		const colC3 = ViewUtil.add(rowD, 'div', {}, { margin: '12px', fontSize: '60%' });
 
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDNewWindows, async () => {
 			est.openNewWindow();
