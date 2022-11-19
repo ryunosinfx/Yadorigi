@@ -27,13 +27,13 @@ export class ESTester {
 		this.cb();
 		this.connectedList = {};
 		this.u.setOnOpenFunc((event, group, target) => {
-			console.log('☆☆setOnOpenFunc☆☆');
+			console.log(`☆☆setOnOpenFunc☆☆ target:${target}`);
 			const key = JSON.stringify([group, target]);
 			this.connectedList[key] = 1;
 			this.onStatusChange();
 		});
 		this.u.setOnCloseFunc((event, group, target) => {
-			console.log('☆☆setOnCloseFunc☆☆');
+			console.log(`☆☆setOnCloseFunc☆☆ target:${target}`);
 			const key = JSON.stringify([group, target]);
 			this.connectedList[key] = 0;
 			this.onStatusChange();

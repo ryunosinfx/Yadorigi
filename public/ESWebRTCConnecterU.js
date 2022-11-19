@@ -342,7 +342,7 @@ class ESWebRTCConnecterUnit {
 				this.onReciveCallBack(targetDeviceName, msg);
 			});
 			conf.w.setOnOpen((event) => {
-				this.l.log(`############★###OPEN！###★###############targetDeviceName:${targetDeviceName}`);
+				this.l.log(`############★###OPEN！###★###############targetDeviceName:${targetDeviceName}`, objT);
 				this.onOpenFunc(event, group, targetDeviceName);
 				conf.isStop = true;
 			});
