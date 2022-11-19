@@ -63,11 +63,20 @@ export class ESMainView {
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
 			statusSTART.textContent = '-START-';
-			form.submit();
-		});
-		ViewUtil.setEventHandler(form, 'submit', () => {
+			const formData = new FormData(form);
+			const action = form.getAttribute('action');
+			const options = {
+				method: 'GET',
+				body: formData,
+			};
+			fetch(action, options).then((e) => {
+				if (e.status === 200) {
+					alert('保存しました。');
+					return;
+				}
+				alert('保存できませんでした。');
+			});
 			est.start();
-			return false;
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
 			statusSTART.textContent = '-STOP-';
