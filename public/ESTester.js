@@ -58,13 +58,7 @@ export class ESTester {
 		await this.sleep(1000);
 	}
 	async getHash(obj) {
-		return await Hasher.digest(`${Date.now()},${JSON.stringify(obj)}`)
-			.split('+')
-			.join('-')
-			.split('/')
-			.join('_')
-			.split('=')
-			.join('');
+		return (await Hasher.digest(`${Date.now()},${JSON.stringify(obj)}`)).split('+').join('-').split('/').join('_').split('=').join('');
 	}
 	start() {
 		this.u.startWaitAutoConnect();
