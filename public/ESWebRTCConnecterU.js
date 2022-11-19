@@ -113,7 +113,7 @@ class ESWebRTCConnecterUnit {
 		this.groupHash = await mkHash([url, group, passwd, salt], HASH_SCRATCH_COUNT);
 		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName, salt], HASH_SCRATCH_COUNT);
 		this.signalingHash = await this.encrypt({ hash: this.nowHash, group, deviceName });
-		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash}`);
+		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash} deviceName:${deviceName}`);
 	}
 	async encrypt(obj, key = this.singHash) {
 		return await Cryptor.encodeStrAES256GCM(JSON.stringify(obj), key);
