@@ -5,6 +5,7 @@ const ANSWER = '_ANSWER';
 const SleepMs = 100;
 const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
+const WAIT_AUTO_INTERVAL_2 = 1000 * 22;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
 const SALT =
@@ -222,10 +223,10 @@ class ESWebRTCConnecterUnit {
 		this.isStop = false;
 	}
 	async sendWait(group) {
-		await this.post(group, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+		await this.post(group, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL_2 }, WAIT);
 	}
 	async sendWaitNotify(group, targetSignalingHash) {
-		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL }, WAIT);
+		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL_2 }, WAIT);
 	}
 	async getWaitList(group) {
 		const data = await this.load(group, WAIT);
