@@ -112,7 +112,6 @@ export class TestClass6 {
 			if (row.expire < now) {
 				continue;
 			}
-			this.log(`A row:${JSON.stringify(row)}`);
 			const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 			if (v.hash.length < a) {
 				continue;
@@ -129,7 +128,6 @@ export class TestClass6 {
 		for (const row of list3) {
 			const cols = JSON.parse(row);
 			const hash = cols[1];
-			this.log(`B row:${row}`);
 			if (hash.indexOf(this.hash) === 1 && hash.indexOf(target) >= tlen) {
 				isOffer = true;
 				rowCount++;
