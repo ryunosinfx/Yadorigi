@@ -368,10 +368,10 @@ class ESWebRTCConnecterUnit {
 	}
 	async listener(conf, px, valueEnclipted) {
 		const value = await this.decrypt(valueEnclipted, this.nowHash);
-		this.l.log('ESWebRTCConnecterU==============LISTENER==RECEIVE=A================');
-		this.l.log(`ESWebRTCConnecterU getLisntenrB event px:${px}/${px === ANSWER}//alue:${value}`);
 		this.l.log(
-			`ESWebRTCConnecterU==============LISTENER==RECEIVE=B================conf.isAnaswer:${conf.isAnaswer}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
+			`ESWebRTCConnecterU==============LISTENER==RECEIVE=A================px:${px}/${px === ANSWER}//value:${value}/conf.isAnaswer:${
+				conf.isAnaswer
+			}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${conf.isExcangedCandidates}`
 		);
 		if (conf.w.isOpend || conf.isStop || value === true || value === null || value === 'null') {
 			this.l.log(`ESWebRTCConnecterU==============LISTENER==END=================value:${value}/conf.isStop:${conf.isStop}`);
@@ -381,38 +381,27 @@ class ESWebRTCConnecterUnit {
 			this.l.log(`ESWebRTCConnecterU A AS ANSWER conf.isAnaswer:${conf.isAnaswer} A px:${px} conf.isGetFirst:${conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
 				const answer = await this.answer(conf, value);
-				this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof answer}`);
-				this.l.log(answer);
-				if (!answer) {
-					this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=0================value:${value}`);
-				}
-				this.l.log('ESWebRTCConnecterU==============LISTENER==answer=B================');
+				this.l.log(`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof answer}`, answer);
 				await this.post(conf.pxOt, await this.encrypt(answer, conf.nowHashKey));
 				conf.isGetFirst = true;
 				console.warn('★★ANSWER conf.isGetFirst = true;');
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = conf.w.setCandidates(typeof value === 'string' ? JSON.parse(value) : value, Date.now());
-				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================');
-				this.l.log(candidats);
-				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================', candidats);
 			}
 		} else if (!conf.isAnaswer && px === OFFER) {
 			this.l.log(`ESWebRTCConnecterU B AS OFFER conf.isAnaswer:${conf.isAnaswer}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`);
 			if (!conf.isGetFirst) {
 				const candidates = await this.connect(conf, value);
-				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=A================');
-				this.l.log(candidates);
-				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=A================', candidates);
 				conf.isGetFirst = true;
 				console.warn('★★★OFFER conf.isGetFirst = true;');
 				await this.post(conf.pxAt, await this.encrypt(candidates, conf.nowHashKey));
 			} else if (!conf.isExcangedCandidates) {
 				conf.isExcangedCandidates = true;
 				const candidats = value ? conf.w.setCandidates(typeof value === 'string' ? JSON.parse(value) : value, Date.now()) : null;
-				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================');
-				this.l.log(candidats);
-				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=B================');
+				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================', candidats);
 			}
 		}
 	}
@@ -708,7 +697,6 @@ class WebRTCPeer {
 					resolve(peer);
 				} catch (e) {
 					reject(e);
-					console.error(`WebRTCPeer setLocalDescription(offer) ERROR: ${e}`);
 					ef(e, this.id, this.l);
 				}
 			};
@@ -729,7 +717,6 @@ class WebRTCPeer {
 			peer.ondatachannel = (evt) => {
 				console.warn(`-WebRTCPeer-ondatachannel--1----------WebRTCPeer--------------------------------------evt:${evt}`);
 				this.dataChannelSetup(evt.channel);
-				console.warn(`-WebRTCPeer-ondatachannel--2----------WebRTCPeer--------------------------------------evt:${evt}`);
 			};
 			console.warn(`-WebRTCPeer-prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`);
 			if (isWithDataChannel) {
@@ -771,7 +758,9 @@ class WebRTCPeer {
 		dc.onopen = (event) => {
 			console.warn(event);
 			if (!this.isOpenDc) {
-				dc.send(`WebRTCPeer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id}`);
+				dc.send(
+					`WebRTCPeer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id} label:${dc.label} ordered:${dc.ordered} protocol:${dc.protocol} binaryType:${dc.binaryType} maxPacketLifeTime:${dc.maxPacketLifeTime} maxRetransmits:${dc.maxRetransmits} negotiated:${dc.negotiated}`
+				);
 				this.onOpen(event);
 				this.isOpenDc = true;
 			}
@@ -784,9 +773,7 @@ class WebRTCPeer {
 		this.dataChannel = dc;
 	}
 	async makeOffer() {
-		console.log('-WebRTCPeer-makeOffer--1----------WebRTCPeer--------------------------------------');
 		this.peer = await this.prepareNewConnection(true);
-		console.log('-WebRTCPeer-makeOffer--2----------WebRTCPeer--------------------------------------');
 		return this.peer.localDescription;
 	}
 	async makeAnswer() {
@@ -797,12 +784,11 @@ class WebRTCPeer {
 		}
 		try {
 			const answer = await this.peer.createAnswer();
-			console.log('WebRTCPeer makeAnswer createAnswer() succsess in promise');
+			console.log('WebRTCPeer makeAnswer createAnswer() succsess in promise answer:', answer);
 			await this.peer.setLocalDescription(answer);
 			console.log(`WebRTCPeer makeAnswer setLocalDescription() succsess in promise${this.peer.localDescription}`);
 			return this.peer.localDescription;
 		} catch (e) {
-			console.error('WebRTCPeer makeAnswer ERROR: ', e);
 			ef(e, this.id, this.l);
 		}
 	}
@@ -819,9 +805,8 @@ class WebRTCPeer {
 					console.error('WebRTCPeer setOfferAndAswer peerConnection alreay exist!');
 				}
 				this.peer = await this.prepareNewConnection(true);
-				console.warn(`WebRTCPeer setOfferAndAswer this.peer ${this.peer}`);
+				console.warn(`WebRTCPeer setOfferAndAswer this.peer ${this.peer} offer:`, offer);
 				await this.peer.setRemoteDescription(offer);
-				console.warn(`WebRTCPeer setOfferAndAswer offer ${offer}`);
 				console.log(`WebRTCPeer setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`);
 				const ans = await this.makeAnswer();
 				console.warn(`WebRTCPeer setOfferAndAswer ans ${ans}`);
@@ -831,7 +816,6 @@ class WebRTCPeer {
 				await sleep(Math.floor(Math.random() * 1000) + 1000);
 			}
 		} catch (e) {
-			console.error('WebRTCPeer setRemoteDescription(offer) ERROR: ', e);
 			ef(e, this.id, this.l);
 		}
 		return null;
@@ -989,12 +973,9 @@ class B64U {
 }
 class Cryptor {
 	static async getKey(passphraseText, salt) {
-		console.log(`Cryptor getKey salt:${salt}/passphraseText:${passphraseText}`);
 		const passphrase = B64U.stringToU8A(passphraseText).buffer;
 		const digest = await Hasher.digest(passphrase, 100, 'SHA-256', true);
-		console.log(`Cryptor getKey digest:${digest}`);
 		const keyMaterial = await crypto.subtle.importKey('raw', digest, { name: 'PBKDF2' }, false, ['deriveKey']);
-		console.log(`Cryptor getKey keyMaterial:${keyMaterial}`);
 		const key = await crypto.subtle.deriveKey(
 			{
 				name: 'PBKDF2',
@@ -1007,7 +988,6 @@ class Cryptor {
 			false,
 			['encrypt', 'decrypt']
 		);
-		console.log(`key:${key}`);
 		return [key, salt];
 	}
 	static getSalt(saltInput, isAB) {
@@ -1034,12 +1014,7 @@ class Cryptor {
 		const fixedPart = Cryptor.getFixedField();
 		const invocationPart = Cryptor.getInvocationField();
 		const iv = Uint8Array.from([...fixedPart, ...new Uint8Array(invocationPart.buffer)]);
-		console.log(`encodeAES256GCM 0 inputU8a:${inputU8a}`, iv);
 		const encryptedDataAB = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, inputU8a.buffer);
-		console.log(`encodeAES256GCM 1 encryptedDataAB:${encryptedDataAB}`);
-		console.log(`encodeAES256GCM 2 iv${B64U.ab2Base64Url(iv)}/${iv.byteLength}`);
-		console.log(`encodeAES256GCM 3 salt${B64U.ab2Base64Url(salt)}/${salt.byteLength}`);
-		console.log(`encodeAES256GCM 5 encryptedDataAB:${B64U.ab2Base64Url(encryptedDataAB)}`);
 		return [
 			B64U.ab2Base64Url(encryptedDataAB), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
 			B64U.ab2Base64Url(iv.buffer),
@@ -1050,21 +1025,15 @@ class Cryptor {
 		return B64U.u8aToString(await Cryptor.decodeAES256GCM(encryptedResultStr, passphraseTextOrKey));
 	}
 	static async loadKey(passphraseTextOrKey, salt) {
-		console.log(`loadKey passphraseTextOrKey:${passphraseTextOrKey}/ salt:${salt}`);
 		const saltU8A = typeof salt === 'string' ? new Uint8Array(B64U.base64UrlToAB(salt)) : salt;
 		const [key] = typeof passphraseTextOrKey === 'string' ? await Cryptor.getKey(passphraseTextOrKey, saltU8A) : { passphraseTextOrKey };
 		return key;
 	}
 	static async decodeAES256GCM(encryptedResultStr, passphraseTextOrKey) {
 		const [encryptedDataBase64Url, invocationPart, salt] = encryptedResultStr.split(',');
-		console.log(`encryptedDataBase64Url.length:${encryptedDataBase64Url.length}/${encryptedDataBase64Url}`);
-		console.log(`decodeAES256GCM 1 salt:${salt}`);
 		const iv = new Uint8Array(B64U.base64UrlToAB(invocationPart));
-		console.log(`decodeAES256GCM 2 iv:${iv}`, iv);
 		const encryptedData = B64U.base64UrlToAB(encryptedDataBase64Url);
-		console.log(`decodeAES256GCM 3 encryptedData:${encryptedData}`);
 		const key = await Cryptor.loadKey(passphraseTextOrKey, salt);
-		console.log(`decodeAES256GCM 4 key:${key}`);
 		let decryptedData = null;
 		try {
 			decryptedData = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
@@ -1072,8 +1041,6 @@ class Cryptor {
 			ef(e);
 			return null;
 		}
-		console.log(`decodeAES256GCM 7 decryptedData:${decryptedData}/${B64U.ab2Base64Url(decryptedData)}`);
-		console.log(`decodeAES256GCM 8 decryptedData:${decryptedData}/${B64U.u8aToString(new Uint8Array(decryptedData))}`);
 		return new Uint8Array(decryptedData);
 	}
 }
