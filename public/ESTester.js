@@ -15,16 +15,18 @@ export class ESTester {
 		if (!passwordInputElm.value) {
 			passwordInputElm.value = '1234';
 		}
-		if (!deviceNameInputElm.value) {
-			Hasher.digest([location.origin, navigator.userAgent, Date.now()]).then((hash) => {
-				deviceNameInputElm.value = hash;
-			});
-		}
 		urlInputElm.addEventListener('input', this.cb);
 		groupInputElm.addEventListener('input', this.cb);
 		passwordInputElm.addEventListener('input', this.cb);
 		deviceNameInputElm.addEventListener('input', this.cb);
-		this.cb();
+		if (!deviceNameInputElm.value) {
+			Hasher.digest([location.origin, navigator.userAgent, Date.now()]).then((hash) => {
+				deviceNameInputElm.value = hash;
+				this.cb();
+			});
+		} else {
+			this.cb();
+		}
 		this.connectedList = {};
 		this.u.setOnOpenFunc((event, group, target) => {
 			console.log(`☆☆setOnOpenFunc☆☆ target:${target}`);
