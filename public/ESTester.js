@@ -43,7 +43,7 @@ export class ESTester {
 		const statuss = [];
 		for (const key in this.connectedList) {
 			const l = JSON.parse(key);
-			statuss.push(`${l[0]} ${l[1]}:${this.connectedList[key] ? 'OPEN' : 'CLOSE'}`);
+			statuss.push(`<${l[0]} / ${l[1]}:${this.connectedList[key] ? 'OPEN' : 'CLOSE'}>`);
 		}
 		this.statusConnElm.textContent = statuss.join(',');
 	}
