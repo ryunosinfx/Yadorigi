@@ -65,7 +65,7 @@ export class ESMainView {
 			statusSTART.textContent = '-START-';
 			form.submit();
 		});
-		ViewUtil.setEventHandler(form, 'submit', async () => {
+		ViewUtil.setEventHandler(form, 'submit', () => {
 			est.start();
 			return false;
 		});
