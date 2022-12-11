@@ -1,4 +1,4 @@
-import { ProcessUtil } from '../util/ProcessUtil';
+import { ProcessUtil } from '../util/ProcessUtil.js';
 const addOption = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
 export class WebRTCPeer {
 	constructor(name, stunServers) {
