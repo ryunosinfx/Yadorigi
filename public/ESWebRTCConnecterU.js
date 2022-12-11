@@ -52,8 +52,8 @@ export class ESWebRTCConnecterU {
 	#i = null;
 	constructor(
 		logger = console,
-		onReciveCallBack = (hash, msg) => {
-			console.log(`hash:${hash},msg:${msg}`);
+		onReciveCallBack = (targetDeviceName, msg) => {
+			console.log(`targetDeviceName:${targetDeviceName},msg:${msg}`);
 		}
 	) {
 		this.#i = new ESWebRTCConnecterUnit(logger, onReciveCallBack);
@@ -76,11 +76,17 @@ export class ESWebRTCConnecterU {
 	closeAll() {
 		this.#i.closeAll();
 	}
-	close(hash) {
-		this.#i.close(hash);
+	close(targetSignalingHash) {
+		this.#i.close(targetSignalingHash);
 	}
-	sendMessage(hash, msg) {
-		this.#i.sendMessage(hash, msg);
+	sendBigMessage(targetSignalingHash, name, type, ab) {
+		this.#i.sendBigMessage(targetSignalingHash, name, type, ab);
+	}
+	broadcastBigMessage(msg) {
+		this.#i.broadcastMessage(msg);
+	}
+	sendMessage(targetSignalingHash, msg) {
+		this.#i.sendMessage(targetSignalingHash, msg);
 	}
 	broadcastMessage(msg) {
 		this.#i.broadcastMessage(msg);
@@ -90,8 +96,8 @@ export class ESWebRTCConnecterU {
 class ESWebRTCConnecterUnit {
 	constructor(
 		logger = console,
-		onReciveCallBack = (hash, msg) => {
-			console.log(`hash:${hash},msg:${msg}`);
+		onReciveCallBack = (targetDeviceName, msg) => {
+			console.log(`targetDeviceName:${targetDeviceName},msg:${msg}`);
 		}
 	) {
 		this.l = logger;
@@ -101,6 +107,7 @@ class ESWebRTCConnecterUnit {
 		this.confs = {};
 		this.connections = {};
 		this.onReciveCallBack = onReciveCallBack;
+		this.ESBigSendDataAdoptor = new ESBigSendDataAdoptor(onReciveCallBack);
 	}
 	async init(url, group, passwd, deviceName, salt = SALT) {
 		this.l.log('ESWebRTCConnecterU INIT START');
@@ -157,7 +164,7 @@ class ESWebRTCConnecterUnit {
 				console.log(row);
 				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
 					console.log(`ESWebRTCConnecterU sendWaitNotify group:${groupHash}/${this.group}`);
-					await this.onCatchAnother(groupHash, now, v.hash);
+					await this.onCatchAnother(groupHash, now, v.hash); //v.hash===targetSignalingHash
 					break;
 				}
 			}
@@ -340,16 +347,23 @@ class ESWebRTCConnecterUnit {
 			};
 			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage((msg) => {
-				this.onReciveCallBack(targetDeviceName, msg);
+				const dU8A = this.ESBigSendDataAdoptor.getBigSendDataResFormat(targetDeviceName, msg);
+				if (dU8A) {
+					this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
+				} else if (this.ESBigSendDataAdoptor.isBigSendData(msg, targetDeviceName)) {
+					this.onReciveBigData(conf, targetDeviceName, msg);
+				} else {
+					this.onReciveCallBack(targetDeviceName, msg);
+				}
 			});
 			conf.w.setOnOpen((event) => {
 				this.l.log(`############★###OPEN！###★###############targetDeviceName:${targetDeviceName}`, objT);
-				this.onOpenFunc(event, group, targetDeviceName);
+				this.onOpenFunc(event, group, targetSignalingHash, targetDeviceName);
 				conf.isStop = true;
 			});
 			conf.w.setOnClose((event) => {
 				this.l.log(`############☆###CLOSE###☆###############targetDeviceName:${targetDeviceName}`);
-				this.onCloseFunc(event, group, targetDeviceName);
+				this.onCloseFunc(event, group, targetSignalingHash, targetDeviceName);
 				conf.isStop = false;
 			});
 			this.confs[k] = conf;
@@ -446,21 +460,300 @@ class ESWebRTCConnecterUnit {
 			}
 		}
 	}
-	async close(hash) {
-		const conf = await this.getConf(this.group, hash);
+	async close(targetSignalingHash) {
+		const conf = await this.getConf(this.group, targetSignalingHash);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.close();
 			this.resetConf(conf);
 		}
 	}
 	/////////////////////////////////////////////////////////////////
-	async sendMessage(hash, msg) {
-		ESWebRTCConnecterUtil.sendOnDC(await this.getConf(this.group, hash), msg, this.l);
+	async sendBigMessage(targetSignalingHash, name, type, ab) {
+		return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.group, targetSignalingHash), name, type, ab, this.l);
+	}
+	async broadcastBigMessage(name, type, ab) {
+		const promises = [];
+		for (const key in this.confs) {
+			promises.push(this.ESBigSendDataAdoptor.sendBidData(this.confs[key], name, type, ab, this.l));
+		}
+		return Promise.all(promises);
+	}
+	/////////////////////////////////////////////////////////////////
+	async sendMessage(targetSignalingHash, msg) {
+		ESWebRTCConnecterUtil.sendOnDC(await this.getConf(this.group, targetSignalingHash), msg, this.l);
 	}
 	broadcastMessage(msg) {
 		for (const key in this.confs) {
 			ESWebRTCConnecterUtil.sendOnDC(this.confs[key], msg, this.l);
 		}
+	}
+	async onReciveBigData(conf, targetDeviceName, msg) {
+		const { files, isComple } = await this.ESBigSendDataAdoptor.recieveBigSendData(conf, msg);
+		return isComple ? this.onReciveCallBack(targetDeviceName, files) : [];
+	}
+	async onReciveBigDataResponse(conf, targetDeviceName, dU8A) {
+		if (this.ESBigSendDataAdoptor.isComplBigSendDataRes(dU8A)) {
+			return await this.ESBigSendDataAdoptor.recieveBigSendDataCompl(dU8A);
+		} else if (this.ESBigSendDataAdoptor.isBigSendDataResponse(dU8A)) {
+			return await this.ESBigSendDataAdoptor.recieveBigSendDataRes(dU8A);
+		}
+		return null;
+	}
+}
+class ESBigSendDataAdoptor {
+	constructor(onComplCB) {
+		this.sendMap = new Map();
+		this.recieveMap = new Map();
+		this.onComplCB = onComplCB;
+	}
+	async isBigSendData(data, deviceName) {
+		const MIN = ESBigSendUtil.MIN;
+		if (typeof data === 'string' || !data.byteLength || data.byteLength < MIN || !data.buffer || (data.buffer && data.buffer.byteLength < MIN)) {
+			return false; // 1,256/8=32byte,data
+		}
+		const dnU8A = B64U.stringToU8A(deviceName);
+		const f1 = dnU8A[0];
+		const dU8A = Array.isArray(data) && !data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : new Uint8Array(data.buffer);
+		if (f1 !== dU8A[0]) {
+			return false;
+		}
+		const hashU8A = dU8A.subarray(1, 33);
+		const dataU8A = dU8A.subarray(34); //index,signAll,data
+		return B64U.ab2Base64(hashU8A) === (await Hasher.digest(dataU8A));
+	}
+	async sendBidData(conf, name, type, ab, logger = console) {
+		logger.log(`ESBigSendDataAdoptor sendBidData sendMessage msg:${ab}`);
+		if (!conf || !conf.w || !conf.w.isOpend) {
+			return;
+		}
+		const w = conf.w;
+		const deviceName = conf.targetDeviceName;
+		const dataU8A = new Uint8Array(ab);
+		const { dasendDataAb, signatureU8A, count, f1 } = ESBigSendUtil.makeBigSendDataMeta(dataU8A, deviceName, type, name);
+		const signatureB64 = B64U.ab2Base64(signatureU8A.buffer);
+		const sendQueue = new Map();
+		this.sendMap.set(signatureB64, { sendQueue, type, name, byteLength: ab.byteLength, status: ESBigSendUtil });
+		const promises = [];
+		const result = await this.snedTransactional(w, f1, -1, dasendDataAb);
+		if (result === ESBigSendUtil.COMPLE) {
+			return true;
+		}
+		let offset = 0;
+		for (let i = 0; i < count; i++) {
+			const end = i === count - 1 ? ab.byteLength : offset + ESBigSendUtil.SIZE;
+			const partU8A = dataU8A.subarray(offset, end);
+			promises.push(this.sendTranApart(w, partU8A, f1, signatureU8A, i, sendQueue));
+			offset = offset += ESBigSendUtil.SIZE;
+		}
+		await Promise.all(promises);
+	}
+	async sendTranApart(w, partU8A, f1, signatureU8A, index, sendQueue) {
+		const i = new Int32Array(1).fill(index);
+		const resHashB64 = B64U.ab2Base64(await ESBigSendUtil.makeResAb(f1, partU8A, i.buffer, signatureU8A));
+		const sendAb = await ESBigSendUtil.makeBigSendData(partU8A, f1, signatureU8A, index);
+		let isSendSuccsess = false;
+		let isComple = false;
+		while (isSendSuccsess === false) {
+			const result = await this.snedTransactional(w, sendAb, resHashB64, sendQueue, index);
+			if (result === ESBigSendUtil.COMPLE) {
+				isSendSuccsess = true;
+				isComple = true;
+			}
+			if (result === ESBigSendUtil.OK) {
+				isSendSuccsess = true;
+			}
+		}
+		return isComple;
+	}
+	snedTransactional(w, ab, resHashB64 = '', sendQueue = new Map(), index) {
+		const timer = sendQueue.has(resHashB64) ? sendQueue.get(resHashB64).timer : null;
+		clearTimeout(timer);
+		return new Promise((resolve) => {
+			const timer = setTimeout(() => {
+				resolve(ESBigSendUtil.TIME_OUT);
+			}, ESBigSendUtil.WAIT_MS);
+			sendQueue.set(resHashB64, { index, timer });
+			w.send(ab);
+		});
+	}
+	getBigSendDataResFormat(data, deviceName) {
+		const MIN = ESBigSendUtil.MIN;
+		if (typeof data === 'string' || !data.byteLength || data.byteLength < MIN || !data.buffer || (data.buffer && data.buffer.byteLength < MIN)) {
+			return false; // 1,256/8=32byte,data(index4byte,data)
+		}
+		const dnU8A = B64U.stringToU8A(deviceName);
+		const f1 = dnU8A[0];
+		const dU8A = Array.isArray(data) && !data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : new Uint8Array(data.buffer);
+		if (f1 !== dU8A[0]) {
+			return false;
+		}
+		// const hashB64 = B64U.ab2Base64(dU8A.subarray(1, 33).buffer);
+		const index = new Int32Array(dU8A.subarray(33, 37).buffer)[0];
+		const signatureB64 = B64U.ab2Base64(dU8A.subarray(37, 69).buffer);
+		const metaInf = this.sendMap.get(signatureB64);
+		return metaInf && metaInf.sendQueue && metaInf.byteLength <= index && index >= -1 ? dU8A : null;
+	}
+	isBigSendDataResponse(dU8A) {
+		const hashB64 = B64U.ab2Base64(dU8A.subarray(1, 33).buffer);
+		const index = new Int32Array(dU8A.subarray(33, 37).buffer)[0];
+		const signatureB64 = B64U.ab2Base64(dU8A.subarray(37, 69).buffer);
+		const metaInf = this.sendMap.get(signatureB64);
+		return metaInf && metaInf.sendQueue && metaInf.sendQueue.get(hashB64) === index;
+	}
+	isComplBigSendDataRes(dU8A) {
+		const signatureB64 = B64U.ab2Base64(dU8A.subarray(37, 69).buffer);
+		const index = new Int32Array(dU8A.subarray(33, 37).buffer)[0];
+		const status = dU8A[dU8A.length - 1];
+		const metaInf = this.sendMap.get(signatureB64);
+		return metaInf.byteLength === index && ESBigSendUtil.STATUS[status] === ESBigSendUtil.COMPLE;
+	}
+	async recieveBigSendData(conf, dataAb) {
+		if (!conf || !conf.w || !conf.w.isOpend) {
+			return;
+		}
+		const w = conf.w;
+		const dataU8A = new Uint8Array(dataAb);
+		const dataBodyU8A = dataU8A.subarray(34); //index,signAll,data
+		const index = new Int32Array(dataBodyU8A.subarray(0, 4).buffer)[0]; //index,signAll,data
+		const signatureB64 = B64U.ab2Base64(dataBodyU8A.subarray(4, 36).buffer); //index,signAll,data
+		const dU8A = dataBodyU8A.subarray(36); //index,signAll,data
+		let map = this.recieveMap.get(signatureB64);
+		if (!map) {
+			map = { m: [{ type: null, name: null }], signature: null, byteLength: null, count: null, counter: null, data: {}, full: null, compleU64: null };
+			this.recieveMap.set(signatureB64, map);
+		}
+		if (index === -1) {
+			const meta = JSON.parse(B64U.u8aToString(dU8A));
+			let isRegisterd = false;
+			for (const m of map.m) {
+				if (m.name === meta.name && m.type === meta.type) {
+					isRegisterd = true;
+					break;
+				}
+			}
+			if (!isRegisterd) {
+				map.m.push({ name: meta.name, type: meta.type });
+				map.signature = meta.signature;
+				map.byteLength = meta.byteLength;
+				map.count = meta.count;
+				const compCount = new Uint8Array(Math.ceil(meta.count / 8));
+				map.counter = compCount;
+				const compKey = new Uint8Array(compCount);
+				compKey.fill(255);
+				compKey[compCount - 1] = meta.count % 8;
+				map.compleU64 = B64U.ab2Base64(compKey);
+			}
+		} else {
+			const counterIndex = Math.floor(index / 8);
+			map.counter[counterIndex] = map.counter[counterIndex] | (1 << index % 8);
+			map.data[index] = dU8A;
+		}
+		const isComple = map.compleU64 === B64U.ab2Base64(map.counter);
+		const res = await ESBigSendUtil.makeBigSendDataResponse(dataAb);
+		w.send(res);
+		if (isComple) {
+			const { united, isValid } = ESBigSendUtil.unitData(map);
+			const res = await ESBigSendUtil.makeBigSendDataResponse(dataAb, map.count + 1, isValid ? ESBigSendUtil.COMPLE : ESBigSendUtil.NG);
+			w.send(res);
+			if (isValid) {
+				const files = [];
+				for (const m of map.m) {
+					files.push({ name: m.name, type: m.type, data: united });
+				}
+				return { files, isComple };
+			}
+		}
+		return { res, isComple };
+	}
+	async recieveBigSendDataRes(dU8A) {
+		const lastIndex = dU8A.length - 1;
+		const status = ESBigSendUtil.STATUS[dU8A[lastIndex]];
+		dU8A[lastIndex] = ESBigSendUtil.STATUS.indexOf(ESBigSendUtil.OK);
+		const hresHshB64 = B64U.ab2Base64(dU8A);
+		const signatureB64 = B64U.ab2Base64(dU8A.subarray(37, 69).buffer);
+		const metaInf = this.sendMap.get(signatureB64);
+		const resolve = metaInf && metaInf.sendQueue && metaInf.sendQueue.get(hresHshB64);
+		if (typeof resolve === 'function') {
+			resolve(status);
+			return true;
+		}
+		return false;
+	}
+	async recieveBigSendDataCompl(dU8A) {
+		const signatureB64 = B64U.ab2Base64(dU8A.subarray(37, 69).buffer);
+		const metaInf = this.sendMap.get(signatureB64);
+		if (metaInf.sendQueue) {
+			for (const [key, value] of metaInf.sendQueue) {
+				if (typeof value === 'function') {
+					value(ESBigSendUtil.COMPLE);
+				}
+				metaInf.sendQueue.delete(key);
+			}
+		}
+	}
+	//////////////////////////////////////////////////
+}
+class ESBigSendUtil {
+	static SIZE = 8000;
+	static MIN = 1 + 32 + 4 + 32 + 1;
+	static WAIT_MS = 30000;
+	static OK = 'OK';
+	static NG = 'NG';
+	static COMPLE = 'COMPLE';
+	static SENDING = 'SENDING';
+	static TIME_OUT = 'TIME_OUT';
+	static STATUS = [ESBigSendUtil.TIME_OUT, ESBigSendUtil.OK, ESBigSendUtil.NG, ESBigSendUtil.COMPLE, ESBigSendUtil.SENDING];
+	static async makeBigSendDataMeta(dataU8A, deviceName, type, name) {
+		const dnU8A = B64U.stringToU8A(deviceName);
+		const f1 = new Uint8Array(1).fill(dnU8A[0]);
+		const byteLength = dataU8A.buffer.byteLength;
+		const count = Math.ceil(byteLength / ESBigSendUtil.SIZE);
+		const I1 = new Int32Array(1).fill(-1);
+		const signature = await Hasher.digest(dataU8A); //BASE64
+		const json = JSON.stringify({ type, name, signature, byteLength, count });
+		const signatureU8A = new Uint8Array(B64U.base64ToAB(signature));
+		const dataU8a = B64U.joinU8as(new Uint8Array(I1.buffer), signatureU8A, B64U.stringToU8A(json));
+		const signAb = await Hasher.digest(dataU8a, 1, undefined, true);
+		return { dasendDataAb: B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer, signatureU8A, count, f1 }; //d,signature,[index,signAll,data]
+	}
+	static async makeBigSendData(sendDataU8A, f1, signatureU8A, index) {
+		const I1 = new Int32Array(1).fill(index);
+		const dataU8a = B64U.joinU8as(new Uint8Array(I1.buffer), signatureU8A, sendDataU8A);
+		const signAb = await Hasher.digest(dataU8a, 1, undefined, true);
+		return B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer; //d,signature,[index,signAll,data]
+	}
+	static async makeBigSendDataResponse(data, index = -1, flg = ESBigSendUtil.OK) {
+		const dU8A = Array.isArray(data) && !data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : new Uint8Array(data.buffer);
+		const f1 = new Uint8Array(1);
+		f1[0] = dU8A[0];
+		const indexU8A = index > 0 ? new Uint8Array(new Int32Array(1).fill(index).buffer) : dU8A.subarray(33, 37);
+		const signatureU8A = dU8A.subarray(37, 69);
+		const flag = new Uint8Array(1).fill(ESBigSendUtil.STATUS.indexOf(flg));
+		return await ESBigSendUtil.makeResAb(f1, dU8A, indexU8A.buffer, signatureU8A, flag);
+	}
+	static async makeResAb(f1, dU8A, indexAb, signatureU8A, flag = new Uint8Array(1).fill(ESBigSendUtil.STATUS.indexOf(ESBigSendUtil.OK))) {
+		const hashU8A = new Uint8Array(await Hasher.digest(dU8A, 1, undefined, true)); //ab
+		return B64U.joinU8as([f1, hashU8A, new Uint8Array(indexAb), signatureU8A, flag]);
+	}
+	static async unitData(map) {
+		if (map.full) {
+			return { united: map.full, isValid: true };
+		}
+		const keys = Object.keys(map);
+		keys.sort();
+		const united = new Uint8Array(map.byteLength);
+		const dataU8a = map.data;
+		let offset = 0;
+		for (const index of keys) {
+			const u8a = dataU8a[index];
+			united.set(u8a, offset);
+			delete dataU8a[index];
+			offset += u8a.byteLength;
+		}
+		keys.splice(0, keys.length);
+		const isValid = (await Hasher.digest(united)) === map.signature;
+		map.full = isValid ? united : null;
+		return { united, isValid };
 	}
 }
 class ESWebRTCConnecterUtil {
@@ -520,7 +813,6 @@ class GASAccessor {
 		return await r.text();
 	}
 }
-
 class WebRTCConnecter {
 	constructor(
 		logger = console,
@@ -854,11 +1146,12 @@ class WebRTCPeer {
 		}
 		return isOpend;
 	}
-	send(msg) {
+	send(msg, binaryType = 'blob') {
 		const dc = this.dataChannel;
 		if (!dc) {
 			return false;
 		}
+		dc.binaryType = binaryType;
 		switch (dc.readyState) {
 			case 'connecting':
 				console.log(`Connection not open; queueing: ${msg}`);
@@ -916,7 +1209,7 @@ class WebRTCPeer {
 //////Hash Core///////////////////////////////////////////////
 export class Hasher {
 	static async digest(message, stretchCount = 1, algo = 'SHA-256', isAB = false) {
-		let result = te.encode(message);
+		let result = message.buffer ? new Uint8Array(message.buffer) : te.encode(message);
 		for (let i = 0; i < stretchCount; i++) {
 			result = await window.crypto.subtle.digest(algo, result);
 		}
@@ -924,6 +1217,9 @@ export class Hasher {
 	}
 }
 class B64U {
+	static isSameAb(abA, abB) {
+		return B64U.ab2Base64(abA) === B64U.ab2Base64(abB);
+	}
 	static stringToU8A(str) {
 		return te.encode(str);
 	}
@@ -955,6 +1251,21 @@ class B64U {
 			resultBase64 += '=';
 		}
 		return resultBase64;
+	}
+	static joinU8as(u8as) {
+		let sumLength = 0;
+		const u8asCount = u8as.length;
+		for (let i = 0; i < u8asCount; i++) {
+			sumLength += u8as[i].byteLength;
+		}
+		const united = new Uint8Array(sumLength);
+		let offset = 0;
+		for (let i = 0; i < u8asCount; i++) {
+			const u8a = u8as[i];
+			united.set(u8a, offset);
+			offset += u8a.byteLength;
+		}
+		return united;
 	}
 	static uint8Array2BinaryString(u8a) {
 		const retList = [];

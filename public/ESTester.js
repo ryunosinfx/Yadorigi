@@ -28,16 +28,16 @@ export class ESTester {
 			this.cb();
 		}
 		this.connectedList = {};
-		this.u.setOnOpenFunc((event, group, target) => {
-			console.log(`☆☆setOnOpenFunc☆☆ target:${target}`);
-			const key = JSON.stringify([group, target]);
-			this.connectedList[key] = 1;
+		this.u.setOnOpenFunc((event, group, targetSignalingHash, targetDeviceName) => {
+			console.log(`☆☆setOnOpenFunc☆☆ targetDeviceName:${targetDeviceName}`);
+			const key = JSON.stringify([group, targetDeviceName]);
+			this.connectedList[key] = targetSignalingHash;
 			this.onStatusChange();
 		});
-		this.u.setOnCloseFunc((event, group, target) => {
-			console.log(`☆☆setOnCloseFunc☆☆ target:${target}`);
-			const key = JSON.stringify([group, target]);
-			this.connectedList[key] = 0;
+		this.u.setOnCloseFunc((event, group, targetSignalingHash, targetDeviceName) => {
+			console.log(`☆☆setOnCloseFunc☆☆ targetDeviceName:${targetDeviceName}`);
+			const key = JSON.stringify([group, targetDeviceName]);
+			this.connectedList[key] = null;
 			this.onStatusChange();
 		});
 	}
