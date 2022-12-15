@@ -5,7 +5,7 @@ const ANSWER = '_ANSWER';
 const SleepMs = 100;
 const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
-const WAIT_AUTO_INTERVAL_2 = 1000 * 22;
+const WAIT_AUTO_INTERVAL_2 = 1000 * 20 + Math.random() * 2000;
 const HASH_SCRATCH_COUNT = 12201;
 const contentType = 'application/x-www-form-urlencoded';
 const SALT =
@@ -91,6 +91,17 @@ export class ESWebRTCConnecterU {
 	broadcastMessage(msg) {
 		this.#i.broadcastMessage(msg);
 	}
+	request(targetSignalingHash, msg) {
+		this.#i.request(targetSignalingHash, msg);
+	}
+	setOnRequest(
+		cb = async (key, type, data) => {
+			console.log(`key:${data}/type:${type}`, data);
+			return data;
+		}
+	) {
+		this.#i.setOnRequest(cb);
+	}
 }
 ///////////////////////////
 class ESWebRTCConnecterUnit {
@@ -121,6 +132,7 @@ class ESWebRTCConnecterUnit {
 		this.nowHash = await mkHash([Date.now(), url, group, passwd, deviceName, salt], HASH_SCRATCH_COUNT);
 		this.signalingHash = await this.encrypt({ hash: this.nowHash, group, deviceName });
 		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash} deviceName:${deviceName}`);
+		this.requestMap = new Map();
 	}
 	async encrypt(obj, key = this.singHash) {
 		return await Cryptor.encodeStrAES256GCM(JSON.stringify(obj), key);
@@ -351,7 +363,7 @@ class ESWebRTCConnecterUnit {
 				if (dU8A) {
 					this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
 				} else if (this.ESBigSendDataAdoptor.isBigSendData(msg, targetDeviceName)) {
-					this.onReciveBigData(conf, targetDeviceName, msg);
+					this.onReciveBigData(conf, targetDeviceName, msg, targetSignalingHash);
 				} else {
 					this.onReciveCallBack(targetDeviceName, msg);
 				}
@@ -487,9 +499,29 @@ class ESWebRTCConnecterUnit {
 			ESWebRTCConnecterUtil.sendOnDC(this.confs[key], msg, this.l);
 		}
 	}
-	async onReciveBigData(conf, targetDeviceName, msg) {
+	async onReciveBigData(conf, targetDeviceName, msg, targetSignalingHash) {
 		const { files, isComple } = await this.ESBigSendDataAdoptor.recieveBigSendData(conf, msg);
-		return isComple ? this.onReciveCallBack(targetDeviceName, files) : [];
+		if (isComple) {
+			for (const file of files) {
+				if (this.ESBigSendDataAdoptor.isRequest(file)) {
+					return await this.onRequestData(targetDeviceName, file, targetSignalingHash);
+				}
+				if (this.ESBigSendDataAdoptor.isResponse(file)) {
+					return await this.onRespons(targetDeviceName, file);
+				}
+			}
+			this.onReciveCallBack(targetDeviceName, files);
+		}
+		return [];
+	}
+	async onRequestData(targetDeviceName, file, targetSignalingHash) {
+		const types = file.type.split('/');
+		const PQ = types.shift();
+		const hash = types.pop();
+		const typeMain = types.join('/');
+		const { key, type, result } = await this.onRequest(targetDeviceName, file.name, typeMain, file.data);
+		const newType = [PQ, type, hash].join('/');
+		return await this.sendBigMessage(targetSignalingHash, key, this.ESBigSendDataAdoptor.convertTypeToResopnce(newType), result);
 	}
 	async onReciveBigDataResponse(conf, targetDeviceName, dU8A) {
 		if (this.ESBigSendDataAdoptor.isComplBigSendDataRes(dU8A)) {
@@ -499,6 +531,37 @@ class ESWebRTCConnecterUnit {
 		}
 		return null;
 	}
+	/////////////////////////////////////////////////////////////////
+	request(targetSignalingHash, key, msg) {
+		const func = async (resolve) => {
+			const ab = typeof msg === 'string' ? B64U.stringToU8A(msg) : msg.byteLength ? msg : msg.buffer ? msg.buffer : B64U.stringToU8A(JSON.stringify(msg));
+			const hash = await Hasher.digest(Date.now() + Math.random() + targetSignalingHash + key + SALT);
+			const type = `${ESBigSendUtil.REQUEST_HEADER + (msg.byteLength ? 'arraybuffer' : msg.buffer ? 'typedarray' : typeof msg)}/${hash}`; // PorQ/type/hash
+			this.requestMap.set(hash, resolve);
+			setTimeout(() => {
+				this.requestMap.delete(hash);
+				resolve(ESBigSendUtil.TIME_OUT);
+			}, ESBigSendUtil.MAX_WAIT_MS);
+			return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.group, targetSignalingHash), key, type, ab, this.l);
+		};
+		return new Promise(func);
+	}
+	onRespons(targetDeviceName, file) {
+		const types = file.type.split('/');
+		// const PQ = types.shift();
+		const hash = types.pop();
+		const resolve = this.requestMap.get(hash);
+		const typeMain = types.join('/');
+		resolve(targetDeviceName, file.name, typeMain, file.data);
+	}
+	async setOnRequest(
+		cb = async (key, type, data) => {
+			console.log(`key:${data}/type:${type}`, data);
+			return data;
+		}
+	) {
+		this.onRequest = cb;
+	}
 }
 class ESBigSendDataAdoptor {
 	constructor(onComplCB) {
@@ -506,6 +569,16 @@ class ESBigSendDataAdoptor {
 		this.recieveMap = new Map();
 		this.onComplCB = onComplCB;
 	}
+	isRequest(file) {
+		return file && file.type && file.type.indexOf(ESBigSendUtil.isRequest) === 0 && file.type.split('/').length >= 3 && B64U.isBase64(file.type.split('/').pop());
+	}
+	isResponse(file) {
+		return file && file.type && file.type.indexOf(ESBigSendUtil.isResponse) === 0 && file.type.split('/').length >= 3 && B64U.isBase64(file.type.split('/').pop());
+	}
+	convertTypeToResopnce(type) {
+		return type ? (type.indexOf(ESBigSendUtil.isResponse) === 0 ? type.replace(ESBigSendUtil.isRequest, ESBigSendUtil.isResponse) : type) : type;
+	}
+
 	async isBigSendData(data, deviceName) {
 		const MIN = ESBigSendUtil.MIN;
 		if (typeof data === 'string' || !data.byteLength || data.byteLength < MIN || !data.buffer || (data.buffer && data.buffer.byteLength < MIN)) {
@@ -697,6 +770,9 @@ class ESBigSendUtil {
 	static SIZE = 8000;
 	static MIN = 1 + 32 + 4 + 32 + 1;
 	static WAIT_MS = 30000;
+	static MAX_WAIT_MS = 60000;
+	static REQUEST_HEADER = 'Q/';
+	static RESPONSE_HEADER = 'P/';
 	static OK = 'OK';
 	static NG = 'NG';
 	static COMPLE = 'COMPLE';
@@ -979,7 +1055,6 @@ class WebRTCPeer {
 					console.log(`-WebRTCPeer--onicecandidate--- empty ice event peer.localDescription:${peer.localDescription}`);
 				}
 			};
-
 			peer.onnegotiationneeded = async () => {
 				try {
 					console.log(`-WebRTCPeer1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`);
@@ -993,7 +1068,6 @@ class WebRTCPeer {
 					ef(e, this.id, this.l);
 				}
 			};
-
 			peer.oniceconnectionstatechange = () => {
 				console.log(`WebRTCPeer ICE connection Status has changed to ${peer.iceConnectionState}`);
 				switch (peer.iceConnectionState) {
@@ -1219,6 +1293,9 @@ export class Hasher {
 class B64U {
 	static isSameAb(abA, abB) {
 		return B64U.ab2Base64(abA) === B64U.ab2Base64(abB);
+	}
+	static isBase64(str = '') {
+		return str % 4 === 0 && /[+/=0-9a-zA-Z]+/.test(str);
 	}
 	static stringToU8A(str) {
 		return te.encode(str);
