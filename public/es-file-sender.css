@@ -1,0 +1,10 @@
+h5.uploadeds_title, h5.downlodables_title {
+    margin:2px;
+    padding:5px 10px;
+    background-color: black;
+    color:aliceblue;
+}
+ul.uploadeds_title,ul.downlodables_title  {
+    margin:1px;
+    padding:1px 1px 1px 20px;
+}
