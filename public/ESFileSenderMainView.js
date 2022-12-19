@@ -156,6 +156,7 @@ class ViewCommander {
 		console.log(`ul result:${result}`);
 		return this.est.getAssetList();
 	}
+	async getHash() {}
 	getAssetList() {
 		return this.est.getAssetList();
 	}
