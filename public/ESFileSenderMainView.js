@@ -108,7 +108,7 @@ export class ESMainView {
 			fetch(action, options).then((e) => {
 				console.log(e);
 			});
-			vc.start();
+			vc.startConnect();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
 			statusSTART.textContent = '-STOP-';
