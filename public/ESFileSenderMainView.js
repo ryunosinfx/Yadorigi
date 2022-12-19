@@ -1,5 +1,36 @@
 import { ESFileSender } from './ESFileSender.js';
 const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+const names = [
+	'PONTA',
+	'PONKICHI',
+	'PONSUKE',
+	'PONJIRO',
+	'PONKO',
+	'PONMI',
+	'PONPON',
+	'PONKEI',
+	'PONSHIROU',
+	'PONPOKO',
+	'PONYA',
+	'PONKA',
+	'PONMURA',
+	'PONGAMI',
+	'PONBARA',
+	'PONNAKA',
+	'PONCHAN',
+	'PONSAMA',
+	'PONYAROU',
+	'PONZAWA',
+	'PONYAMA',
+	'PONKAWA',
+	'PONROU',
+	'PONNOMIYA',
+	'PONAKI',
+	'PONHIRO',
+	'PONMASA',
+	'PONJI',
+	'PONKAGA',
+];
 export class ESMainView {
 	constructor() {
 		this.hash = location.hash;
@@ -135,6 +166,12 @@ class ViewCommander {
 		this.statusConn = statusConn;
 		this.inputCfile = inputCfile;
 		this.est = new ESFileSender(logElm, inputCfile);
+		if (!this.inputCpasswd.value) {
+			this.inputCpasswd.value = '1234';
+		}
+		if (!this.inputCdevice.value) {
+			this.inputCdevice.value = names[(Date.now() + Math.floor(Math.random() * 9999)) % names.length];
+		}
 	}
 	openNewWindow() {
 		this.window = window.open(new URL(location.href).href, 'newOne');
