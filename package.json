@@ -1,7 +1,7 @@
 {
 	"name": "yadorigi",
 	"version": "1.0.0",
-	"description": "WebRTC bookmarklet maker!",
+	"description": "WebRTC GAS signaling bookmarklet maker!",
 	"type":"module",
 	"main": "index.js",
 	"scripts": {
@@ -14,7 +14,7 @@
 		"url": "git+https://github.com/ryunosinfx/Yadorigi.git"
 	},
 	"keywords": [
-		"webrtc"
+		"webrtc gas"
 	],
 	"author": "ryunosinfx2 <ryunosinfxxul@gmail.com> (https://github.com/ryunosinfx)",
 	"license": "MIT",
