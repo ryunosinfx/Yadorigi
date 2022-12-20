@@ -30,6 +30,23 @@ const names = [
 	'PONMASA',
 	'PONJI',
 	'PONKAGA',
+	'PONNOSE',
+	'PONGAWARA',
+	'PONGI',
+	'PONNOKI',
+	'PONJOU',
+	'PONJIMA',
+	'PONGASHIRA',
+	'PONNOJOU',
+	'PONSUGI',
+	'PONNOIN',
+	'PONBAYASHI',
+	'PNMORI',
+	'PONTANI',
+	'PONBUCHI',
+	'PONNAMI',
+	'PONZATO',
+	'PONMATSU',
 ];
 export class ESMainView {
 	constructor() {
