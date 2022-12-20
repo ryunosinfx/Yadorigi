@@ -8,3 +8,23 @@ ul.uploadeds_title,ul.downlodables_title  {
     margin:1px;
     padding:1px 1px 1px 20px;
 }
+div.g{
+    display: inline-block;
+}
+div.g>div.status{
+    display: flex;
+}
+div.g>div.status span{
+    display: inline-block;
+}
+
+div.g>div.status span.NG{
+    background-color: black;
+    color: white;
+}
+
+div.g>div.status span.NG{
+    background-color: darkturquoise;
+    color: darkslategray;
+    font-weight: bold;
+}

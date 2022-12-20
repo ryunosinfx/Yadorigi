@@ -15,13 +15,13 @@ export class ESFileSender {
 			console.log(`☆☆setOnOpenFunc☆☆ targetDeviceName:${targetDeviceName}`);
 			const key = JSON.stringify([group, targetDeviceName]);
 			this.connectedList[key] = targetSignalingHash;
-			this.onStatusChange();
+			this.onStatusChange(this.connectedList);
 		});
 		this.u.setOnCloseFunc((event, group, targetSignalingHash, targetDeviceName) => {
 			console.log(`☆☆setOnCloseFunc☆☆ targetDeviceName:${targetDeviceName}`);
 			const key = JSON.stringify([group, targetDeviceName]);
 			this.connectedList[key] = null;
-			this.onStatusChange();
+			this.onStatusChange(this.connectedList);
 		});
 		this.onRecieveFile = onRecieveFileCB;
 		this.onStatusChange = cb;

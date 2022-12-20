@@ -47,10 +47,20 @@ const names = [
 	'PONNAMI',
 	'PONZATO',
 	'PONMATSU',
+	'PONROGI',
+	'PONZAKI',
+	'PONNO',
+	'PONDA',
+	'PONNOJI',
+	'PONMAKI',
+	'PONGAHAMA',
+	'PONDO',
+	'PONNOGI',
 ];
 export class ESMainView {
 	constructor() {
 		this.hash = location.hash;
+		this.status = {};
 	}
 	async build() {
 		const frame = ViewUtil.add(null, 'div', {}, { margin: '10px' });
@@ -171,6 +181,21 @@ export class ESMainView {
 			const result = await vc.ul();
 			listUpdate(result);
 		});
+		const cb = (connectMap) => {
+			this.status.connectMap = connectMap;
+			ViewUtil.removeChildren(statusConn);
+			const Groups = {};
+			for (const key in connectMap) {
+				const shignalHash = connectMap[key];
+				const [group, targetDeviceName] = JSON.parse(key);
+				const g = Groups[group] ? Groups[group] : ViewUtil.add(statusConn, 'div', { text: `${group}:`, class: 'g' });
+				Groups[group] = g;
+				const b = ViewUtil.add(g, 'div', { class: 'status' });
+				ViewUtil.add(b, 'span', { text: targetDeviceName, class: 'status' });
+				ViewUtil.add(b, 'span', { text: shignalHash ? 'OK' : 'NG', class: shignalHash ? 'OK' : 'NG' });
+			}
+		};
+		vc.setOnStatusChange(cb);
 	}
 }
 class ViewCommander {
@@ -219,6 +244,9 @@ class ViewCommander {
 	}
 	delete(name, type) {
 		this.est.delete(name, type);
+	}
+	setOnStatusChange(cb) {
+		this.est.setOnStatusChange(cb);
 	}
 }
 window.onload = (event) => {
