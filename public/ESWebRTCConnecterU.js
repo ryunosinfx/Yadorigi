@@ -155,7 +155,7 @@ class ESWebRTCConnecterUnit {
 		let isFirst = true;
 		while (this.isStopAuto === false) {
 			const groupHash = this.groupHash;
-			await sleep(WAIT_AUTO_INTERVAL / 4);
+			await sleep(WAIT_AUTO_INTERVAL / 5 + Math.floor(Math.random() * 2000));
 			if (count === 0 || isFirst) {
 				await this.sendWait(groupHash);
 				isFirst = false;
@@ -229,7 +229,7 @@ class ESWebRTCConnecterUnit {
 		this.startNegosiation(conf).catch(getEF(now, this.l));
 		await sleep(100);
 		if (isOffer) {
-			await sleep(1000);
+			await sleep(Math.floor(Math.random() * 500) + 750);
 			this.offer(conf).catch(getEF(now, this.l));
 		}
 		setTimeout(() => {
@@ -312,7 +312,7 @@ class ESWebRTCConnecterUnit {
 		for (const key in this.confs) {
 			this.confs[key].isStop = true;
 		}
-		await sleep(2000);
+		await sleep(Math.floor(Math.random() * 1000) + 1500);
 		for (const key in this.confs) {
 			this.resetConf(this.confs[key]);
 		}
@@ -444,7 +444,7 @@ class ESWebRTCConnecterUnit {
 			}
 			const candidates = await conf.w.connectAnswer();
 			while (!conf.isGetFirst) {
-				await sleep(200);
+				await sleep(Math.floor(Math.random() * 200) + 50);
 			}
 			await this.post(conf.pxOt, await this.encrypt(candidates, conf.nowHashKey));
 		});
@@ -996,7 +996,7 @@ class WebRTCConnecter {
 		return new Promise((resolve) => {
 			this.WebRTCPeer = this.WebRTCPeerAnswer;
 			this.setOnCandidates(async (candidates) => {
-				await sleep(500);
+				await sleep(Math.floor(Math.random() * 400) + 200);
 				resolve(candidates);
 			});
 		});
@@ -1004,7 +1004,7 @@ class WebRTCConnecter {
 	async setOnCandidates(func) {
 		let count = 1;
 		while (count < 100 && !this.isOpend) {
-			await sleep(20 * count);
+			await sleep(Math.floor(Math.random() * 20 * count) + 100);
 			count += 1;
 			if (!this.WebRTCPeer) {
 				continue;
