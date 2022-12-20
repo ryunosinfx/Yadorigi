@@ -359,6 +359,7 @@ class ESWebRTCConnecterUnit {
 			};
 			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage((msg) => {
+				console.log('conf.w.setOnMessage((msg):', msg);
 				const dU8A = this.ESBigSendDataAdoptor.getBigSendDataResFormat(targetDeviceName, msg);
 				if (dU8A) {
 					this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
