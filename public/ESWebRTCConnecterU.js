@@ -7,6 +7,7 @@ const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
 const WAIT_AUTO_INTERVAL_2 = 1000 * 20 + Math.random() * 2000;
 const HASH_SCRATCH_COUNT = 12201;
+const NULL_ARR = [null];
 const contentType = 'application/x-www-form-urlencoded';
 const SALT =
 	'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
@@ -584,13 +585,16 @@ class ESBigSendDataAdoptor {
 	}
 
 	async isBigSendData(data, deviceName) {
+		console.log(`isBigSendData A deviceName:${deviceName}`, data);
 		const MIN = ESBigSendUtil.MIN;
 		if (typeof data === 'string' || !data.byteLength || data.byteLength < MIN || !data.buffer || (data.buffer && data.buffer.byteLength < MIN)) {
 			return false; // 1,256/8=32byte,data
 		}
 		const dnU8A = B64U.stringToU8A(deviceName);
+		console.log(`isBigSendData B deviceName:${deviceName}`, dnU8A);
 		const f1 = dnU8A[0];
-		const dU8A = Array.isArray(data) && !data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : new Uint8Array(data.buffer);
+		const dU8A = Array.isArray(data) ? (data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : data.buffer ? new Uint8Array(data.buffer) : NULL_ARR) : NULL_ARR;
+		console.log(`isBigSendData C data.byteLength:${data.byteLength}`, dU8A);
 		if (f1 !== dU8A[0]) {
 			return false;
 		}
