@@ -13,17 +13,25 @@ div.g{
 }
 div.g>div.status{
     display: flex;
+    margin:2px;
 }
 div.g>div.status span{
     display: inline-block;
+    padding:2px 5px;
 }
 
+div.g>div.status span.status{
+    display: inline-block;
+    font-weight: bold;
+    font-size: 80%;
+    padding:2px 0px;
+}
 div.g>div.status span.NG{
     background-color: black;
     color: white;
 }
 
-div.g>div.status span.NG{
+div.g>div.status span.OK{
     background-color: darkturquoise;
     color: darkslategray;
     font-weight: bold;
