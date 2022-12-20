@@ -177,14 +177,14 @@ class ESWebRTCConnecterUnit {
 				console.log(row);
 				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
 					console.log(`ESWebRTCConnecterU sendWaitNotify group:${groupHash}/${this.group}`);
-					await this.onCatchAnother(groupHash, now, v.hash); //v.hash===targetSignalingHash
+					await this.onCatchAnother(groupHash, now, v.hash, this.group); //v.hash===targetSignalingHash
 					break;
 				}
 			}
 		}
 	}
-	async onCatchAnother(groupHash, now, targetSignalingHash) {
-		const conf = await this.getConf(groupHash, targetSignalingHash);
+	async onCatchAnother(groupHash, now, targetSignalingHash, group) {
+		const conf = await this.getConf(groupHash, targetSignalingHash, group);
 		if (this.isOpend(conf)) {
 			return;
 		}
@@ -335,13 +335,13 @@ class ESWebRTCConnecterUnit {
 		this.l.log(`ESWebRTCConnecterU==${key}==============load========${group}/${cmd} ========${Date.now() - now} data:`, data);
 		return data;
 	}
-	async getConKey(group, signalingHash) {
+	async getConKey(groupHash, signalingHash) {
 		const obj = await this.decrypt(signalingHash);
-		return [JSON.stringify([group, obj.deviceName]), obj];
+		return [JSON.stringify([groupHash, obj.deviceName]), obj];
 	}
-	async getConf(group, targetSignalingHash) {
-		const [k, objT] = await this.getConKey(group, targetSignalingHash);
-		const [s] = await this.getConKey(group, this.signalingHash);
+	async getConf(groupHash, targetSignalingHash, group) {
+		const [k, objT] = await this.getConKey(groupHash, targetSignalingHash);
+		const [s] = await this.getConKey(groupHash, this.signalingHash);
 		let conf = this.confs[k];
 		const targetDeviceName = objT.deviceName;
 		if (!conf) {
@@ -478,7 +478,7 @@ class ESWebRTCConnecterUnit {
 		}
 	}
 	async close(targetSignalingHash) {
-		const conf = await this.getConf(this.group, targetSignalingHash);
+		const conf = await this.getConf(this.groupHash, targetSignalingHash, this.group);
 		if (conf && conf.w && conf.w.isOpend) {
 			conf.w.close();
 			this.resetConf(conf);
@@ -486,7 +486,7 @@ class ESWebRTCConnecterUnit {
 	}
 	/////////////////////////////////////////////////////////////////
 	async sendBigMessage(targetSignalingHash, name, type, ab) {
-		return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.group, targetSignalingHash), name, type, ab, this.l);
+		return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.groupHash, targetSignalingHash, this.group), name, type, ab, this.l);
 	}
 	async broadcastBigMessage(name, type, ab) {
 		const promises = [];
@@ -497,7 +497,7 @@ class ESWebRTCConnecterUnit {
 	}
 	/////////////////////////////////////////////////////////////////
 	async sendMessage(targetSignalingHash, msg) {
-		ESWebRTCConnecterUtil.sendOnDC(await this.getConf(this.group, targetSignalingHash), msg, this.l);
+		ESWebRTCConnecterUtil.sendOnDC(await this.getConf(this.groupHash, targetSignalingHash, this.group), msg, this.l);
 	}
 	broadcastMessage(msg) {
 		for (const key in this.confs) {
@@ -547,7 +547,7 @@ class ESWebRTCConnecterUnit {
 				this.requestMap.delete(hash);
 				resolve(ESBigSendUtil.TIME_OUT);
 			}, ESBigSendUtil.MAX_WAIT_MS);
-			return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.group, targetSignalingHash), key, type, ab, this.l);
+			return await this.ESBigSendDataAdoptor.sendBidData(await this.getConf(this.groupHash, targetSignalingHash, this.group), key, type, ab, this.l);
 		};
 		return new Promise(func);
 	}
