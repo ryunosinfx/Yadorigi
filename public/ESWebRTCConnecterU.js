@@ -359,15 +359,15 @@ class ESWebRTCConnecterUnit {
 				id: `${Date.now()} ${this.deviceName}`,
 			};
 			conf.w = new WebRTCConnecter(this.l);
-			conf.w.setOnMessage((msg) => {
+			conf.w.setOnMessage(async (msg) => {
 				console.log('conf.w.setOnMessage((msg):', msg);
 				const dU8A = this.ESBigSendDataAdoptor.getBigSendDataResFormat(targetDeviceName, msg);
 				if (dU8A) {
 					console.log('conf.w.setOnMessage((msg):to onReciveBigDataResponse', msg);
-					this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
-				} else if (this.ESBigSendDataAdoptor.isBigSendData(msg, targetDeviceName)) {
+					await this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
+				} else if (await this.ESBigSendDataAdoptor.isBigSendData(msg, targetDeviceName)) {
 					console.log('conf.w.setOnMessage((msg):to onReciveBigData', msg);
-					this.onReciveBigData(conf, targetDeviceName, msg, targetSignalingHash);
+					await this.onReciveBigData(conf, targetDeviceName, msg, targetSignalingHash);
 				} else {
 					console.log('conf.w.setOnMessage((msg):to onReciveCallBack', msg);
 					this.onReciveCallBack(targetDeviceName, msg);
