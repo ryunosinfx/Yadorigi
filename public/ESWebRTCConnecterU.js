@@ -155,7 +155,7 @@ class ESWebRTCConnecterUnit {
 		let isFirst = true;
 		while (this.isStopAuto === false) {
 			const groupHash = this.groupHash;
-			await sleep(WAIT_AUTO_INTERVAL / 4);
+			await sleep(WAIT_AUTO_INTERVAL / 5);
 			if (count === 0 || isFirst) {
 				await this.sendWait(groupHash);
 				isFirst = false;
