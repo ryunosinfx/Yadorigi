@@ -5,7 +5,7 @@ const ANSWER = '_ANSWER';
 const SleepMs = 100;
 const WAIT = 'wait';
 const WAIT_AUTO_INTERVAL = 1000 * 20;
-const WAIT_AUTO_INTERVAL_2 = 1000 * 20 + Math.random() * 2000;
+const WAIT_AUTO_INTERVAL_2 = 1000 * 20 + Math.random() * 5000;
 const HASH_SCRATCH_COUNT = 12201;
 const NULL_ARR = [null];
 const contentType = 'application/x-www-form-urlencoded';
@@ -312,7 +312,7 @@ class ESWebRTCConnecterUnit {
 		for (const key in this.confs) {
 			this.confs[key].isStop = true;
 		}
-		await sleep(Math.floor(Math.random() * 1000) + 1500);
+		await sleep(Math.floor(Math.random() * 1000) + 2500);
 		for (const key in this.confs) {
 			this.resetConf(this.confs[key]);
 		}
