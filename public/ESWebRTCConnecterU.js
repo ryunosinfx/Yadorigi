@@ -246,7 +246,7 @@ class ESWebRTCConnecterUnit {
 		await this.post(group, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL_2 }, WAIT);
 	}
 	async sendWaitNotify(group, targetSignalingHash) {
-		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL_2 }, WAIT);
+		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL_2 + 2000 }, WAIT);
 	}
 	async getWaitList(group) {
 		const data = await this.load(group, WAIT);
