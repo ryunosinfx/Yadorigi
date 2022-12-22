@@ -170,13 +170,15 @@ class ESWebRTCConnecterUnit {
 			this.l.log(list);
 			const now = Date.now();
 			for (const row of list) {
-				if (row.expire < now) {
+				const diff = now - row.expire;
+				if (diff > 0) {
+					console.log(`ESWebRTCConnecterU startWaitAutoConnect continue diff:${diff}`, row);
 					continue;
 				}
 				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-				console.log(row);
+				console.log(`ESWebRTCConnecterU startWaitAutoConnect diff:${diff} ${v.hash}`, v);
 				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
-					console.log(`ESWebRTCConnecterU sendWaitNotify group:${groupHash}/${this.group}`);
+					console.log(`ESWebRTCConnecterU startWaitAutoConnect sendWaitNotify group:${groupHash}/${this.group}`);
 					await this.onCatchAnother(groupHash, now, v.hash, this.group); //v.hash===targetSignalingHash
 					break;
 				}
