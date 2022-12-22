@@ -796,13 +796,13 @@ class ESBigSendUtil {
 		const signature = await Hasher.digest(dataU8A); //BASE64
 		const json = JSON.stringify({ type, name, signature, byteLength, count });
 		const signatureU8A = new Uint8Array(B64U.base64ToAB(signature));
-		const dataU8a = B64U.joinU8as(new Uint8Array(I1.buffer), signatureU8A, B64U.stringToU8A(json));
+		const dataU8a = B64U.joinU8as([new Uint8Array(I1.buffer), signatureU8A, B64U.stringToU8A(json)]);
 		const signAb = await Hasher.digest(dataU8a, 1, undefined, true);
 		return { dasendDataAb: B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer, signatureU8A, count, f1 }; //d,signature,[index,signAll,data]
 	}
 	static async makeBigSendData(sendDataU8A, f1, signatureU8A, index) {
 		const I1 = new Int32Array(1).fill(index);
-		const dataU8a = B64U.joinU8as(new Uint8Array(I1.buffer), signatureU8A, sendDataU8A);
+		const dataU8a = B64U.joinU8as([new Uint8Array(I1.buffer), signatureU8A, sendDataU8A]);
 		const signAb = await Hasher.digest(dataU8a, 1, undefined, true);
 		return B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer; //d,signature,[index,signAll,data]
 	}
