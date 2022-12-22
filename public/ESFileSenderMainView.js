@@ -152,6 +152,9 @@ export class ESMainView {
 		ViewUtil.setOnInput(textareaT6, () => {
 			vc.broadcastMessage(textareaT6.value);
 		});
+		const sendFunc = (file) => () => {
+			vc.sendFile(this.status.connectMap, file);
+		};
 		const deleteFunc = (file) => () => {
 			vc.delete(file.name, file.type);
 			listUpdate(vc.getAssetList());
@@ -168,11 +171,13 @@ export class ESMainView {
 					const text = `name:${file.name} type:${file.type} size:${file.size} `;
 					const li = ViewUtil.add(l, 'li', { class: `${key}_li` });
 					ViewUtil.add(li, 'span', { text, class: `${key}_spam` });
+					const btn0 = ViewUtil.add(li, 'button', { text: 'send' });
 					const btn1 = ViewUtil.add(li, 'button', { text: 'download' });
 					const btn2 = ViewUtil.add(li, 'button', { text: 'delete' });
 					ViewUtil.setOnClick(btn1, async () => {
 						vc.dl(file.name, file.type);
 					});
+					ViewUtil.setOnClick(btn0, sendFunc(file));
 					ViewUtil.setOnClick(btn2, deleteFunc(file));
 				}
 			}
@@ -247,6 +252,20 @@ class ViewCommander {
 	}
 	setOnStatusChange(cb) {
 		this.est.setOnStatusChange(cb);
+	}
+	sendFile(connectMap, file) {
+		let count = 0;
+		for (const key in connectMap) {
+			const shignalHash = connectMap[key];
+			const [group, targetDeviceName] = JSON.parse(key);
+			if (shignalHash) {
+				count++;
+				this.est.send(group, targetDeviceName, file.name, file.type);
+			}
+		}
+		if (count === 0) {
+			alert('no send!');
+		}
 	}
 }
 window.onload = (event) => {
