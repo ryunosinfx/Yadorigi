@@ -612,7 +612,7 @@ class ESBigSendDataAdoptor {
 		const w = conf.w;
 		const deviceName = conf.targetDeviceName;
 		const dataU8A = new Uint8Array(ab);
-		const { dasendDataAb, signatureU8A, count, f1 } = ESBigSendUtil.makeBigSendDataMeta(dataU8A, deviceName, type, name);
+		const { dasendDataAb, signatureU8A, count, f1 } = await ESBigSendUtil.makeBigSendDataMeta(dataU8A, deviceName, type, name);
 		const signatureB64 = B64U.ab2Base64(signatureU8A.buffer);
 		const sendQueue = new Map();
 		this.sendMap.set(signatureB64, { sendQueue, type, name, byteLength: ab.byteLength, status: ESBigSendUtil });
