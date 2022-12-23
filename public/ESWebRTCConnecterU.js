@@ -177,7 +177,7 @@ class ESWebRTCConnecterUnit {
 				}
 				const v = row.value && typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
 				console.log(`■ESWebRTCConnecterU startWaitAutoConnect diff:${diff} ${v.hash !== this.signalingHash}/${v.hash.indexOf(this.signalingHash)}`, v);
-				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) < 0) {
+				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) !== 0) {
 					console.log(`■ESWebRTCConnecterU startWaitAutoConnect sendWaitNotify group:${groupHash}/${this.group}`);
 					await this.onCatchAnother(groupHash, now, v.hash, this.group); //v.hash===targetSignalingHash
 					break;
