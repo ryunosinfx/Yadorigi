@@ -156,6 +156,9 @@ class ESWebRTCConnecterUnit {
 		while (this.isStopAuto === false) {
 			const groupHash = this.groupHash;
 			await sleep(WAIT_AUTO_INTERVAL / 5);
+			if (!groupHash) {
+				continue;
+			}
 			if (count === 0 || isFirst) {
 				await this.sendWait(groupHash);
 				isFirst = false;
@@ -247,14 +250,14 @@ class ESWebRTCConnecterUnit {
 		}
 		this.isStop = false;
 	}
-	async sendWait(group) {
-		await this.post(group, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5 }, WAIT);
+	async sendWait(groupHash) {
+		await this.post(groupHash, { msg: WAIT, hash: this.signalingHash, expire: Date.now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5 }, WAIT);
 	}
-	async sendWaitNotify(group, targetSignalingHash) {
-		await this.post(group, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5 }, WAIT);
+	async sendWaitNotify(groupHash, targetSignalingHash) {
+		await this.post(groupHash, { msg: WAIT, hash: `/${this.signalingHash}/${targetSignalingHash}`, expire: Date.now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5 }, WAIT);
 	}
-	async getWaitList(group) {
-		const data = await this.load(group, WAIT);
+	async getWaitList(groupHash) {
+		const data = await this.load(groupHash, WAIT);
 		const obj = data ? JSON.parse(data) : null;
 		return obj ? obj.message : null;
 	}
