@@ -640,6 +640,9 @@ class ESBigSendDataAdoptor {
 		const i = new Int32Array(1).fill(index);
 		const resHashB64 = B64U.ab2Base64(await ESBigSendUtil.makeResAb(f1, partU8A, i.buffer, signatureU8A));
 		const sendAb = await ESBigSendUtil.makeBigSendData(partU8A, f1, signatureU8A, index);
+		console.log(`□ESBigSendDataAdoptor sendTranApart resHashB64:${resHashB64}`, resHashB64);
+		console.log(`□ESBigSendDataAdoptor sendTranApart partU8A:${partU8A}`, partU8A);
+		console.log(`□ESBigSendDataAdoptor sendTranApart signatureU8A:${signatureU8A}`, signatureU8A);
 		let isSendSuccsess = false;
 		let isComple = false;
 		while (isSendSuccsess === false) {
