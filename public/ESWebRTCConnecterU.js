@@ -620,7 +620,7 @@ class ESBigSendDataAdoptor {
 		const sendQueue = new Map();
 		this.sendMap.set(signatureB64, { sendQueue, type, name, byteLength: ab.byteLength, status: ESBigSendUtil });
 		const promises = [];
-		const result = await this.snedTransactional(w, f1, -1, dasendDataAb);
+		const result = await this.snedTransactional(w, f1, dasendDataAb, sendQueue, -1);
 		if (result === ESBigSendUtil.COMPLE) {
 			return true;
 		}
@@ -628,12 +628,12 @@ class ESBigSendDataAdoptor {
 		for (let i = 0; i < count; i++) {
 			const end = i === count - 1 ? ab.byteLength : offset + ESBigSendUtil.SIZE;
 			const partU8A = dataU8A.subarray(offset, end);
-			promises.push(this.sendTranApart(w, partU8A, f1, signatureU8A, i, sendQueue));
+			promises.push(this.sendTranApart(w, partU8A, f1, signatureU8A, sendQueue, i));
 			offset = offset += ESBigSendUtil.SIZE;
 		}
 		await Promise.all(promises);
 	}
-	async sendTranApart(w, partU8A, f1, signatureU8A, index, sendQueue) {
+	async sendTranApart(w, partU8A, f1, signatureU8A, sendQueue, index) {
 		const i = new Int32Array(1).fill(index);
 		const resHashB64 = B64U.ab2Base64(await ESBigSendUtil.makeResAb(f1, partU8A, i.buffer, signatureU8A));
 		const sendAb = await ESBigSendUtil.makeBigSendData(partU8A, f1, signatureU8A, index);
