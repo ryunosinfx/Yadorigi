@@ -185,7 +185,10 @@ class ESWebRTCConnecterUnit {
 			}
 		}
 	}
-	async onCatchAnother(groupHash, now, targetSignalingHash, group) {
+	async onCatchAnother(groupHash, now, hash, group) {
+		const hashSplit = hash.split('/');
+		console.log(`■ESWebRTCConnecterU onCatchAnother hashSplit group:${hash}`, hashSplit);
+		const targetSignalingHash = hash.indexOf(this.signalingHash) < 0 ? hash : hashSplit[1] !== this.signalingHash ? hashSplit[1] : hashSplit[2];
 		const conf = await this.getConf(groupHash, targetSignalingHash, group);
 		if (this.isOpend(conf)) {
 			return;
