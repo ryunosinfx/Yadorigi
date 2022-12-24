@@ -662,6 +662,7 @@ class ESBigSendDataAdoptor {
 				resolve(ESBigSendUtil.TIME_OUT);
 			}, ESBigSendUtil.WAIT_MS);
 			sendQueue.set(resHashB64, { index, timer });
+			console.log(`□ESBigSendDataAdoptor snedTransactional ${ab}`, ab);
 			w.send(ab);
 		});
 	}
