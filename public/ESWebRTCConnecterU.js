@@ -670,7 +670,7 @@ class ESBigSendDataAdoptor {
 			}, ESBigSendUtil.WAIT_MS);
 			sendQueue.set(resHashB64, { index, timer });
 			console.log(`□ESBigSendDataAdoptor snedTransactional ${ab}`, ab);
-			w.send(ab);
+			w.send(ab, 'arraybuffer');
 		});
 	}
 	getBigSendDataResFormat(data, deviceName) {
@@ -747,11 +747,11 @@ class ESBigSendDataAdoptor {
 		}
 		const isComple = map.compleU64 === B64U.ab2Base64(map.counter);
 		const res = await ESBigSendUtil.makeBigSendDataResponse(dataAb);
-		w.send(res);
+		w.send(res.buffer, 'arraybuffer');
 		if (isComple) {
 			const { united, isValid } = ESBigSendUtil.unitData(map);
 			const res = await ESBigSendUtil.makeBigSendDataResponse(dataAb, map.count + 1, isValid ? ESBigSendUtil.COMPLE : ESBigSendUtil.NG);
-			w.send(res);
+			w.send(res.buffer, 'arraybuffer');
 			if (isValid) {
 				const files = [];
 				for (const m of map.m) {
@@ -866,10 +866,10 @@ class ESWebRTCConnecterUtil {
 			conf.isStop = true;
 		};
 	}
-	static sendOnDC(conf, msg, logger = console) {
+	static sendOnDC(conf, msg, logger = console, binaryType = 'blob') {
 		logger.log(`ESWebRTCConnecterUtil sendMessage msg:${msg}`);
 		if (conf && conf.w && conf.w.isOpend) {
-			conf.w.send(msg);
+			conf.w.send(msg, binaryType);
 		}
 	}
 	static parseSdp(sdpInput, logger = console) {
@@ -991,8 +991,8 @@ class WebRTCConnecter {
 			callback(error);
 		};
 	}
-	send(msg) {
-		return this.WebRTCPeer.send(msg);
+	send(msg, binaryType = 'blob') {
+		return this.WebRTCPeer.send(msg, binaryType);
 	}
 	async answer(sdp) {
 		if (!sdp) {
@@ -1260,8 +1260,8 @@ class WebRTCPeer {
 				this.queue.push(msg);
 				break;
 			case 'open':
-				this.sendOnQueue();
-				dc.send(msg);
+				this.sendOnQueue(binaryType);
+				dc.send(msg, binaryType);
 				this.lastSend = Date.now();
 				break;
 			case 'closing':
@@ -1276,10 +1276,10 @@ class WebRTCPeer {
 		}
 		return dc.readyState;
 	}
-	sendOnQueue() {
+	sendOnQueue(binaryType) {
 		const l = this.queue.length;
 		for (let i = 0; i < l; i++) {
-			this.dataChannel.send(this.queue.shift());
+			this.dataChannel.send(this.queue.shift(), binaryType);
 		}
 	}
 	close() {
@@ -1388,6 +1388,19 @@ class B64U {
 			array[i] = binaryString.charCodeAt(i);
 		}
 		return array;
+	}
+	static blobToAb() {
+		return new Promise((resolve) => {
+			const fr = new FileReader();
+			fr.onload = () => {
+				resolve(fr.result);
+			};
+			fr.onerror = () => {
+				resolve(fr.error);
+				console.error(fr.error);
+			};
+			fr.readAsArrayBuffer();
+		});
 	}
 }
 class Cryptor {
