@@ -372,13 +372,14 @@ class ESWebRTCConnecterUnit {
 			conf.w = new WebRTCConnecter(this.l);
 			conf.w.setOnMessage(async (msg) => {
 				console.log('conf.w.setOnMessage((msg):', msg);
-				const dU8A = this.ESBigSendDataAdoptor.getBigSendDataResFormat(targetDeviceName, msg);
+				const ab = msg instanceof Blob ? await B64U.blobToAb(msg) : msg.buffer && msg.buffer.byteLength ? msg.buffer : msg.byteLength ? msg : null;
+				const dU8A = this.ESBigSendDataAdoptor.getBigSendDataResFormat(targetDeviceName, ab);
 				if (dU8A) {
-					console.log('conf.w.setOnMessage((msg):to onReciveBigDataResponse', msg);
+					console.log('conf.w.setOnMessage((msg):to onReciveBigDataResponse dU8A', dU8A);
 					await this.onReciveBigDataResponse(conf, targetDeviceName, dU8A);
-				} else if (await this.ESBigSendDataAdoptor.isBigSendData(msg, targetDeviceName)) {
-					console.log('conf.w.setOnMessage((msg):to onReciveBigData', msg);
-					await this.onReciveBigData(conf, targetDeviceName, msg, targetSignalingHash);
+				} else if (await this.ESBigSendDataAdoptor.isBigSendData(ab, targetDeviceName)) {
+					console.log('conf.w.setOnMessage((msg):to onReciveBigData ab', ab);
+					await this.onReciveBigData(conf, targetDeviceName, ab, targetSignalingHash);
 				} else {
 					console.log('conf.w.setOnMessage((msg):to onReciveCallBack', msg);
 					this.onReciveCallBack(targetDeviceName, msg);
@@ -1257,7 +1258,7 @@ class WebRTCPeer {
 			return false;
 		}
 		dc.binaryType = binaryType;
-		console.log(`Connection SEND!; binaryType: ${binaryType}`);
+		console.log(`Connection SEND!; dc.binaryType : ${dc.binaryType}`);
 		switch (dc.readyState) {
 			case 'connecting':
 				console.log(`Connection not open; queueing: ${msg}`);
@@ -1393,7 +1394,7 @@ class B64U {
 		}
 		return array;
 	}
-	static blobToAb() {
+	static blobToAb(blob) {
 		return new Promise((resolve) => {
 			const fr = new FileReader();
 			fr.onload = () => {
@@ -1403,7 +1404,7 @@ class B64U {
 				resolve(fr.error);
 				console.error(fr.error);
 			};
-			fr.readAsArrayBuffer();
+			fr.readAsArrayBuffer(blob);
 		});
 	}
 }
