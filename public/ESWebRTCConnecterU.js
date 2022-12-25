@@ -1257,6 +1257,7 @@ class WebRTCPeer {
 			return false;
 		}
 		dc.binaryType = binaryType;
+		console.log(`Connection SEND!; binaryType: ${binaryType}`);
 		switch (dc.readyState) {
 			case 'connecting':
 				console.log(`Connection not open; queueing: ${msg}`);
