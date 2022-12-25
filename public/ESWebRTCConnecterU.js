@@ -817,7 +817,9 @@ class ESBigSendUtil {
 		const I1 = new Int32Array(1).fill(index);
 		const dataU8a = B64U.joinU8as([new Uint8Array(I1.buffer), signatureU8A, sendDataU8A]);
 		const signAb = await Hasher.digest(dataU8a, 1, undefined, true);
-		return B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer; //d,signature,[index,signAll,data]
+		const result = B64U.joinU8as([f1, new Uint8Array(signAb), dataU8a]).buffer; //d,signature,[index,signAll,data]
+		console.log('□□ESBigSendUtil makeBigSendData A result', result);
+		return result;
 	}
 	static async makeBigSendDataResponse(data, index = -1, flg = ESBigSendUtil.OK) {
 		const dU8A = Array.isArray(data) && !data.byteLength && data.byteLength > 0 ? new Uint8Array(data) : new Uint8Array(data.buffer);
@@ -1351,7 +1353,7 @@ class B64U {
 		return resultBase64;
 	}
 	static joinU8as(u8as) {
-		console.log('□□joinU8ss', u8as);
+		console.log('□□joinU8ss A u8as', u8as);
 		let sumLength = 0;
 		const u8asCount = u8as.length;
 		for (let i = 0; i < u8asCount; i++) {
@@ -1364,6 +1366,7 @@ class B64U {
 			united.set(u8a, offset);
 			offset += u8a.byteLength;
 		}
+		console.log('□□joinU8ss B united', united);
 		return united;
 	}
 	static uint8Array2BinaryString(u8a) {
