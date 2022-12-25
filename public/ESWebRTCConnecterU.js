@@ -193,7 +193,7 @@ class ESWebRTCConnecterUnit {
 		console.log(`■ESWebRTCConnecterU onCatchAnother hashSplit group:${hash}`, hashSplit);
 		const targetSignalingHash = hash.indexOf(this.signalingHash) < 0 ? hash : hashSplit[1] !== this.signalingHash ? hashSplit[1] : hashSplit[2];
 		const conf = await this.getConf(groupHash, targetSignalingHash, group);
-		if (this.isOpend(conf)) {
+		if (!conf || this.isOpend(conf)) {
 			return;
 		}
 		await this.sendWaitNotify(groupHash, targetSignalingHash);
@@ -345,10 +345,13 @@ class ESWebRTCConnecterUnit {
 	}
 	async getConKey(groupHash, signalingHash) {
 		const obj = await this.decrypt(signalingHash);
-		return [JSON.stringify([groupHash, obj.deviceName]), obj];
+		return [JSON.stringify([groupHash, obj ? obj.deviceName : null]), obj];
 	}
 	async getConf(groupHash, targetSignalingHash, group) {
 		const [k, objT] = await this.getConKey(groupHash, targetSignalingHash);
+		if (!objT) {
+			return null;
+		}
 		const [s] = await this.getConKey(groupHash, this.signalingHash);
 		let conf = this.confs[k];
 		const targetDeviceName = objT.deviceName;
