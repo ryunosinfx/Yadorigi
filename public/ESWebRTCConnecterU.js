@@ -622,9 +622,12 @@ class ESBigSendDataAdoptor {
 		console.log(`□ESBigSendDataAdoptor sendBidData dasendDataAb:${dasendDataAb}`, dasendDataAb);
 		const signatureB64 = B64U.ab2Base64(signatureU8A.buffer);
 		const sendQueue = new Map();
+		const index = -1;
+		const i = new Int32Array(1).fill(index);
+		const resHashB64 = B64U.ab2Base64(await ESBigSendUtil.makeResAb(f1, dasendDataAb, i.buffer, signatureU8A));
 		this.sendMap.set(signatureB64, { sendQueue, type, name, byteLength: ab.byteLength, status: ESBigSendUtil });
 		const promises = [];
-		const result = await this.snedTransactional(w, f1, dasendDataAb, sendQueue, -1);
+		const result = await this.snedTransactional(w, dasendDataAb, resHashB64, sendQueue, index);
 		if (result === ESBigSendUtil.COMPLE) {
 			return true;
 		}
