@@ -1150,7 +1150,7 @@ class WebRTCPeer {
 			this.onError(error);
 		};
 		dc.onmessage = (event) => {
-			console.log('WebRTCPeer Got Data Channel Message:', event.data);
+			console.log(`WebRTCPeer Got Data Channel Message:typeof:${typeof event.data}/isBlob:${event.data instanceof Blob}`, event.data);
 			this.onMessage(event.data);
 		};
 		dc.onopen = (event) => {
