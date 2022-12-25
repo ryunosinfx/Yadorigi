@@ -619,6 +619,7 @@ class ESBigSendDataAdoptor {
 		const deviceName = conf.targetDeviceName;
 		const dataU8A = new Uint8Array(ab);
 		const { dasendDataAb, signatureU8A, count, f1 } = await ESBigSendUtil.makeBigSendDataMeta(dataU8A, deviceName, type, name);
+		console.log(`□ESBigSendDataAdoptor sendBidData dasendDataAb:${dasendDataAb}`, dasendDataAb);
 		const signatureB64 = B64U.ab2Base64(signatureU8A.buffer);
 		const sendQueue = new Map();
 		this.sendMap.set(signatureB64, { sendQueue, type, name, byteLength: ab.byteLength, status: ESBigSendUtil });
@@ -1350,6 +1351,7 @@ class B64U {
 		return resultBase64;
 	}
 	static joinU8as(u8as) {
+		console.log('□□joinU8ss', u8as);
 		let sumLength = 0;
 		const u8asCount = u8as.length;
 		for (let i = 0; i < u8asCount; i++) {
