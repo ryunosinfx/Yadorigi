@@ -1,4 +1,5 @@
 {
     "editor.fontSize": 10,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.wordWrapColumn": 120
 }
