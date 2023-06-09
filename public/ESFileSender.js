@@ -34,17 +34,22 @@ export class ESFileSender {
 	}
 	getOnMessage() {
 		return (targetDeviceName, msg) => {
+			console.log(`☆ESFileSender setOnMessage A targetDeviceName:${targetDeviceName}/msg:`, msg);
 			if (Array.isArray(msg)) {
+				console.log(`☆ESFileSender setOnMessage B targetDeviceName:${targetDeviceName}/msg:`, msg);
 				for (const file of msg) {
 					if (!file || !file.name || !file.type || !file.data) {
+						console.log(`☆ESFileSender setOnMessage C targetDeviceName:${targetDeviceName}/file:`, file);
 						return;
 					}
+					console.log(`☆ESFileSender setOnMessage D targetDeviceName:${targetDeviceName}/file:`, file);
 					const key = JSON.stringify([file.name, file.type]);
 					this.cacheDL.set(key, { ab: file.data, time: Date.now() });
 					this.onRecieveFile(file.name, file.type, file.data);
 				}
+				return;
 			}
-			this.log(`setOnMessage file.typetargetDeviceName:${targetDeviceName} msg:${msg}`);
+			this.log(`☆ESFileSender setOnMessage E targetDeviceName:${targetDeviceName} msg:${msg}`);
 		};
 	}
 	startConnect(url, group, deviceName, passwd) {
@@ -53,14 +58,28 @@ export class ESFileSender {
 	}
 	log(text, value) {
 		if (this.logElm) {
-			this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text} ${value}`;
+			this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${
+				typeof text !== 'string' ? JSON.stringify(text) : text
+			} ${value}`;
 		}
 		console.log(`${Date.now()} ${text}`, value);
+	}
+	async test(name, type) {
+		const fileKey = JSON.stringify([name, type]);
+		const { ab } = this.cacheUL.get(fileKey);
+		if (!ab) {
+			return;
+		}
+		return await this.u.tranTest(console, name, type, ab);
+	}
+	async broadcastMessage(msg) {
+		await this.u.broadcastMessage(msg);
 	}
 	async send(group, targetDeviceName, name, type) {
 		const fileKey = JSON.stringify([name, type]);
 		const { ab } = this.cacheUL.get(fileKey);
 		if (!ab) {
+			this.log(`send NOT FOUND! name:${name}/type:${type}`, ab);
 			return;
 		}
 		const connectKey = JSON.stringify([group, targetDeviceName]);
@@ -69,7 +88,11 @@ export class ESFileSender {
 	}
 	dl(name, type) {
 		const key = JSON.stringify([name, type]);
-		const { ab } = this.cacheDL.has(key) ? this.cacheDL.get(key) : this.cacheUL.has(key) ? this.cacheUL.get(key) : { ab: null };
+		const { ab } = this.cacheDL.has(key)
+			? this.cacheDL.get(key)
+			: this.cacheUL.has(key)
+			? this.cacheUL.get(key)
+			: { ab: null };
 		if (!ab) {
 			this.log(`NOT FOUND! name:${name}/type:${type}`);
 		}
@@ -98,7 +121,11 @@ export class ESFileSender {
 	}
 	delete(name, type) {
 		const key = JSON.stringify([name, type]);
-		return this.cacheDL.has(key) ? this.cacheDL.delete(key) : this.cacheUL.has(key) ? this.cacheUL.delete(key) : null;
+		return this.cacheDL.has(key)
+			? this.cacheDL.delete(key)
+			: this.cacheUL.has(key)
+			? this.cacheUL.delete(key)
+			: null;
 	}
 	setOnRecieve(callback = onRecieveFileCB) {
 		this.onRecieveFile = callback;
