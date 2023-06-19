@@ -1,4 +1,5 @@
 import { ESWebRTCConnecterU, Hasher } from './ESWebRTCConnecterU.js';
+import { FileUtil } from './ESFileUtil.js';
 const onRecieveFileCB = (name, type, dataAb) => {
 	console.log(name, type, dataAb);
 };
@@ -58,7 +59,12 @@ export class ESFileSender {
 	}
 	log(text, value) {
 		if (this.logElm) {
-			this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${
+			const m = 100;
+			const lf = '\n';
+			const t = this.logElm.textContent;
+			const r = t ? t.split(lf) : [];
+			const n = r.length > m ? r.slice(r.length - m, r.length) : r;
+			this.logElm.textContent = `${n.join(lf)}${lf}${Date.now()} ${
 				typeof text !== 'string' ? JSON.stringify(text) : text
 			} ${value}`;
 		}
@@ -149,41 +155,5 @@ export class ESFileSender {
 	}
 	async getHash(msg) {
 		return await Hasher.digest(typeof msg === 'string' ? msg : JSON.stringify(msg));
-	}
-}
-class FileUtil {
-	static getOnFileLoad(elm, cb) {
-		return () => {
-			const [file] = elm.files;
-			if (file) {
-				const name = file.name;
-				const type = file.type;
-				const reader = new FileReader();
-				reader.addEventListener('load', () => {
-					cb(name, type, reader.result);
-				});
-				reader.addEventListener('error', (event) => {
-					console.error(`Error occurred reading file: ${name}`, event);
-					cb(name, type, null);
-				});
-				reader.readAsArrayBuffer(file);
-			} else {
-				cb(null, null, null);
-			}
-		};
-	}
-
-	static download(fileName, content, mimeType = 'text/plain') {
-		const blob = new Blob([content], { type: mimeType });
-		const ancker = document.createElement('a');
-		ancker.style.display = 'none';
-		ancker.download = fileName;
-		ancker.href = window.URL.createObjectURL(blob);
-		ancker.dataset.downloadurl = [mimeType, fileName, ancker.href].join(':');
-		document.body.appendChild(ancker);
-		ancker.click();
-		setTimeout(() => {
-			document.body.removeChild(ancker);
-		});
 	}
 }
