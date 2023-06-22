@@ -1,4 +1,4 @@
-import { ESWebRTCConnecterU, Hasher } from './ESWebRTCConnecterU.js';
+import { ESWebRTCConnecterU, H } from './ESWebRTCConnecterU.js';
 import { FileUtil } from './ESFileUtil.js';
 const onRecieveFileCB = (name, type, dataAb) => {
 	console.log(name, type, dataAb);
@@ -154,6 +154,6 @@ export class ESFileSender {
 		});
 	}
 	async getHash(msg) {
-		return await Hasher.digest(typeof msg === 'string' ? msg : JSON.stringify(msg));
+		return await H.d(typeof msg === 'string' ? msg : JSON.stringify(msg));
 	}
 }
