@@ -2,76 +2,74 @@ const te = new TextEncoder('utf-8');
 const td = new TextDecoder('utf-8');
 const OF = '_OFFER';
 const AN = '_ANSWER';
-const SleepMs = 100;
+const SlpMs = 100;
 const WAIT = 'wait';
-const WAIT_AUTO_INTERVAL = 1000 * 20;
-const WAIT_AUTO_INTERVAL_2 = 1000 * 10 + Math.random() * 15000;
-const HASH_SCRATCH_COUNT = 12201;
-const NULL_ARR = [null];
-const contentType = 'application/x-www-form-urlencoded';
+const rnd = (a = 1) => Math.random() * a;
+const WaitAutoInterval = 1000 * 20;
+const WaitAutoInterval2 = 1000 * 10 + rnd(15000);
+const HshScrtchCnt = 12201;
+const NullArr = [null];
+const cType = 'application/x-www-form-urlencoded';
 const J = JSON;
+const Jp = (a) => J.parse(a);
+const Js = (a) => J.stringify(a);
 const SALT =
 	'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
 ///////////////////////////
+const w = (...a) => console.warn(a);
+const io = (...a) => console.info(a);
+const err = (...a) => console.error(a);
 const now = () => Date.now();
+const crv = (t) => crypto.getRandomValues(t);
+const isStr = (s) => typeof s === 'string';
+const isArr = (a) => Array.isArray(a);
+const isFn = (s) => typeof s === 'function';
+const ct = (t) => clearTimeout(t);
+const st = (f, w) => setTimeout(f, w);
+const pv = (a) => (a && isStr(a) ? Jp(a) : a);
 const ef = (e, id = '', l = null) => {
-	console.warn(`${id} ${e.message}`);
-	console.warn(e.stack);
+	w(`${id} ${e.message}`);
+	w(e.stack);
 	if (l && l.log && l !== console) {
 		l.log(`${id} ${e.message}`);
 		l.log(e.stack);
 	}
 };
 function getEF(id, l) {
-	return (e) => {
-		ef(e, id, l);
-	};
+	return (e) => ef(e, id, l);
 }
-function sleep(ms = SleepMs) {
-	return new Promise((r) => {
-		setTimeout(() => {
-			r();
-		}, ms);
-	});
+function slp(ms = SlpMs) {
+	return new Promise((r) => st(() => r(), ms));
 }
-function decode(d, id, l) {
+function dcd(d, id, l) {
 	try {
-		const o = typeof d === 'string' ? J.parse(d) : d;
-		const r = o && o.message ? o.message : null;
-		return r;
+		const o = pv(d);
+		return o && o.message ? o.message : null;
 	} catch (e) {
 		ef(e, id, l);
 	}
 	return null;
 }
-async function mkHash(
-	s = [location.origin, navigator.userAgent, now()],
-	st = Math.floor(Math.random() * 100) + (now() % 100) + 1
-) {
-	return await H.d(J.stringify(s), st);
+async function mkH(s = [location.origin, navigator.userAgent, now()], st = Math.floor(rnd(100)) + (now() % 100) + 1) {
+	return await H.d(Js(s), st);
 }
 async function dcb(e, g, t) {
 	return e + g + t;
 }
-///////////////////////////
+///////////////////////////isArr
 export class ESWebRTCConnecterU {
 	#i = null;
-	constructor(
-		l = console,
-		onRecive = (tdn, m) => {
-			console.log(`ESWebRTCConnecterU targetDeviceName:${tdn},msg:${m}`);
-		}
-	) {
-		this.#i = new M(l, onRecive);
+	constructor(l = console, onRcv = (tdn, m) => io(`ESWebRTCConnU targetDeviceName:${tdn},msg:${m}`)) {
+		this.#i = new M(l, onRcv);
 	}
 	async init(u, g, p, dn) {
 		await this.#i.init(u, g, p, dn);
 	}
 	setOnOpenFunc(fn = dcb) {
-		this.#i.onOpenFunc = fn;
+		this.#i.onOpen = fn;
 	}
 	setOnCloseFunc(fn = dcb) {
-		this.#i.onCloseFunc = fn;
+		this.#i.onClose = fn;
 	}
 	async startWaitAutoConnect() {
 		await this.#i.startWaitAutoConn();
@@ -89,79 +87,71 @@ export class ESWebRTCConnecterU {
 		this.#i.sendBigMsg(tsh, name, type, ab);
 	}
 	broadcastBigMessage(m) {
-		this.#i.broadcastBigMsg(m);
+		this.#i.bcBigMsg(m);
 	}
-	sendMessage(tsh, m) {
+	sndMsg(tsh, m) {
 		this.#i.sendMsg(tsh, m);
 	}
 	broadcastMessage(m) {
-		this.#i.broadcastMsg(m);
+		this.#i.bcMsg(m);
 	}
 	async request(tsh, kp = '/', t = 'GET', m) {
 		return await this.#i.req(tsh, kp, t, m);
 	}
 	setOnRequest(
 		cb = async (kp, t, d) => {
-			console.log(`keyPath:${kp}/type:${t}`, d);
+			io(`keyPath:${kp}/type:${t}`, d);
 			return d;
 		}
 	) {
 		this.#i.setOnReq(cb);
 	}
 	tranTest(l, name, type, ab) {
-		const func = async (r) => {
+		const fn = async (r) => {
 			const i = new M(l, (tdn, m) => {
-				console.log('tranTest ESWebRTCConnecterUnit cb onRcvCB msg:', m);
+				io('tranTest ESWebRTCConnU cb onRcvCB msg:', m);
 				const rab = m.ab;
-				console.log('tranTest ESWebRTCConnecterUnit cb onRcvCB resAb:', rab);
-				if (tdn === 'test' && B64U.ab2B64(rab) === B64U.ab2B64(ab)) {
-					r('OK');
-				}
+				io('tranTest ESWebRTCConnU cb onRcvCB resAb:', rab);
+				if (tdn === 'test' && B64.a2B(rab) === B64.a2B(ab)) r('OK');
 			});
 			await i.init('', 'test', 'test', 'test');
 			i.req('test', name, ab);
 		};
-		return new Promise(func);
+		return new Promise(fn);
 	}
 }
 ///////////////////////////
 class M {
-	constructor(
-		l = console,
-		onRcv = (tdn, m) => {
-			console.log(`ESWebRTCConnecterUnit targetDeviceName:${tdn},msg:${m}`);
-		}
-	) {
+	constructor(l = console, onRcv = (tdn, m) => io(`M targetDeviceName:${tdn},msg:${m}`)) {
 		this.l = l;
-		this.l.log('ESWebRTCConnecterU');
+		this.l.log('M');
 		this.c = {};
 		this.threads = [];
 		this.confs = {};
-		this.connections = {};
+		this.conns = {};
 		this.onRcvCB = onRcv;
-		this.ESBigSendDAdoptor = new A(onRcv);
+		this.A = new A(onRcv);
 	}
 	async init(u, g, p, dn, salt = SALT) {
-		this.l.log('ESWebRTCConnecterU INIT START');
+		this.l.log('M INIT START');
 		this.url = u;
 		this.group = g;
 		this.passwd = p;
-		this.deviceName = dn;
-		this.hash = await mkHash([u, g, p, dn], HASH_SCRATCH_COUNT);
-		this.singHash = await mkHash([u, g, p, salt], HASH_SCRATCH_COUNT);
-		this.groupHash = await mkHash([u, g, p, salt], HASH_SCRATCH_COUNT);
-		this.nowHash = await mkHash([now(), u, g, p, dn, salt], HASH_SCRATCH_COUNT);
-		this.signalingHash = await this.encrypt({ hash: this.nowHash, group: g, deviceName: dn });
-		this.l.log(`ESWebRTCConnecterU INIT END this.hash:${this.hash} deviceName:${dn}`);
-		this.reqMap = new Map();
+		this.devName = dn;
+		this.hash = await mkH([u, g, p, dn], HshScrtchCnt);
+		this.singHash = await mkH([u, g, p, salt], HshScrtchCnt);
+		this.gHash = await mkH([u, g, p, salt], HshScrtchCnt);
+		this.nowHash = await mkH([now(), u, g, p, dn, salt], HshScrtchCnt);
+		this.sgnlH = await this.enc({ hash: this.nowHash, group: g, devName: dn });
+		this.l.log(`M INIT END this.hash:${this.hash} devName:${dn}`);
+		this.reqM = new Map();
 	}
-	async encrypt(o, k = this.singHash) {
-		return await Cy.encodeStrAES256GCM(J.stringify(o), k);
+	async enc(o, k = this.singHash) {
+		return await Cy.encStrAES256GCM(Js(o), k);
 	}
-	async decrypt(es, k = this.singHash) {
+	async dec(es, k = this.singHash) {
 		try {
-			const ds = await Cy.decodeAES256GCMasStr(es, k);
-			return J.parse(ds);
+			return Jp(await Cy.decAES256GCMasStr(es, k));
 		} catch (e) {
 			ef(e, es, this.l);
 		}
@@ -169,47 +159,30 @@ class M {
 	}
 	async startWaitAutoConn() {
 		await this.inited;
-		this.isStopAuto = false;
+		this.isStopAuto = this.isWaiting = false;
 		let c = 3;
-		this.isWaiting = false;
-		let isFirst = true;
+		let isFst = true;
 		while (this.isStopAuto === false) {
-			const gh = this.groupHash;
-			await sleep(WAIT_AUTO_INTERVAL / 5);
-			if (!gh) {
-				continue;
-			}
-			if (c === 0 || isFirst) {
-				await this.sendWait(gh);
-				isFirst = false;
+			const gh = this.gHash;
+			await slp(WaitAutoInterval / 5);
+			if (!gh) continue;
+			if (c === 0 || isFst) {
+				await this.sndWait(gh);
+				isFst = false;
 				c = 3;
 			} else {
 				c--;
 			}
-			const l = await this.getWaitList(gh);
-			if (!Array.isArray(l)) {
-				continue;
-			}
+			const l = await this.getWaitL(gh);
+			if (!isArr(l)) continue;
 			this.l.log(l);
 			const n = now();
 			for (const r of l) {
-				const diff = n - r.expire;
-				if (diff > 10000) {
-					// console.log(`■ESWebRTCConnecterU startWaitAutoConnect continue diff:${diff}`, r);
-					continue;
-				}
-				const v = r.value && typeof r.value === 'string' ? J.parse(r.value) : r.value;
-				// console.log(
-				// 	`■ESWebRTCConnecterU startWaitAutoConnect diff:${diff} ${
-				// 		v.hash !== this.signalingHash
-				// 	}/${v.hash.indexOf(this.signalingHash)}`,
-				// 	v
-				// );
-				if (v.hash !== this.signalingHash && v.hash.indexOf(this.signalingHash) !== 0) {
-					// console.log(
-					// 	`■ESWebRTCConnecterU startWaitAutoConnect sendWaitNotify group:${groupHash}/${this.group}`
-					// );
-					await this.onCatchAnother(gh, n, v.hash, this.group); //v.hash===tsh
+				const d = n - r.expire;
+				if (d > 10000) continue;
+				const v = pv(r.value);
+				if (v.hash !== this.sgnlH && v.hash.indexOf(this.sgnlH) !== 0) {
+					await this.onCatchAnother(gh, n, v.hash, this.group);
 					break;
 				}
 			}
@@ -217,192 +190,161 @@ class M {
 	}
 	async onCatchAnother(gh, now, h, g) {
 		const hs = h.split('/');
-		// console.log(`■ESWebRTCConnecterU onCatchAnother hashSplit group:${hash}`, hs);
-		const tsh = h.indexOf(this.signalingHash) < 0 ? h : hs[1] !== this.signalingHash ? hs[1] : hs[2];
-		const conf = await this.getConf(gh, tsh, g);
-		if (!conf || this.isOpend(conf)) {
-			return;
-		}
-		await this.sendWaitNotify(gh, tsh);
-		const l = await this.getWaitList(gh);
-		if (!Array.isArray(l) || l.length < 1) {
-			return;
-		}
+		const tsh = h.indexOf(this.sgnlH) < 0 ? h : hs[1] !== this.sgnlH ? hs[1] : hs[2];
+		const cf = await this.getCf(gh, tsh, g);
+		if (!cf || this.isOpd(cf)) return;
+		await this.sndWaitNotify(gh, tsh);
+		const l = await this.getWaitL(gh);
+		if (!isArr(l) || l.length < 1) return;
 		let isHotStamdby = false;
 		const tl = [];
-		const len = this.signalingHash.length;
-		const tlen = tsh.length;
-		const a = len + tlen;
+		const ln = this.sgnlH.length;
+		const tn = tsh.length;
+		const a = ln + tn;
 		for (const r of l) {
-			const v = r.value && typeof r.value === 'string' ? J.parse(r.value) : r.value;
-			if (r.expire < now || v.hash.length < a) {
-				continue;
-			}
-			tl.push(J.stringify([r.expire, v.hash]));
+			const v = pv(r.value);
+			if (r.expire < now || v.hash.length < a) continue;
+			tl.push(Js([r.expire, v.hash]));
 		}
-		if (tl.length < 1) {
-			return;
-		}
+		if (tl.length < 1) return;
 		tl.sort();
 		tl.reverse();
-		let isOffer = false;
+		let isO = false;
 		let rc = 0;
 		for (const t of tl) {
-			const h = J.parse(t)[1];
-			if (h.indexOf(this.signalingHash) === 1 && h.indexOf(tsh) >= tlen) {
-				isOffer = true;
+			const h = Jp(t)[1];
+			if (h.indexOf(this.sgnlH) === 1 && h.indexOf(tsh) >= tn) {
+				isO = true;
 				rc++;
 			}
-			if (h.indexOf(this.signalingHash) >= len && h.indexOf(tsh) === 1) {
-				isOffer = false;
+			if (h.indexOf(this.sgnlH) >= ln && h.indexOf(tsh) === 1) {
+				isO = false;
 				rc++;
 			}
-			if (rc >= 2) {
-				break;
-			}
+			if (rc >= 2) break;
 		}
-		this.startNego(conf).catch(getEF(now, this.l));
-		await sleep(100);
-		if (isOffer) {
-			await sleep(Math.floor(Math.random() * 500) + 750);
-			this.offer(conf).catch(getEF(now, this.l));
+		this.startNego(cf).catch(getEF(now, this.l));
+		await slp(100);
+		if (isO) {
+			await slp(Math.floor(rnd(500)) + 750);
+			this.offer(cf).catch(getEF(now, this.l));
 		}
-		setTimeout(() => {
+		st(() => {
 			isHotStamdby = false;
 			this.isStop = true;
-		}, WAIT_AUTO_INTERVAL);
+		}, WaitAutoInterval);
 		isHotStamdby = true;
-		while (isHotStamdby) {
-			await sleep(100);
-		}
+		while (isHotStamdby) await slp(100);
 		this.isStop = false;
 	}
-	async sendWait(gh) {
+	async sndWait(gh) {
 		await this.post(
 			gh,
-			{ msg: WAIT, hash: this.signalingHash, expire: now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5 },
+			{ msg: WAIT, hash: this.sgnlH, expire: now() + WaitAutoInterval2 + WaitAutoInterval / 5 },
 			WAIT
 		);
 	}
-	async sendWaitNotify(gh, tsh) {
+	async sndWaitNotify(gh, tsh) {
 		await this.post(
 			gh,
 			{
 				msg: WAIT,
-				hash: `/${this.signalingHash}/${tsh}`,
-				expire: now() + WAIT_AUTO_INTERVAL_2 + WAIT_AUTO_INTERVAL / 5,
+				hash: `/${this.sgnlH}/${tsh}`,
+				expire: now() + WaitAutoInterval2 + WaitAutoInterval / 5,
 			},
 			WAIT
 		);
 	}
-	async getWaitList(gh) {
+	async getWaitL(gh) {
 		const d = await this.load(gh, WAIT);
-		const o = d ? J.parse(d) : null;
+		const o = d ? Jp(d) : null;
 		return o ? o.message : null;
 	}
-	isOpend(conf) {
-		const i = conf.w.isOpened();
-		this.l.log(`◆◆ESWebRTCConnecterU isOpend conf.w.isOpend:${i}:${conf.target}`);
+	isOpd(cf) {
+		const i = cf.w.isOpened();
+		this.l.log(`◆◆M isOpd conf.w.isOpend:${i}:${cf.target}`);
 		return i;
 	}
-	async startNego(conf) {
-		conf.isStop = false;
-		setTimeout(U.getStopFn(conf), WAIT_AUTO_INTERVAL);
-		while (conf.isStop === false && this.isStopAuto === false) {
-			setTimeout(() => {
-				if (conf.isAns) {
-					return;
-				} else if (this.threads.length < 4) {
-					this.threads.push(1);
-				} else {
-					return;
-				}
-				this.load(conf.pxOs).then(async (data) => {
-					const cacheKey = await H.d(conf.pxOs + data);
+	async startNego(cf) {
+		cf.isStop = false;
+		st(U.getStopFn(cf), WaitAutoInterval);
+		while (cf.isStop === false && this.isStopAuto === false) {
+			st(() => {
+				if (cf.isAns) return;
+				else if (this.threads.length < 4) this.threads.push(1);
+				else return;
+				this.load(cf.pxOs).then(async (d1) => {
+					const ck = await H.d(cf.pxOs + d1);
 					this.threads.pop(1);
-					const d = decode(data, conf.id, this.l);
-					// this.l.log('ESWebRTCConnecterU=ANSWER====data:', data);
-					if (d && !conf.cache[cacheKey]) {
-						conf.cache[cacheKey] = 1;
-						this.listener(conf, OF, d);
+					const d = dcd(d1, cf.id, this.l);
+					if (d && !cf.cache[ck]) {
+						cf.cache[ck] = 1;
+						this.listener(cf, OF, d);
 					}
 				});
-			}, SleepMs);
-			setTimeout(() => {
-				if (!conf.isAns) {
-					return;
-				} else if (this.threads.length < 4) {
-					this.threads.push(1);
-				} else {
-					return;
-				}
-				this.load(conf.pxAs).then(async (data) => {
-					const cacheKey = await H.d(conf.pxAs + data);
+			}, SlpMs);
+			st(() => {
+				if (!cf.isAns) return;
+				else if (this.threads.length < 4) this.threads.push(1);
+				else return;
+				this.load(cf.pxAs).then(async (data) => {
+					const ck = await H.d(cf.pxAs + data);
 					this.threads.pop(1);
-					const d = decode(data, conf.id, this.l);
-					// this.l.log('ESWebRTCConnecterU=OFFER====data:', data);
-					if (d && !conf.cache[cacheKey]) {
-						conf.cache[cacheKey] = 1;
-						this.listener(conf, AN, d);
+					const d = dcd(data, cf.id, this.l);
+					if (d && !cf.cache[ck]) {
+						cf.cache[ck] = 1;
+						this.listener(cf, AN, d);
 					}
 				});
-			}, SleepMs);
-			await sleep();
+			}, SlpMs);
+			await slp();
 		}
-		this.resetConf(conf);
+		this.resetConf(cf);
 	}
 	async stopWaitAutoConn() {
-		for (const k in this.confs) {
-			this.confs[k].isStop = true;
-		}
+		for (const k in this.confs) this.confs[k].isStop = true;
 		this.isStopAuto = true;
-		for (const k in this.confs) {
-			this.confs[k].isStop = true;
-		}
-		await sleep(Math.floor(Math.random() * 1000) + 2500);
-		for (const k in this.confs) {
-			this.resetConf(this.confs[k]);
-		}
+		for (const k in this.confs) this.confs[k].isStop = true;
+		await slp(Math.floor(rnd(1000)) + 2500);
+		for (const k in this.confs) this.resetConf(this.confs[k]);
 	}
-	async offer(conf) {
-		conf.isAns = false;
-		const o = await conf.w.getOfferSdp();
-		this.l.log('ESWebRTCConnecterU setOnRecieve OFFER post offer:', o);
-		await this.post(conf.pxAt, await this.encrypt(o, conf.nowHashKey));
+	async offer(cf) {
+		cf.isAns = false;
+		const o = await cf.w.getOfferSdp();
+		this.l.log('M setOnRecieve OFFER post offer:', o);
+		await this.post(cf.pxAt, await this.enc(o, cf.nowHashKey));
 	}
-	async post(g, o, cmd = 'g') {
+	async post(g, o, c = 'g') {
 		const n = now();
-		const d = await GA.postToGAS(this.url, {
+		const d = await GA.post2GAS(this.url, {
 			group: g,
-			cmd,
-			data: typeof o !== 'string' ? J.stringify(o) : o,
+			cmd: c,
+			data: isStr(o) ? o : Js(o),
 		});
-		this.l.log(`ESWebRTCConnecterU================post=================${g}/${cmd} d:${now() - n} data:`, d);
+		this.l.log(`M====post====${g}/${c} d:${now() - n} data:`, d);
 	}
-	async load(g, cmd = 'g') {
+	async load(g, c = 'g') {
 		const n = now();
-		const k = `${n}_${Math.floor(Math.random() * 1000)}`;
-		const d = await GA.getTextGAS(this.url, { group: g, cmd });
-		this.l.log(`ESWebRTCConnecterU==${k}==============load========${g}/${cmd} ========${now() - n} data:`, d);
+		const k = `${n}_${Math.floor(rnd(1000))}`;
+		const d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
+		this.l.log(`M==${k}====load====${g}/${c} ====${now() - n} data:`, d);
 		return d;
 	}
-	async getConKey(gh, signalingHash) {
-		const obj = signalingHash === 'test' ? { deviceName: 'test' } : await this.decrypt(signalingHash);
-		return [J.stringify([gh, obj ? obj.deviceName : null]), obj];
+	async getConKey(gh, sh) {
+		const obj = sh === 'test' ? { devName: 'test' } : await this.dec(sh);
+		return [Js([gh, obj ? obj.devName : null]), obj];
 	}
-	async getConf(gh, tsh, g) {
+	async getCf(gh, tsh, g) {
 		const [k, oT] = await this.getConKey(gh, tsh);
-		if (!oT) {
-			return null;
-		}
-		const [s] = await this.getConKey(gh, this.signalingHash);
-		let conf = this.confs[k];
-		const tdn = oT.deviceName;
-		if (!conf) {
-			conf = {
+		if (!oT) return null;
+		const [s] = await this.getConKey(gh, this.sgnlH);
+		let cf = this.confs[k];
+		const tdn = oT.devName;
+		if (!cf) {
+			cf = {
 				targetDeviceName: tdn,
 				isAns: true,
-				isGetFirst: false,
+				isGetFst: false,
 				isExcangedCandidates: false,
 				pxAt: k + AN,
 				pxOt: k + OF,
@@ -410,266 +352,191 @@ class M {
 				pxOs: s + OF,
 				isStop: false,
 				cache: {},
-				id: `${now()} ${this.deviceName}`,
+				id: `${now()} ${this.devName}`,
 			};
-			conf.w = new WebRTCConnecter(this.l, tsh === 'test');
-			conf.w.setOnMsg(async (m) => {
-				console.log('conf.w.setOnMessage((msg):', m);
-				await this.onMsgByConf(conf, tdn, tsh, m);
+			cf.w = new WebRTCConn(this.l, tsh === 'test');
+			cf.w.setOnMsg(async (m) => {
+				io('conf.w.setOnMsg((msg):', m);
+				await this.onMsgByConf(cf, tdn, tsh, m);
 			});
-			conf.w.setOnOpen((e) => {
-				this.l.log(`############★###OPEN！###★###############targetDeviceName:${tdn}`, oT);
-				this.onOpenFunc(e, g, tsh, tdn);
-				conf.isStop = true;
+			cf.w.setOnOpen((e) => {
+				this.l.log(`####★###OPEN！###★####targetDeviceName:${tdn}`, oT);
+				this.onOpen(e, g, tsh, tdn);
+				cf.isStop = true;
 			});
-			conf.w.setOnClose((e) => {
-				this.l.log(`############☆###CLOSE###☆###############targetDeviceName:${tdn}`);
-				this.onCloseFunc(e, g, tsh, tdn);
-				conf.isStop = false;
+			cf.w.setOnClose((e) => {
+				this.l.log(`####☆###CLOSE###☆####targetDeviceName:${tdn}`);
+				this.onClose(e, g, tsh, tdn);
+				cf.isStop = false;
 			});
-			this.confs[k] = conf;
+			this.confs[k] = cf;
 		}
-		conf.nowHashKey = oT.nowHash;
-		return conf;
+		cf.nowHashKey = oT.nowHash;
+		return cf;
 	}
-	async onMsgByConf(conf, tdn, tsh, m) {
+	async onMsgByConf(cf, tdn, tsh, m) {
 		const ab =
-			m instanceof Blob
-				? await B64U.blob2ab(m)
-				: m.buffer && m.buffer.byteLength
-				? m.buffer
-				: m.byteLength
-				? m
-				: null;
-		const dU8A = this.ESBigSendDAdoptor.getBigSendDResFormat(tdn, ab);
+			m instanceof Blob ? await B64.L2a(m) : m.buffer && m.buffer.byteLength ? m.buffer : m.byteLength ? m : null;
+		const dU8A = this.A.getBigSndDResFormat(tdn, ab);
 		if (dU8A) {
-			console.log('☆onMessageByConf A conf.w.setOnMessage((msg):to onReciveBigDResponse dU8A', dU8A, m);
-			await this.onRcvBigDRes(conf, tdn, dU8A);
-		} else if (await this.ESBigSendDAdoptor.isBigSendD(ab, tdn)) {
-			console.log('☆onMessageByConf B conf.w.setOnMessage((msg):to onReciveBigD ab', ab, m);
-			await this.onRcvBigD(conf, tdn, ab, tsh);
+			io('☆onMsgByConf A conf.w.setOnMsg((msg):to onRcvBigDRes dU8A', dU8A, m);
+			await this.onRcvBigDRes(cf, tdn, dU8A);
+		} else if (await this.A.isBigSndD(ab, tdn)) {
+			io('☆onMsgByConf B conf.w.setOnMsg((msg):to isBigSndD ab', ab, m);
+			await this.onRcvBigD(cf, tdn, ab, tsh);
 		} else if (!ab && typeof m === 'string') {
-			console.log('☆onMessageByConf C conf.w.setOnMessage((msg):to onRcvCB', m);
+			io('☆onMsgByConf C conf.w.setOnMsg((msg):to onRcvCB', m);
 			this.onRcvCB(tdn, m);
 		} else {
-			console.log('☆onMessageByConf D conf.w.setOnMessage((msg):to onRcvCB', m);
+			io('☆onMsgByConf D conf.w.setOnMsg((msg):to onRcvCB', m);
 			this.onRcvCB(tdn, { ab });
 		}
 	}
-	resetConf(conf) {
-		conf.isAns = true;
-		conf.isGetFirst = false;
-		conf.isExcangedCandidates = false;
-		conf.isStop = false;
-		const ckeys = Object.keys(conf.cache);
-		for (const key of ckeys) {
-			delete conf.cache[key];
-		}
+	resetConf(cf) {
+		cf.isAns = true;
+		cf.isGetFst = cf.isExcangedCandidates = cf.isStop = false;
+		const c = Object.keys(cf.cache);
+		for (const k of c) delete cf.cache[k];
+		return null;
 	}
-	async listener(conf, px, ve) {
-		const v = await this.decrypt(ve, this.nowHash);
+	async listener(cf, px, ve) {
+		const v = await this.dec(ve, this.nowHash);
 		this.l.log(
-			`ESWebRTCConnecterU==============LISTENER==RECEIVE=A================px:${px}/${
-				px === AN
-			}//value:${v}/conf.isAns:${conf.isAns}/!conf.isGetFirst:${!conf.isGetFirst}/conf.isExcangedCandidates:${
-				conf.isExcangedCandidates
-			}`
+			`M====LISTENER==RECEIVE=A====px:${px}/${px === AN}//value:${v}/conf.isAns:${
+				cf.isAns
+			}/!conf.isGetFst:${!cf.isGetFst}/conf.isExcangedCandidates:${cf.isExcangedCandidates}`
 		);
-		if (conf.w.isOpend || conf.isStop || v === true || v === null || v === 'null') {
-			this.l.log(
-				`ESWebRTCConnecterU==============LISTENER==END=================value:${v}/conf.isStop:${conf.isStop}`
-			);
-			return;
-		}
-		if (conf.isAns && px === AN) {
-			this.l.log(
-				`ESWebRTCConnecterU A AS ANSWER conf.isAns:${conf.isAns} A px:${px} conf.isGetFirst:${conf.isGetFirst}`
-			);
-			if (!conf.isGetFirst) {
-				const a = await this.ans(conf, v);
-				this.l.log(
-					`ESWebRTCConnecterU==============LISTENER==answer=A================typeof answer :${typeof a}`,
-					a
-				);
-				await this.post(conf.pxOt, await this.encrypt(a, conf.nowHashKey));
-				conf.isGetFirst = true;
-				// console.warn('★★ANSWER conf.isGetFirst = true;');
-			} else if (!conf.isExcangedCandidates) {
-				conf.isExcangedCandidates = true;
-				const cs = conf.w.setCandidates(typeof v === 'string' ? J.parse(v) : v, now());
-				this.l.log('ESWebRTCConnecterU==============LISTENER==answer candidats=A================', cs);
+		if (cf.w.isOpend || cf.isStop || v === true || v === null || v === 'null')
+			return this.l.log(`M====LISTENER==END====value:${v}/conf.isStop:${cf.isStop}`);
+		if (cf.isAns && px === AN) {
+			this.l.log(`M A AS ANSWER conf.isAns:${cf.isAns} A px:${px} conf.isGetFst:${cf.isGetFst}`);
+			if (!cf.isGetFst) {
+				const a = await this.ans(cf, v);
+				this.l.log(`M====LISTENER==answer=A====typeof answer :${typeof a}`, a);
+				await this.post(cf.pxOt, await this.enc(a, cf.nowHashKey));
+				cf.isGetFst = true;
+			} else if (!cf.isExcangedCandidates) {
+				cf.isExcangedCandidates = true;
+				const cs = cf.w.setCandidates(pv(v), now());
+				this.l.log('M====LISTENER==answer candidats=A====', cs);
 			}
-		} else if (!conf.isAns && px === OF) {
-			this.l.log(
-				`ESWebRTCConnecterU B AS OFFER conf.isAns:${conf.isAns}/B px:${px}/!conf.isGetFirst:${!conf.isGetFirst}`
-			);
-			if (!conf.isGetFirst) {
-				const cs = await this.conn(conf, v);
-				this.l.log('ESWebRTCConnecterU==============LISTENER==make offer candidates=A================', cs);
-				conf.isGetFirst = true;
-				// console.warn('★★★OFFER conf.isGetFirst = true;');
-				await this.post(conf.pxAt, await this.encrypt(cs, conf.nowHashKey));
-			} else if (!conf.isExcangedCandidates) {
-				conf.isExcangedCandidates = true;
-				const cs = v ? conf.w.setCandidates(typeof v === 'string' ? J.parse(v) : v, now()) : null;
-				this.l.log('ESWebRTCConnecterU==============LISTENER==set offer candidats=A================', cs);
+		} else if (!cf.isAns && px === OF) {
+			this.l.log(`M B AS OFFER conf.isAns:${cf.isAns}/B px:${px}/!conf.isGetFst:${!cf.isGetFst}`);
+			if (!cf.isGetFst) {
+				const cs = await this.conn(cf, v);
+				this.l.log('M====LISTENER==make offer candidates=A====', cs);
+				cf.isGetFst = true;
+				await this.post(cf.pxAt, await this.enc(cs, cf.nowHashKey));
+			} else if (!cf.isExcangedCandidates) {
+				cf.isExcangedCandidates = true;
+				const cs = v ? cf.w.setCandidates(pv(v), now()) : null;
+				this.l.log('M====LISTENER==set offer candidats=A====', cs);
 			}
 		}
 	}
-	async ans(conf, osi) {
-		setTimeout(async () => {
-			if (conf.isStop) {
-				return;
-			}
-			const cs = await conf.w.connAns();
-			while (!conf.isGetFirst) {
-				await sleep(Math.floor(Math.random() * 200) + 50);
-			}
-			await this.post(conf.pxOt, await this.encrypt(cs, conf.nowHashKey));
+	async ans(cf, osi) {
+		st(async () => {
+			if (cf.isStop) return;
+			const cs = await cf.w.connAns();
+			while (!cf.isGetFst) await slp(Math.floor(rnd(200)) + 50);
+			await this.post(cf.pxOt, await this.enc(cs, cf.nowHashKey));
 		});
-		if (conf.isStop) {
-			return;
-		}
-		return await conf.w.ans(U.parseSdp(osi, this.l));
+		return cf.isStop ? null : await cf.w.ans(U.parseSdp(osi, this.l));
 	}
-	conn(conf, si) {
-		if (conf.isStop) {
-			return;
-		}
+	conn(cf, si) {
+		if (cf.isStop) return;
 		const fn = async (r) => {
-			if (conf.isStop) {
-				return;
-			}
-			return await conf.w.conn(U.parseSdp(si, this.l), (cs) => {
-				r(cs);
-			});
+			const f = (c) => r(c);
+			return cf.isStop ? null : await cf.w.conn(U.parseSdp(si, this.l), f);
 		};
 		return new Promise(fn);
 	}
-	/////////////////////////////////////////////////////////////////
 	closeAll() {
-		for (const k in this.confs) {
-			const c = this.confs[k];
-			if (c && c.w && c.w.isOpend) {
-				c.w.close();
-				this.resetConf(c);
-			}
-		}
+		for (const k in this.confs) this.cc(this.confs[k]);
+	}
+	cc(c) {
+		if (c && c.w && c.w.isOpend) return c.w.close() === this.resetConf(c);
 	}
 	async close(tsh) {
-		const c = await this.getConf(this.groupHash, tsh, this.group);
-		if (c && c.w && c.w.isOpend) {
-			c.w.close();
-			this.resetConf(c);
-		}
+		this.cc(await this.getCf(this.gHash, tsh, this.group));
 	}
-	/////////////////////////////////////////////////////////////////
-	async sendBigMsg(tsh, n, t, ab) {
-		return await this.ESBigSendDAdoptor.sendBigD(
-			await this.getConf(this.groupHash, tsh, this.group),
-			n,
-			t,
-			ab,
-			this.l
-		);
+	async sndBigMsg(tsh, n, t, ab) {
+		return await this.A.sndBigD(await this.getCf(this.gHash, tsh, this.group), n, t, ab, this.l);
 	}
-	async broadcastBigMsg(n, t, ab) {
+	async bcBigMsg(n, t, ab) {
 		const ps = [];
-		for (const k in this.confs) {
-			ps.push(this.ESBigSendDAdoptor.sendBigD(this.confs[k], n, t, ab, this.l));
-		}
+		for (const k in this.confs) ps.push(this.A.sndBigD(this.confs[k], n, t, ab, this.l));
 		return Promise.all(ps);
 	}
-	/////////////////////////////////////////////////////////////////
 	async sendMsg(tsh, m) {
-		U.sendOnDC(await this.getConf(this.groupHash, tsh, this.group), m, this.l);
+		U.sndOnDC(await this.getCf(this.gHash, tsh, this.group), m, this.l);
 	}
-	broadcastMsg(m) {
-		for (const k in this.confs) {
-			U.sendOnDC(this.confs[k], m, this.l);
-		}
+	bcMsg(m) {
+		for (const k in this.confs) U.sndOnDC(this.confs[k], m, this.l);
 	}
-	async onRcvBigD(conf, tdn, m, tsh) {
-		const { files, isComple, res } = await this.ESBigSendDAdoptor.rcvBigSendD(conf, m);
-		console.log(
-			`☆ ESWebRTCConnecterU onReciveBigD A Array.isArray(files):${Array.isArray(files)}/isComple:${isComple}`,
-			res
-		);
-		if (isComple && Array.isArray(files)) {
-			console.log(
-				`☆ ESWebRTCConnecterU onReciveBigD B files.byteLength:${files.byteLength}/isComple:${isComple}`
-			);
+	async onRcvBigD(cf, tdn, m, tsh) {
+		const { files, isComple, res } = await this.A.rcvBigSndD(cf, m);
+		io(`☆ M onRcvBigD A isArr(files):${isArr(files)}/isComple:${isComple}`, res);
+		if (isComple && isArr(files)) {
+			io(`☆ M onRcvBigD B files.byteLength:${files.byteLength}/isComple:${isComple}`);
 			for (const f of files) {
-				console.log(`☆ ESWebRTCConnecterU onReciveBigD C file${f}/isComple:${isComple}`, f);
-				if (this.ESBigSendDAdoptor.isReq(f)) {
-					console.log(`☆ ESWebRTCConnecterU onReciveBigD D file${f}/isComple:${isComple}`);
-					return await this.onReqData(tdn, f, tsh);
-				} else if (this.ESBigSendDAdoptor.isRes(f)) {
-					console.log(`☆ ESWebRTCConnecterU onReciveBigD E file${f}/isComple:${isComple}`);
+				io(`☆ M onRcvBigD C file${f}/isComple:${isComple}`, f);
+				if (this.A.isReq(f)) {
+					io(`☆ M onRcvBigD D file${f}/isComple:${isComple}`);
+					return await this.onReqD(tdn, f, tsh);
+				} else if (this.A.isRes(f)) {
+					io(`☆ M onRcvBigD E file${f}/isComple:${isComple}`);
 					return await this.onRes(tdn, f);
 				}
-				console.log(`☆ ESWebRTCConnecterU onReciveBigD F file${f}/isComple:${isComple}`);
+				io(`☆ M onRcvBigD F file${f}/isComple:${isComple}`);
 			}
-			console.log(`☆ ESWebRTCConnecterU onReciveBigD G files:${files}/isComple:${isComple}`);
+			io(`☆ M onRcvBigD G files:${files}/isComple:${isComple}`);
 			this.onRcvCB(tdn, files);
 		}
 		return [];
 	}
-	async onReqData(tdn, f, tsh) {
+	async onReqD(tdn, f, tsh) {
 		const ts = f.type.split('/');
 		const PQ = ts.shift();
 		const h = ts.pop();
 		const t = ts.join('/');
 		const { key, type, result, status } = await this.onReq(tdn, f.name, t, f.data);
 		const nt = [PQ, status, type, h].join('/');
-		return await this.sendBigMsg(tsh, key, this.ESBigSendDAdoptor.cnvtTypeToRes(nt), result);
+		return await this.sndBigMsg(tsh, key, this.A.cnvtType2Res(nt), result);
 	}
-	async onRcvBigDRes(conf, tdn, dU8A) {
-		if (this.ESBigSendDAdoptor.isComplBigSendDRes(dU8A)) {
-			return await this.ESBigSendDAdoptor.rcvBigSendDCompl(dU8A);
-		} else if (this.ESBigSendDAdoptor.isBigSendDRes(dU8A)) {
-			return await this.ESBigSendDAdoptor.rcvBigSendDRes(dU8A);
-		}
+	async onRcvBigDRes(cf, tdn, dU8A) {
+		if (this.A.isComplBigSndDRes(dU8A)) return await this.A.rcvBigSndDCompl(dU8A);
+		else if (this.A.isBigSndDRes(dU8A)) return await this.A.rcvBigSndDRes(dU8A);
 		return null;
 	}
 	/////////////////////////////////////////////////////////////////
 	req(tsh, kp, t, m) {
 		const fn = async (r) => {
-			const ab =
-				typeof m === 'string'
-					? B64U.str2u8a(m)
-					: m.byteLength
-					? m
-					: m.buffer
-					? m.buffer
-					: B64U.str2u8a(J.stringify(m));
-			const h = await H.d(now() + Math.random() + tsh + kp + SALT + t);
+			const ab = isStr(m) ? B64.s2u(m) : m.byteLength ? m : m.buffer ? m.buffer : B64.s2u(Js(m));
+			const h = await H.d(now() + rnd() + tsh + kp + SALT + t);
 			const th = m.byteLength ? 'arraybuffer' : m.buffer ? 'typedarray' : typeof m;
-			const nt = `${BSU.REQUEST_HEADER}${th}/${h}`; // PorQ/type/hash
-			this.reqMap.set(h, r);
-			setTimeout(() => {
-				this.reqMap.delete(h);
-				r(BSU.TIME_OUT);
-			}, BSU.MAX_WAIT_MS);
-			const conf = await this.getConf(this.groupHash, tsh, this.group);
-			return await this.ESBigSendDAdoptor.sendBigD(conf, kp, nt, ab, this.l);
+			const nt = `${S.ReqH}${th}/${h}`; // PorQ/type/hash
+			this.reqM.set(h, r);
+			st(() => {
+				this.reqM.delete(h);
+				r(S.T_OUT);
+			}, S.MaxWaitMs);
+			const conf = await this.getCf(this.gHash, tsh, this.group);
+			return await this.A.sndBigD(conf, kp, nt, ab, this.l);
 		};
 		return new Promise(fn);
 	}
 	onRes(tdn, f) {
 		const ts = f.type.split('/');
-		const status = ts.shift();
+		const s = ts.shift();
 		const h = ts.pop();
-		const r = this.reqMap.get(h);
+		const r = this.reqM.get(h);
 		const tm = ts.join('/');
-		if (!r) {
-			console.log('onRespons resolve:', r);
-		}
-		r(tdn, f.name, tm, f.data, status);
+		return r ? r(tdn, f.name, tm, f.data, s) : io('onRespons resolve:', r);
 	}
 	setOnReq(
 		cb = async (k, t, d) => {
-			console.log(`key:${k}/type:${t}`, d);
+			io(`key:${k}/type:${t}`, d);
 			return { key: k, type: t, result: d, status: 404 };
 		}
 	) {
@@ -677,218 +544,185 @@ class M {
 	}
 }
 class A {
-	constructor(onComplCB) {
-		this.sendM = new Map();
-		this.recieveMap = new Map();
-		this.onComplCB = onComplCB;
+	constructor(onCmpCB) {
+		this.sndM = new Map();
+		this.rcvM = new Map();
+		this.onCmpCB = onCmpCB;
 	}
 	isReq(f) {
-		return (
-			f &&
-			f.type &&
-			f.type.indexOf(BSU.REQUEST_HEADER) === 0 &&
-			f.type.split('/').length >= 3 &&
-			B64U.isB64(f.type.split('/').pop())
-		);
+		return this.isR(f, S.ReqH);
 	}
 	isRes(f) {
+		return this.isR(f, S.ResH);
+	}
+	isR(f, h) {
 		return (
 			f &&
 			f.type &&
-			f.type.indexOf(BSU.RESPONSE_HEADER) === 0 &&
+			f.type.indexOf(h) === 0 &&
 			f.type.split('/').length >= 3 &&
-			B64U.isB64(f.type.split('/').pop())
+			B64.isB64(f.type.split('/').pop())
 		);
 	}
-	cnvtTypeToRes(t) {
-		return t ? (t.indexOf(BSU.REQUEST_HEADER) === 0 ? t.replace(BSU.REQUEST_HEADER, BSU.RESPONSE_HEADER) : t) : t;
+	cnvtType2Res(t) {
+		return t ? (t.indexOf(S.ReqH) === 0 ? t.replace(S.ReqH, S.ResH) : t) : t;
 	}
-	async isBigSendD(d, dn) {
-		const M = BSU.MIN;
-		console.log(`☆☆ESBigSendDAdoptor isBigSendD A deviceName:${dn}/MIN:${M}`, d);
+	async isBigSndD(d, dn) {
+		const M = S.MIN;
+		io(`☆☆A isBigSndD A devName:${dn}/MIN:${M}`, d);
 		if (
 			!d ||
-			typeof d === 'string' ||
+			isStr(d) ||
 			(!d.byteLength && !d.buffer) ||
 			(!d.buffer && d.byteLength < M) ||
 			(d.buffer && d.buffer.byteLength < M)
-		) {
+		)
 			return false; // 1,256/8=32byte,data
-		}
-		const dnU8A = B64U.str2u8a(dn);
-		console.log(`☆☆ESBigSendDAdoptor isBigSendD B deviceName:${dn}`, dnU8A);
+		const dnU8A = B64.s2u(dn);
+		io(`☆☆A isBigSndD B devName:${dn}`, dnU8A);
 		const f1 = dnU8A[0] * 1;
-		const dU8A = d.byteLength && d.byteLength > 0 ? B.u8a(d) : d.buffer ? B.u8a(d.buffer) : NULL_ARR;
-		console.log(
-			`☆☆ESBigSendDAdoptor isBigSendD C data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${dU8A[0]}`,
-			dU8A
-		);
+		const dU8A = d.byteLength && d.byteLength > 0 ? B.u8a(d) : d.buffer ? B.u8a(d.buffer) : NullArr;
+		io(`☆☆A isBigSndD C data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${dU8A[0]}`, dU8A);
 		if (f1 !== dU8A[0] * 1) {
-			console.log(
-				`☆☆ESBigSendDAdoptor isBigSendD C1 data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${
-					dU8A[0]
-				}/type:${typeof f1}`
-			);
+			io(`☆☆A isBigSndD C1 data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${dU8A[0]}/type:${typeof f1}`);
 			return false;
 		}
 		const hU8A = dU8A.subarray(1, 33);
 		const dhU8A = dU8A.subarray(33); //index,signAll,data
-		const h = B64U.ab2B64(await H.d(dhU8A, 1, undefined, true));
-		const hB64 = B64U.u8a2B64(hU8A);
+		const h = B64.a2B(await H.d(dhU8A, 1, undefined, true));
+		const hB64 = B64.u2B(hU8A);
 		const r = hB64 === h;
-		console.log(
-			`☆☆ESBigSendDAdoptor isBigSendD D data.byteLength:${d.byteLength}/hU8A:${hU8A}/result:${r}/hB64:${hB64}/hash:${h}/dhU8A:`,
+		io(
+			`☆☆A isBigSndD D data.byteLength:${d.byteLength}/hU8A:${hU8A}/result:${r}/hB64:${hB64}/hash:${h}/dhU8A:`,
 			dhU8A
 		);
 		return r;
 	}
-	async sendBigD(conf, n, t, ab, l = console) {
-		l.log(`★★ESBigSendDAdoptor sendBigD A sendMessage msg:${ab}/${conf.w}/${conf.w.isOpend}`);
-		if (!conf || !conf.w || !conf.w.isOpend) {
-			return;
-		}
-		const w = conf.w;
-		const dn = conf.targetDeviceName;
+	async sndBigD(cf, n, t, ab, l = console) {
+		l.log(`★★A sendBigD A sndMsg msg:${ab}/${cf.w}/${cf.w.isOpend}`);
+		if (!cf || !cf.w || !cf.w.isOpend) return;
+		const w = cf.w;
+		const dn = cf.targetDeviceName;
 		const u8a = B.u8a(ab);
-		const { dasendDataAb, signatureU8A, count, f1 } = await BSU.mkBigSendDMeta(u8a, dn, t, n);
-		console.log(`★★ESBigSendDAdoptor sendBigD B dasendDataAb:${dasendDataAb}`, dasendDataAb);
-		const sB64 = B64U.ab2B64(signatureU8A.buffer);
+		const { dasendDataAb, signatureU8A, count, f1 } = await S.mkBigSndDMeta(u8a, dn, t, n);
+		io(`★★A sendBigD B dasendDataAb:${dasendDataAb}`, dasendDataAb);
+		const sB64 = B64.a2B(signatureU8A.buffer);
 		const sq = new Map();
 		const idx = -1;
 		const i = B.i32a(1).fill(idx);
-		const rh = B64U.ab2B64(await BSU.mkResAb(f1, B.u8a(dasendDataAb).subarray(69), i.buffer, signatureU8A));
-		this.sendM.set(sB64, {
+		const rh = B64.a2B(await S.mkResAb(f1, B.u8a(dasendDataAb).subarray(69), i.buffer, signatureU8A));
+		this.sndM.set(sB64, {
 			sq,
 			t,
 			n,
 			byteLength: ab.byteLength,
-			status: BSU.SENDING,
+			status: S.SENDING,
 		});
-		console.log(`★★ESBigSendDAdoptor sendBigD C01 resHashB64:${rh}/i:`, rh);
-		const r = await this.snedTran(w, dasendDataAb, rh, sq, idx);
-		console.log(`★★ESBigSendDAdoptor sendBigD C02 result:${r}/i:`, i);
-		if (r === BSU.COMPLE) {
-			return true;
-		}
-		if (r === BSU.TIME_OUT) {
-			return false;
-		}
+		io(`★★A sendBigD C01 resHashB64:${rh}/i:`, rh);
+		const r = await this.sndTran(w, dasendDataAb, rh, sq, idx);
+		io(`★★A sendBigD C02 result:${r}/i:`, i);
+		if (r === S.COMPLE) return true;
+		if (r === S.T_OUT) return false;
 		let of = 0;
 		const ps = [];
 		for (let i = 0; i < count; i++) {
-			console.log(`★★ESBigSendDAdoptor sendBigD D count:${count}/i:${i}/offset:`, of);
-			const end = i === count - 1 ? ab.byteLength : of + BSU.SIZE;
+			io(`★★A sendBigD D count:${count}/i:${i}/offset:`, of);
+			const end = i === count - 1 ? ab.byteLength : of + S.SIZE;
 			const p = u8a.subarray(of, end);
-			ps.push(this.sendTranApart(w, p, f1, signatureU8A, sq, i));
-			of = of += BSU.SIZE;
+			ps.push(this.sndTranApart(w, p, f1, signatureU8A, sq, i));
+			of = of += S.SIZE;
 		}
 		await Promise.all(ps);
-		console.log(`★★ESBigSendDAdoptor sendBigD E result:${r}`, r);
+		io(`★★A sendBigD E result:${r}`, r);
 	}
-	async sendTranApart(w, p, f1, sU8A, sq, idx) {
-		const i = B.i32a(1);
-		i.fill(idx);
-		console.log(`★★★ESBigSendDAdoptor sendTranApart A index:${idx}`, i);
-		const rh = B64U.u8a2B64(await BSU.mkResAb(f1, p, i.buffer, sU8A));
-		const sAB = await BSU.mkBigSendD(p, f1, sU8A, idx);
-		console.log(`★★★ESBigSendDAdoptor sendTranApart B resHashB64:${rh}`, rh);
-		console.log(`★★★ESBigSendDAdoptor sendTranApart C partU8A:${p}`, p);
-		console.log(`★★★ESBigSendDAdoptor sendTranApart D signatureU8A:${sU8A}`, sU8A);
-		let isSendOK = false;
-		let isCmp = false;
-		while (isSendOK === false) {
-			const r = await this.snedTran(w, sAB, rh, sq, idx);
-			console.log(`★★★ESBigSendDAdoptor sendTranApart E index:${idx}/result:${r}`, p);
-			if (r === BSU.COMPLE) {
-				isSendOK = true;
-				isCmp = true;
-			}
-			if (r === BSU.OK) {
-				isSendOK = true;
-			}
+	async sndTranApart(w, p, f1, sU8A, sq, i) {
+		const a = B.i32a(1);
+		a.fill(i);
+		io(`★★★A sndTranApart A index:${i}`, a);
+		const rh = B64.u2B(await S.mkResAb(f1, p, a.buffer, sU8A));
+		const sAB = await S.mkBigSndD(p, f1, sU8A, i);
+		io(`★★★A sndTranApart B resHashB64:${rh}`, rh);
+		io(`★★★A sndTranApart C partU8A:${p}`, p);
+		io(`★★★A sndTranApart D signatureU8A:${sU8A}`, sU8A);
+		let isSndOK = false,
+			isCmp = false;
+		while (isSndOK === false) {
+			const r = await this.sndTran(w, sAB, rh, sq, i);
+			io(`★★★A sndTranApart E index:${i}/result:${r}`, p);
+			if (r === S.COMPLE) isSndOK = isCmp = true;
+			if (r === S.OK) isSndOK = true;
 		}
 		return isCmp;
 	}
-	snedTran(w, ab, rh = '', sq = new Map(), index) {
-		const tm = sq.has(rh) ? sq.get(rh).tm : null;
-		clearTimeout(tm);
+	sndTran(w, ab, rh = '', sq = new Map(), i) {
+		ct(sq.has(rh) ? sq.get(rh).tm : null);
 		return new Promise((r) => {
-			const tm = setTimeout(() => {
-				r(BSU.TIME_OUT);
-			}, BSU.WAIT_MS);
-			sq.set(rh, { index, timer: tm, resolve: r });
-			console.log(`★★★★ESBigSendDAdoptor snedTransactional index:${index}/resHashB64:${rh}/ ${ab}`, ab);
+			const tm = st(() => {
+				r(S.T_OUT);
+			}, S.WaitMs);
+			sq.set(rh, { index: i, timer: tm, resolve: r });
+			io(`★★★★A snedTran index:${i}/resHashB64:${rh}/ ${ab}`, ab);
 			w.send(ab, 'arraybuffer');
 		});
 	}
-	getBigSendDResFormat(dn, d) {
-		const M = BSU.MIN;
-		console.log(`☆☆ESBigSendDAdoptor A getBigSendDResFormat deviceName:${dn}/data:`, d);
+	getBigSndDResFormat(dn, d) {
+		const M = S.MIN;
+		io(`☆☆A A getBigSndDResFormat devName:${dn}/data:`, d);
 		if (
 			d === null ||
-			typeof d === 'string' ||
+			isStr(d) ||
 			(!d.byteLength && !d.buffer) ||
 			(d.byteLength && d.byteLength < M) ||
 			(d.buffer && d.buffer.byteLength < M)
-		) {
+		)
 			return false; // 1,256/8=32byte,data(index4byte,data)
-		}
-		console.log(`☆☆ESBigSendDAdoptor B getBigSendDResFormat deviceName:${dn}/data:`, d);
-		const dnU8A = B64U.str2u8a(dn);
+		io(`☆☆A B getBigSndDResFormat devName:${dn}/data:`, d);
+		const dnU8A = B64.s2u(dn);
 		const f1 = dnU8A[0];
-		const dU8A = !Array.isArray(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
-		console.log(`☆☆ESBigSendDAdoptor C getBigSendDResFormat f1:${f1}/data:`, d);
-		if (f1 !== dU8A[0]) {
-			return false;
-		}
-		// const hashB64 = B64U.u8a2B64(dU8A.subarray(1, 33));
-		const idx = B64U.u8a2I32a(dU8A.subarray(33, 37))[0];
-		console.log(`☆☆ESBigSendDAdoptor D getBigSendDResFormat index:${idx}/f1:`, f1);
-		const sB64 = B64U.u8a2B64(dU8A.subarray(37, 69));
-		const m = this.sendM.get(sB64);
-		console.log(`☆☆ESBigSendDAdoptor E getBigSendDResFormat signatureB64:${sB64}/m:`, m);
-		return m && m.sq && m.byteLength >= idx * BSU.SIZE && idx >= -1 ? dU8A : null;
+		const dU8A = !isArr(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
+		io(`☆☆A C getBigSndDResFormat f1:${f1}/data:`, d);
+		if (f1 !== dU8A[0]) return false;
+		const idx = B64.u2I(dU8A.subarray(33, 37))[0];
+		io(`☆☆A D getBigSndDResFormat index:${idx}/f1:`, f1);
+		const sB64 = B64.u2B(dU8A.subarray(37, 69));
+		const m = this.sndM.get(sB64);
+		io(`☆☆A E getBigSndDResFormat signatureB64:${sB64}/m:`, m);
+		return m && m.sq && m.byteLength >= idx * S.SIZE && idx >= -1 ? dU8A : null;
 	}
-	isBigSendDRes(dU8A) {
-		const h = B64U.u8a2B64(dU8A);
-		const i = B64U.u8a2I32a(dU8A.subarray(33, 37))[0];
-		const sB64 = B64U.u8a2B64(dU8A.subarray(37, 69));
-		const m = this.sendM.get(sB64);
+	isBigSndDRes(dU8A) {
+		const h = B64.u2B(dU8A);
+		const i = B64.u2I(dU8A.subarray(33, 37))[0];
+		const sB64 = B64.u2B(dU8A.subarray(37, 69));
+		const m = this.sndM.get(sB64);
 		const sq = m && m.sq ? m.sq : null;
-		console.log(
-			`☆☆☆☆ESBigSendDAdoptor isBigSendDResponse  A index:${i}/signatureB64:${sB64} /hashB64:${h} sq.get(hashB64):/m:`,
-			sq.get(h),
-			m
-		);
+		io(`☆☆☆☆A isBigSndDRes  A index:${i}/signatureB64:${sB64} /hashB64:${h} sq.get(hashB64):/m:`, sq.get(h), m);
 		const t = sq && sq.get(h) ? sq.get(h) : { index: null };
 		if (t.index === i) {
-			console.log(`☆☆☆☆ESBigSendDAdoptor isBigSendDResponse B index:${i}`);
-			clearTimeout(t.timer);
+			io(`☆☆☆☆A isBigSndDRes B index:${i}`);
+			ct(t.timer);
 			return true;
 		}
-		console.log(`☆☆☆☆ESBigSendDAdoptor isBigSendDResponse C index:${i} task:`, t);
+		io(`☆☆☆☆A isBigSndDRes C index:${i} task:`, t);
 		return false;
 	}
-	isComplBigSendDRes(dU8A) {
-		const sB64 = B64U.u8a2B64(dU8A.subarray(37, 69));
-		const i = B64U.u8a2I32a(dU8A.subarray(33, 37))[0];
+	isComplBigSndDRes(dU8A) {
+		const sB64 = B64.u2B(dU8A.subarray(37, 69));
+		const i = B64.u2I(dU8A.subarray(33, 37))[0];
 		const s = dU8A[dU8A.length - 1];
-		const m = this.sendM.get(sB64);
-		console.log(`☆☆☆☆ESBigSendDAdoptor isComplBigSendDRes index:${i}/ESBSU.STATUS[status] :${BSU.STATUS[s]}/m:`, m);
-		return Math.ceil(m.byteLength / BSU.SIZE) === i && BSU.STATUS[s] === BSU.COMPLE;
+		const m = this.sndM.get(sB64);
+		io(`☆☆☆☆A isComplBigSndDRes index:${i}/ESBSU.STATUS[status] :${S.STATUS[s]}/m:`, m);
+		return Math.ceil(m.byteLength / S.SIZE) === i && S.STATUS[s] === S.COMPLE;
 	}
-	async rcvBigSendD(conf, dAB) {
-		if (!conf || !conf.w || !conf.w.isOpend) {
-			return;
-		}
-		const w = conf.w;
+	async rcvBigSndD(cf, dAB) {
+		if (!cf || !cf.w || !cf.w.isOpend) return;
+		const w = cf.w;
 		const u8a = B.u8a(dAB);
 		const bU8A = u8a.subarray(33); //index,signAll,data
-		const i = B64U.u8a2I32a(bU8A.subarray(0, 4))[0]; //index,signAll,data
-		const sB64 = B64U.u8a2B64(bU8A.subarray(4, 36)); //index,signAll,data
+		const i = B64.u2I(bU8A.subarray(0, 4))[0]; //index,signAll,data
+		const sB64 = B64.u2B(bU8A.subarray(4, 36)); //index,signAll,data
 		const dU8A = bU8A.subarray(36); //index,signAll,data
-		let o = this.recieveMap.get(sB64);
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD A index:${i}/signatureB64:`, sB64);
+		let o = this.rcvM.get(sB64);
+		io(`☆☆☆A rcvBigSndD A index:${i}/signatureB64:`, sB64);
 		if (!o) {
 			o = {
 				m: [{ type: null, name: null }],
@@ -900,20 +734,20 @@ class A {
 				full: null,
 				cmpU64: null,
 			};
-			this.recieveMap.set(sB64, o);
+			this.rcvM.set(sB64, o);
 		}
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD B index:${i}/o:`, o);
+		io(`☆☆☆A rcvBigSndD B index:${i}/o:`, o);
 		if (i === -1) {
-			console.log('☆☆☆ESBigSendDAdoptor recieveBigSendD C B64U.u8a2str(dU8A):', B64U.u8a2str(dU8A));
-			const mt = J.parse(B64U.u8a2str(dU8A));
-			let isRegisterd = false;
+			io('☆☆☆A rcvBigSndD C B64U.u8a2str(dU8A):', B64.u2s(dU8A));
+			const mt = Jp(B64.u2s(dU8A));
+			let isReg = false;
 			for (const m of o.m) {
 				if (m.name === mt.name && m.type === mt.type) {
-					isRegisterd = true;
+					isReg = true;
 					break;
 				}
 			}
-			if (!isRegisterd) {
+			if (!isReg) {
 				o.m.push({ name: mt.name, type: mt.type });
 				o.signature = mt.signature;
 				o.byteLength = mt.byteLength;
@@ -925,237 +759,170 @@ class A {
 				const cpc = B.u8a(l);
 				cpc.fill(255);
 				cpc[cc.length - 1] = mt.count % 8 ? Math.pow(2, mt.count % 8) - 1 : 255;
-				o.cmpU64 = B64U.u8a2B64(cpc);
+				o.cmpU64 = B64.u2B(cpc);
 			}
 		} else {
 			const ci = Math.floor(i / 8);
 			o.counter[ci] = o.counter[ci] | (1 << i % 8);
-			const idx = (2147483648 + i).toFixed();
-			o.data[idx] = dU8A;
+			o.data[(2147483648 + i).toFixed()] = dU8A;
 		}
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD D index:${i}/m o.counter:${o.counter}/o.data:`, o.data);
-		console.log(
-			`☆☆☆ESBigSendDAdoptor recieveBigSendD E index:${i}/B64U.u8a2Base64(o.counter):${B64U.u8a2B64(
-				o.counter
-			)}/o.counter:`,
-			o.counter
-		);
-		const isCmp = o.cmpU64 === B64U.u8a2B64(o.counter);
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD F index:${i}/o.cmpU64:${o.cmpU64}/isComple:`, isCmp);
-		const r0 = await BSU.mkBigSendDRes(dAB, i);
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD G index:${i}/res:`, r0);
+		io(`☆☆☆A rcvBigSndD D index:${i}/m o.counter:${o.counter}/o.data:`, o.data);
+		io(`☆☆☆A rcvBigSndD E index:${i}/B64U.u8a2Base64(o.counter):${B64.u2B(o.counter)}/o.counter:`, o.counter);
+		const isCmp = o.cmpU64 === B64.u2B(o.counter);
+		io(`☆☆☆A rcvBigSndD F index:${i}/o.cmpU64:${o.cmpU64}/isComple:`, isCmp);
+		const r0 = await S.mkBigSndDRes(dAB, i);
+		io(`☆☆☆A rcvBigSndD G index:${i}/res:`, r0);
 		w.send(r0.buffer, 'arraybuffer');
 		if (isCmp) {
-			console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD H index:${i}/isComple:`, isCmp);
-			const { united, isValid } = await BSU.unitData(o);
-			const r1 = await BSU.mkBigSendDRes(dAB, o.count + 1, isValid ? BSU.COMPLE : BSU.NG);
+			io(`☆☆☆A rcvBigSndD H index:${i}/isComple:`, isCmp);
+			const { united, isValid } = await S.unitD(o);
+			const r1 = await S.mkBigSndDRes(dAB, o.count + 1, isValid ? S.COMPLE : S.NG);
 			w.send(r1.buffer, 'arraybuffer');
-			console.log(
-				`☆☆☆ESBigSendDAdoptor recieveBigSendD I index:${i}/isComple:${isCmp}/isValid:${isValid}/united:`,
-				united
-			);
+			io(`☆☆☆A rcvBigSndD I index:${i}/isComple:${isCmp}/isValid:${isValid}/united:`, united);
 			if (isValid) {
-				console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD J index:${i}/isValid:`, isValid);
+				io(`☆☆☆A rcvBigSndD J index:${i}/isValid:`, isValid);
 				const fs = [];
 				for (const m of o.m) {
-					if (!m.type && !m.name) {
-						continue;
-					}
-					const type = [m.type].join('/');
-					fs.push({ name: m.name, type, data: united });
+					if (!m.type && !m.name) continue;
+					fs.push({ name: m.name, type: [m.type].join('/'), data: united });
 				}
 				return { files: fs, isComple: isCmp, res: r1 };
 			}
 		}
-		console.log(`☆☆☆ESBigSendDAdoptor recieveBigSendD K index:${i}/isComple:${isCmp}/res:`, r0);
+		io(`☆☆☆A rcvBigSndD K index:${i}/isComple:${isCmp}/res:`, r0);
 		return { res: r0, isComple: isCmp };
 	}
-	async rcvBigSendDRes(dU8A) {
+	async rcvBigSndDRes(dU8A) {
 		const li = dU8A.length - 1;
-		console.log(`☆☆☆☆ESBigSendDAdoptor recieveBigSendDRes A lastIndex:${li}`);
-		const status = BSU.STATUS[dU8A[li]];
-		dU8A[li] = BSU.STATUS.indexOf(BSU.OK);
-		const h = B64U.u8a2B64(dU8A);
-		const sB64 = B64U.u8a2B64(dU8A.subarray(37, 69));
-		const m = this.sendM.get(sB64);
+		io(`☆☆☆☆A rcvBigSndDRes A lastIndex:${li}`);
+		const s = S.STATUS[dU8A[li]];
+		dU8A[li] = S.STATUS.indexOf(S.OK);
+		const h = B64.u2B(dU8A);
+		const m = this.sndM.get(B64.u2B(dU8A.subarray(37, 69)));
 		const t = m && m.sq && m.sq.get(h) ? m.sq.get(h) : { index: null };
 		const r = t.resolve;
-		if (typeof r === 'function') {
-			r(status);
-			return true;
-		}
-		return false;
+		return isFn(r) ? r(s) !== true : false;
 	}
-	async rcvBigSendDCompl(dU8A) {
-		const sB64 = B64U.u8a2B64(dU8A.subarray(37, 69));
-		const m = this.sendM.get(sB64);
+	async rcvBigSndDCompl(dU8A) {
+		const m = this.sndM.get(B64.u2B(dU8A.subarray(37, 69)));
 		if (m && m.sq) {
-			const sq = m.sq;
-			for (const [k, v] of sq) {
-				if (typeof v === 'function') {
-					v(BSU.COMPLE);
-				}
-				sq.delete(k);
+			for (const [k, v] of m.sq) {
+				if (isFn(v)) v(S.COMPLE);
+				m.sq.delete(k);
 			}
 		}
 	}
-	//////////////////////////////////////////////////
 }
-class BSU {
+class S {
 	static SIZE = 8000;
 	static MIN = 1 + 32 + 4 + 32 + 1;
-	static WAIT_MS = 30000;
-	static MAX_WAIT_MS = 60000;
-	static REQUEST_HEADER = 'Q/';
-	static RESPONSE_HEADER = 'P/';
+	static WaitMs = 30000;
+	static MaxWaitMs = 60000;
+	static ReqH = 'Q/';
+	static ResH = 'P/';
 	static OK = 'OK';
 	static NG = 'NG';
 	static COMPLE = 'COMPLE';
 	static SENDING = 'SENDING';
-	static TIME_OUT = 'TIME_OUT';
-	static STATUS = [BSU.TIME_OUT, BSU.OK, BSU.NG, BSU.COMPLE, BSU.SENDING];
-	static async mkBigSendDMeta(d, dn, t, name) {
-		const dnU8A = B64U.str2u8a(dn);
+	static T_OUT = 'TIME_OUT';
+	static STATUS = [S.T_OUT, S.OK, S.NG, S.COMPLE, S.SENDING];
+	static async mkBigSndDMeta(d, dn, t, name) {
+		const dnU8A = B64.s2u(dn);
 		const f1 = B.u8a(1).fill(dnU8A[0]);
 		const bl = d.buffer.byteLength;
-		const c = Math.ceil(bl / BSU.SIZE);
+		const c = Math.ceil(bl / S.SIZE);
 		const I1 = B.i32a(1).fill(-1);
 		const s = await H.d(d); //BASE64
-		// console.log('□□ESBigSendUtil makeBigSendDMeta 6 signature:', s);
-		const sU8A = B.u8a(B64U.b64u2ab(s));
-		// console.log(`□□ESBigSendUtil makeBigSendDMeta 7 signatureU8A:${sU8A.length}`, sU8A);
-		const j = J.stringify({ type: t, name, signature: s, byteLength: bl, count: c });
-		// console.log('□□ESBigSendUtil makeBigSendDMeta 8 json:', j);
-		const u8a = B64U.joinU8as([B.u8a(I1.buffer), sU8A, B64U.str2u8a(j)]); // 4+32=36
-		// console.log(`□□ESBigSendUtil makeBigSendDMeta 9 dataU8a:${u8a.length}`, u8a);
+		const sU8A = B.u8a(B64.U2a(s));
+		const j = Js({ type: t, name, signature: s, byteLength: bl, count: c });
+		const u8a = B64.jus([B.u8a(I1.buffer), sU8A, B64.s2u(j)]); // 4+32=36
 		const sAb = await H.d(u8a, 1, undefined, true);
 		const r = {
-			dasendDataAb: B64U.joinU8as([f1, B.u8a(sAb), u8a]).buffer, // 1+32=33 33+36 = 69
+			dasendDataAb: B64.jus([f1, B.u8a(sAb), u8a]).buffer, // 1+32=33 33+36 = 69
 			signatureU8A: sU8A,
 			count: c,
 			f1,
-		}; //d,signature,[index,signAll,data]
-		// console.log('□□ESBigSendUtil makeBigSendDMeta A result', r);
+		};
 		return r;
 	}
-	static async mkBigSendD(u8a, f1, sU8A, i) {
+	static async mkBigSndD(u8a, f1, sU8A, i) {
 		const I1 = B.i32a(1).fill(i);
-		const dataU8a = B64U.joinU8as([B.u8a(I1.buffer), sU8A, u8a]);
-		const signAb = await H.d(dataU8a, 1, undefined, true);
-		const dU8A = B64U.joinU8as([f1, B.u8a(signAb), dataU8a]);
-		const r = dU8A.buffer; //d,signature,[i,signAll,data]
-		//----------------------------------------------
-		const dataU8A = dU8A.subarray(33); //i,signAll,data
-		console.log(`□□ESBigSendUtil makeBigSendD A01 result dataU8A: ${dataU8A}/`);
-		const h = B64U.ab2B64(await H.d(dataU8A, 1, undefined, true));
-		console.log(`□□ESBigSendUtil makeBigSendD A02 result hash: ${h}/`);
-		const hU8A = dU8A.subarray(1, 33);
-		console.log(`□□ESBigSendUtil makeBigSendD A03 result hashU8A: ${hU8A}/`);
-		const ab = hU8A.buffer;
-		console.log(`□□ESBigSendUtil makeBigSendD A04 result ab: ${ab.byteLength}/`);
-		const hB64 = B64U.u8a2B64(hU8A);
-		console.log(`□□ESBigSendUtil makeBigSendD A05 result ab: ${ab.byteLength}/`);
-		const isMatch = hB64 === h;
-		console.log(
-			`□□ESBigSendUtil makeBigSendD A result hash: ${h}/${hU8A.length}/###hashU8AB64:${hB64.length}#${hB64}####/isMatch:${isMatch}`,
-			hU8A
-		);
-		//----------------------------------------------
-
-		console.log('□□ESBigSendUtil makeBigSendD A result', r);
+		const bU8a = B64.jus([B.u8a(I1.buffer), sU8A, u8a]);
+		const signAb = await H.d(bU8a, 1, undefined, true);
+		const dU8A = B64.jus([f1, B.u8a(signAb), bU8a]);
+		const r = dU8A.buffer;
+		io('□□ESBigSndUtil makeBigSndD A result', r);
 		return r;
 	}
-	static async mkBigSendDRes(d, i = -1, f = BSU.OK) {
-		console.log(`☆☆☆☆ ESBSU makeBigSendDResponse A index:${i}/flg:${f}/data:`, d);
-		const dU8A = !Array.isArray(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
-		console.log(
-			`☆☆☆☆ ESBSU makeBigSendDResponse B Array.isArray(d):${Array.isArray(d)}/dU8A.length:${dU8A.length}/dU8A:`,
-			dU8A
-		);
+	static async mkBigSndDRes(d, i = -1, f = S.OK) {
+		io(`☆☆☆☆ ESBSU mkBigSndDRes A index:${i}/flg:${f}/data:`, d);
+		const dU8A = !isArr(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
+		io(`☆☆☆☆ ESBSU mkBigSndDRes B isArr(d):${isArr(d)}/dU8A.length:${dU8A.length}/dU8A:`, dU8A);
 		const f1 = B.u8a(1);
 		f1[0] = dU8A[0];
-		const iI32a = B64U.u8a2I32a(i > 0 ? B.u8a(B.i32a(1).fill(i).buffer) : dU8A.subarray(33, 37));
+		const iI32a = B64.u2I(i > 0 ? B.u8a(B.i32a(1).fill(i).buffer) : dU8A.subarray(33, 37));
 		const sU8A = dU8A.subarray(37, 69);
 		const bU8A = dU8A.subarray(69);
-		const flg = BSU.bOK(f);
-		console.log(
-			`☆☆☆☆ ESBSU makeBigSendDResponse C indexI32A:${iI32a}/signatureU8A.length:${sU8A.length}/signatureU8A:`,
-			sU8A
-		);
-		return await BSU.mkResAb(f1, bU8A, iI32a.buffer, sU8A, flg);
+		const flg = S.bOK(f);
+		io(`☆☆☆☆ ESBSU mkBigSndDRes C indexI32A:${iI32a}/signatureU8A.length:${sU8A.length}/signatureU8A:`, sU8A);
+		return await S.mkResAb(f1, bU8A, iI32a.buffer, sU8A, flg);
 	}
-	static bOK(f = BSU.OK) {
-		return B.u8a(1).fill(BSU.STATUS.indexOf(f));
+	static bOK(f = S.OK) {
+		return B.u8a(1).fill(S.STATUS.indexOf(f));
 	}
-	static async mkResAb(f1, dU8A, iAb, sU8A, f = BSU.bOK()) {
-		console.log(
-			`☆☆☆☆☆ ESBSU makeResAb A f1:${f1}/indexAb:${B.i32a(iAb)[0]}/signatureU8A:${sU8A.length}/signatureU8A:`,
-			sU8A
-		);
+	static async mkResAb(f1, dU8A, iAb, sU8A, f = S.bOK()) {
+		io(`☆☆☆☆☆ ESBSU mkResAb A f1:${f1}/indexAb:${B.i32a(iAb)[0]}/signatureU8A:${sU8A.length}/signatureU8A:`, sU8A);
 		const h = B.u8a(await H.d(dU8A, 1, undefined, true)); //ab
-		console.log(
-			`☆☆☆☆☆ ESBSU makeResAb B f1:${f1}/dU8A.length:${dU8A.length}/hashU8A:${h.length} ${B64U.u8a2B64(h)} /dU8A:`,
-			dU8A
-		);
-		return B64U.joinU8as([f1, h, B.u8a(iAb), sU8A, f]);
+		io(`☆☆☆☆☆ ESBSU mkResAb B f1:${f1}/dU8A.length:${dU8A.length}/hashU8A:${h.length} ${B64.u2B(h)} /dU8A:`, dU8A);
+		return B64.jus([f1, h, B.u8a(iAb), sU8A, f]);
 	}
-	static async unitData(o) {
-		console.log('☆☆☆☆☆ ESBSU unitData A map:', o);
-		if (o.full) {
-			return { united: o.full, isValid: true };
-		}
+	static async unitD(o) {
+		io('☆☆☆☆☆ ESBSU unitData A map:', o);
+		if (o.full) return { united: o.full, isValid: true };
 		const d = o.data;
 		const ks = Object.keys(d);
 		ks.sort();
-		console.log('☆☆☆☆☆ ESBSU unitData B keys:', ks);
+		io('☆☆☆☆☆ ESBSU unitData B keys:', ks);
 		const a = [];
-		for (const k of ks) {
-			a.push(d[k]);
-		}
-		const dU8A = B64U.joinU8as(a);
-		console.log(`☆☆☆☆☆ ESBSU unitData C dU8A.length:${dU8A.length}`, dU8A);
-
+		for (const k of ks) a.push(d[k]);
+		const dU8A = B64.jus(a);
+		io(`☆☆☆☆☆ ESBSU unitData C dU8A.length:${dU8A.length}`, dU8A);
 		const u = B.u8a(o.byteLength);
-		let offset = 0;
+		let c = 0;
 		for (const k of ks) {
 			const u8a = d[k];
-			u.set(u8a, offset);
+			u.set(u8a, c);
 			delete d[k];
-			offset += u8a.byteLength;
+			c += u8a.byteLength;
 		}
 		ks.splice(0, ks.length);
 		const h = await H.d(u);
-		console.log(`☆☆☆☆☆ ESBSU unitData D map.signature:${o.signature} /digest:${h} /united:`, u);
-		const isValid = h === o.signature;
-		o.full = isValid ? u : null;
-		return { united: u, isValid };
+		io(`☆☆☆☆☆ ESBSU unitData D map.signature:${o.signature} /digest:${h} /united:`, u);
+		const i = h === o.signature;
+		o.full = i ? u : null;
+		return { united: u, isValid: i };
 	}
 }
 class U {
-	static getStopFn(conf) {
+	static getStopFn(cf) {
 		return () => {
-			conf.isStop = true;
+			cf.isStop = true;
 		};
 	}
-	static sendOnDC(conf, m, l = console, bt = 'blob') {
-		l.log(`ESWebRTCConnecterUtil sendMessage msg:${m}`);
-		if (conf && conf.w && conf.w.isOpend) {
-			conf.w.send(m, bt);
-		}
+	static sndOnDC(cf, m, l = console, bt = 'blob') {
+		l.log(`Mtil sndMsg msg:${m}`);
+		return cf && cf.w && cf.w.isOpend ? cf.w.send(m, bt) : null;
 	}
-	static parseSdp(sdpI, l = console) {
-		const sdp = typeof sdpI === 'string' ? J.parse(sdpI) : sdpI;
-		l.log(`ESWebRTCConnecterU parseSdp ${typeof sdpI}/sdpInput:${sdpI}`);
-		if (!sdp.sdp) {
-			return null;
-		}
-		sdp.sdp = sdp.sdp.replace(/\\r\\n/g, '\r\n');
-		l.log(sdp);
-		return sdp.sdp;
+	static parseSdp(i, l = console) {
+		const s = pv(i);
+		l.log(`M parseSdp ${typeof i}/sdpInput:${i}`);
+		if (!s.sdp) return null;
+		s.sdp = s.sdp.replace(/\\r\\n/g, '\r\n');
+		l.log(s);
+		return s.sdp;
 	}
 }
 class GA {
-	//////Fetcher Core///////////////////////////////////////////////
 	static c(d) {
 		return d && typeof d === 'object'
 			? Object.keys(d)
@@ -1163,32 +930,32 @@ class GA {
 					.join('&')
 			: d;
 	}
-	static async getTextGAS(p, d = {}) {
-		console.log('GASAccessor----getTextGAS--A------------');
+	static async getTxtGAS(p, d = {}) {
+		io('GA----getTxtGAS--A----');
 		const r = await fetch(`${p}?${GA.c(d)}`, {
 			method: 'GET',
 			redirect: 'follow',
 			Accept: 'application/json',
-			'Content-Type': contentType,
+			'Content-Type': cType,
 		});
 		return await r.text();
 	}
-	static async postToGAS(p, d) {
-		console.warn('GASAccessor----postToGAS--A------------', d);
+	static async post2GAS(p, d) {
+		w('GA----post2GAS--A----', d);
 		const r = await fetch(`${p}`, {
 			method: 'POST',
 			redirect: 'follow',
 			Accept: 'application/json',
-			'Content-Type': contentType,
+			'Content-Type': cType,
 			body: `${GA.c(d)}`,
 			headers: {
-				'Content-Type': contentType,
+				'Content-Type': cType,
 			},
 		});
 		return await r.text();
 	}
 }
-class WebRTCConnecter {
+class WebRTCConn {
 	constructor(
 		l = console,
 		isTM = false,
@@ -1199,140 +966,109 @@ class WebRTCConnecter {
 		]
 	) {
 		this.isTestMode = isTM;
-		this.pOffer = new WebRTCPeer('OFFER', stunSrv);
-		this.pAnswer = new WebRTCPeer('ANSWER', stunSrv);
+		this.pOffer = new Peer('OFFER', stunSrv);
+		this.pAnswer = new Peer('ANSWER', stunSrv);
 		this.wPeer = null;
-		this.onOpenCallBack = () => {};
-		this.onCloseCallBack = () => {};
-		this.onMsgCB = () => {};
-		this.onErrCB = () => {};
-		this.isOpend = isTM ? true : false;
+		this.onOpenCB = this.onCloseCB = this.onMsgCB = this.onErrCB = () => {};
+		this.isOpd = isTM ? true : false;
 		this.l = l;
 		this.inited = this.init();
 	}
 	async init() {
-		this.l.log('-WebRTCConnecter-init--0----------WebRTCConnecter--------------------------------------');
+		this.l.log('-WebRTCConn-init--0----WebRTCConn----');
 		this.close();
 		const self = this;
 		this.pOffer.onOpen = (e) => {
-			self.onOpenCallBack(e);
+			self.onOpenCB(e);
 			self.wPeer = self.pOffer;
-			self.l.log(
-				'-WebRTCConnecter-onOpen--1-pOffer---------WebRTCConnecter--------------------------------------'
-			);
-			self.wPeer.onClose = self.onCloseCallBack;
-			self.wPeer.onMessage = self.onMsgCB;
+			self.l.log('-WebRTCConn-onOpen--1-pOffer----WebRTCConn----');
+			self.wPeer.onClose = self.onCloseCB;
+			self.wPeer.onMsg = self.onMsgCB;
 			self.wPeer.onError = self.onErrCB;
-			self.isOpend = true;
+			self.isOpd = true;
 		};
 		this.pAnswer.onOpen = (e) => {
-			self.onOpenCallBack(e);
+			self.onOpenCB(e);
 			self.wPeer = self.pAnswer;
-			self.l.log('-WebRTCConnecter-onOpen--1-pAnswer---------pAnswer--------------------------------------');
-			self.wPeer.onClose = self.onCloseCallBack;
-			self.wPeer.onMessage = self.onMsgCB;
+			self.l.log('-WebRTCConn-onOpen--1-pAnswer----pAnswer----');
+			self.wPeer.onClose = self.onCloseCB;
+			self.wPeer.onMsg = self.onMsgCB;
 			self.wPeer.onError = self.onErrCB;
-			self.isOpend = true;
+			self.isOpd = true;
 		};
-		this.l.log(
-			`-WebRTCConnecter-init--3----------WebRTCConnecter--------------------------------------pOffer:${this.pOffer.name}`
-		);
-		this.l.log(
-			`-WebRTCConnecter-init--4----------WebRTCConnecter--------------------------------------pAnswer:${this.pAnswer.name}`
-		);
+		this.l.log(`-WebRTCConn-init--3----WebRTCConn----pOffer:${this.pOffer.name} ----pAnswer:${this.pAnswer.name}`);
 		return true;
 	}
 
 	async getOfferSdp() {
-		return (await this.inited) ? await this.pOffer.mkOffer() : '';
+		return (await this.inited) ? await this.pOffer.mkO() : '';
 	}
 	setOnOpen(cb) {
-		this.onOpenCallBack = (e) => {
-			console.warn(
-				`-WebRTCConnecter-onOpenCallBack--1------------------------------------------------event:${e}`
-			);
+		this.onOpenCB = (e) => {
+			w(`-WebRTCConn-onOpenCallBack--1----event:${e}`);
 			cb(e);
 		};
 	}
 	setOnClose(cb) {
-		this.onCloseCallBack = (e) => {
-			console.warn(
-				`-WebRTCConnecter-onCloseCallBack--1------------------------------------------------event:${e}`
-			);
+		this.onCloseCB = (e) => {
+			w(`-WebRTCConn-onCloseCallBack--1----event:${e}`);
 			cb(e);
 		};
 	}
 	setOnMsg(cb) {
 		this.onMsgCB = (m) => {
-			console.warn(
-				`-WebRTCConnecter-onMessageCallBack--1------------------------------------------------msg:${m}`
-			);
+			w(`-WebRTCConn-onMessageCallBack--1----msg:${m}`);
 			cb(m);
 		};
 	}
 	setOnErr(cb) {
 		this.onErrCB = (e) => {
-			console.warn(
-				`-WebRTCConnecter-onErrorCallBack--1------------------------------------------------error:${e}`
-			);
+			w(`-WebRTCConn-onErrorCallBack--1----error:${e}`);
 			cb(e);
 		};
 	}
 	send(m, bt = 'blob') {
-		// console.log(`WebRTCConnecter send msg:${msg}/binaryType:${bt}`);
-		if (this.isTestMode) {
-			return this.onMsgCB(
-				typeof m !== 'string' && m instanceof Blob ? (m.buffer ? new Blob(m) : m.byteLength ? B.u8a(m) : m) : m
-			);
-		}
-		this.wPeer.send(m, bt);
+		// info(`WebRTCConn send msg:${msg}/binaryType:${bt}`);
+		return this.isTestMode
+			? this.onMsgCB(!isStr(m) && m instanceof Blob ? (m.buffer ? new Blob(m) : m.byteLength ? B.u8a(m) : m) : m)
+			: this.wPeer.send(m, bt);
 	}
 	async ans(sdp) {
-		if (!sdp) {
-			return null;
-		} else if (await this.inited) {
-			return await this.pAnswer.setOfferAndAns(sdp);
-		}
+		return !sdp ? null : (await this.inited) ? await this.pAnswer.setOandA(sdp) : null;
 	}
 	async conn(sdp, fn) {
-		if (!sdp) {
-			return null;
-		}
-		const result = await this.pOffer.setAns(sdp).catch(getEF(now(), this.l));
+		if (!sdp) return null;
+		const r = await this.pOffer.setA(sdp).catch(getEF(now(), this.l));
 		this.wPeer = this.pOffer;
-		if (result && fn) {
-			this.setOnCandidates(fn);
-		}
-		return result;
+		if (r && fn) this.setOnCandidates(fn);
+		return r;
 	}
 	connAns() {
 		return new Promise((r) => {
 			this.wPeer = this.pAnswer;
 			this.setOnCandidates(async (c) => {
-				await sleep(Math.floor(Math.random() * 400) + 200);
+				await slp(Math.floor(rnd(400)) + 200);
 				r(c);
 			});
 		});
 	}
 	async setOnCandidates(fn) {
 		let c = 1;
-		while (c < 100 && !this.isOpend) {
-			await sleep(Math.floor(Math.random() * 20 * c) + 100);
+		while (c < 100 && !this.isOpd) {
+			await slp(Math.floor(rnd(20 * c)) + 100);
 			c += 1;
-			if (!this.wPeer) {
-				continue;
-			}
+			if (!this.wPeer) continue;
 			const cs = this.wPeer.getCandidates();
-			console.log(`WebRTCConnecter setOnCandidates count:${c}/candidates:${cs}`);
-			if (Array.isArray(cs) && cs.length > 0) {
+			io(`WebRTCConn setOnCandidates count:${c}/candidates:${cs}`);
+			if (isArr(cs) && cs.length > 0) {
 				fn(cs);
 				break;
 			}
 		}
 	}
 	setCandidates(ci) {
-		const c = typeof ci === 'object' ? ci : J.parse(ci);
-		return !Array.isArray(c) ? `setCandidates candidates:${c}` : this.wPeer.setCandidates(c);
+		const c = pv(ci);
+		return !isArr(c) ? `setCandidates candidates:${c}` : this.wPeer.setCandidates(c);
 	}
 	close() {
 		this.pOffer.close();
@@ -1343,12 +1079,12 @@ class WebRTCConnecter {
 	}
 }
 const opt = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
-class WebRTCPeer {
+class Peer {
 	constructor(n, stunSrvs, l = null) {
 		this.name = n;
 		this.p = null;
 		this.cs = [];
-		this.config = { iceServers: stunSrvs };
+		this.cf = { iceServers: stunSrvs };
 		this.l = l;
 		this.id = `${now()} ${this.name}`;
 		this.q = [];
@@ -1356,44 +1092,32 @@ class WebRTCPeer {
 	}
 	prepareNewConn(isWithDataChannel) {
 		return new Promise((resolve, reject) => {
-			console.warn(
-				'-WebRTCPeer-prepareNewConnection--0----------WebRTCPeer--------------------------------------'
-			);
-			const p = new RTCPeerConnection(this.config, opt);
-			console.warn(
-				'-WebRTCPeer-prepareNewConnection--1----------WebRTCPeer--------------------------------------'
-			);
-			p.ontrack = (e) => {
-				console.log(`-WebRTCPeer- peer.ontrack()vevt:${e}`);
-			};
+			w('-Peer-prepareNewConn--0----Peer----');
+			const p = new RTCPeerConnection(this.cf, opt);
+			w('-Peer-prepareNewConn--1----Peer----');
+			p.ontrack = (e) => io(`-Peer- peer.ontrack() evt:${e}`);
 			// peer.onaddstream = evt => {
-			// 	console.log('-- peer.onaddstream()vevt:' + evt);
+			// 	info('-- peer.onaddstream()vevt:' + evt);
 			// };
-			p.onremovestream = (e) => {
-				console.log(`-WebRTCPeer- peer.onremovestream()vevt:${e}`);
-			};
+			p.onremovestream = (e) => io(`-Peer- peer.onremovestream() evt:${e}`);
 			p.onicecandidate = (e) => {
 				if (e.candidate) {
-					// console.log(evt.candidate);
+					// info(evt.candidate);
 					this.cs.push(e.candidate);
 				} else {
-					console.log(
-						`-WebRTCPeer--onicecandidate--- empty ice event peer.localDescription:${p.localDescription}`
-					);
+					io(`-Peer--onicecandidate--- empty ice event peer.localDescription:${p.localDescription}`);
 				}
 			};
 			p.onnegotiationneeded = async () => {
 				try {
-					console.log(
-						`-WebRTCPeer1--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise name:${this.name}`
-					);
+					io(`-Peer1--onnegotiationneeded----Peer----createOffer() succsess in promise name:${this.name}`);
 					const o = await p.createOffer();
-					console.log(
-						`-WebRTCPeer2--onnegotiationneeded--------WebRTCPeer----createOffer() succsess in promise;iceConnectionState;${p.iceConnectionState}`
+					io(
+						`-Peer2--onnegotiationneeded----Peer----createOffer() succsess in promise;iceConnectionState;${p.iceConnectionState}`
 					);
 					await p.setLocalDescription(o);
-					console.log(
-						`-WebRTCPeer3--onnegotiationneeded--------WebRTCPeer----setLocalDescription() succsess in promise;iceConnectionState${p.iceConnectionState}`
+					io(
+						`-Peer3--onnegotiationneeded----Peer----setLocalDescription() succsess in promise;iceConnectionState${p.iceConnectionState}`
 					);
 					resolve(p);
 				} catch (e) {
@@ -1402,7 +1126,7 @@ class WebRTCPeer {
 				}
 			};
 			p.oniceconnectionstatechange = () => {
-				console.log(`WebRTCPeer ICE connection Status has changed to ${p.iceConnectionState}`);
+				io(`Peer ICE connection Status has changed to ${p.iceConnectionState}`);
 				switch (p.iceConnectionState) {
 					case 'closed':
 					case 'failed':
@@ -1415,189 +1139,157 @@ class WebRTCPeer {
 				}
 			};
 			p.ondatachannel = (e) => {
-				console.warn(
-					`-WebRTCPeer-ondatachannel--1----------WebRTCPeer--------------------------------------evt:${e}`
-				);
+				w(`-Peer-ondatachannel--1----Peer----evt:${e}`);
 				this.dcSetup(e.channel);
 			};
-			console.warn(
-				`-WebRTCPeer-prepareNewConnection--2----------WebRTCPeer--------------------------------------isWithDataChannel:${isWithDataChannel}`
-			);
-			if (isWithDataChannel) {
-				const dc = p.createDataChannel(`chat${now()}`);
-				this.dcSetup(dc);
-			}
+			w(`-Peer-prepareNewConn--2----Peer----isWithDataChannel:${isWithDataChannel}`);
+			if (isWithDataChannel) this.dcSetup(p.createDataChannel(`chat${now()}`));
 		});
 	}
 	onOpen(e) {
-		console.log(`WebRTCPeer.onOpen is not Overrided name:${this.name}`);
-		console.log(e);
+		io(`Peer.onOpen is not Overrided name:${this.name}`);
+		io(e);
 	}
 	onError(e) {
-		console.log(`WebRTCPeer.onError is not Overrided name:${this.name}`);
-		console.log(e);
+		io(`Peer.onError is not Overrided name:${this.name}`);
+		io(e);
 	}
-	onMessage(m) {
-		console.log(`WebRTCPeer.onMessage is not Overrided name:${this.name}`);
-		console.log(m);
+	onMsg(m) {
+		io(`Peer.onMessage is not Overrided name:${this.name}`);
+		io(m);
 	}
 	onClose() {
-		console.log(`WebRTCPeer.onClose is not Overrided name:${this.name}`);
-		console.log('close');
+		io(`Peer.onClose is not Overrided name:${this.name}`);
+		io('close');
 	}
 	dcSetup(dc) {
-		if (this.dc && dc.id !== this.dc.id && this.isOpenDc) {
-			console.log(
-				`WebRTCPeer The Data Channel be Closed. readyState:${this.dc.readyState} /${dc.id} !== ${this.dc.id}`
-			);
-			// this.dc.close();
-			// this.dc = null;
-		}
+		if (this.dc && dc.id !== this.dc.id && this.isOpenDc)
+			io(`Peer The Data Channel be Closed. readyState:${this.dc.readyState} /${dc.id} !== ${this.dc.id}`);
 		dc.onerror = (e) => {
-			console.error('WebRTCPeer Data Channel Error:', e);
+			err('Peer Data Channel Error:', e);
 			this.onError(e);
 		};
 		dc.onmessage = (e) => {
-			console.log(
-				`WebRTCPeer Got Data Channel Message:typeof:${typeof e.data}/isBlob:${e.data instanceof Blob}`,
-				e.data
-			);
-			this.onMessage(e.data);
+			io(`Peer Got Data Channel Message:typeof:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data);
+			this.onMsg(e.data);
 		};
 		dc.onopen = (e) => {
-			console.warn(e);
+			w(e);
 			if (!this.isOpenDc) {
 				dc.send(
-					`WebRTCPeer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id} label:${dc.label} ordered:${dc.ordered} protocol:${dc.protocol} binaryType:${dc.binaryType} maxPacketLifeTime:${dc.maxPacketLifeTime} maxRetransmits:${dc.maxRetransmits} negotiated:${dc.negotiated}`
+					`Peer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id} label:${dc.label} ordered:${dc.ordered} protocol:${dc.protocol} binaryType:${dc.binaryType} maxPacketLifeTime:${dc.maxPacketLifeTime} maxRetransmits:${dc.maxRetransmits} negotiated:${dc.negotiated}`
 				);
 				this.onOpen(e);
 				this.isOpenDc = true;
 			}
 		};
 		dc.onclose = () => {
-			console.log('WebRTCPeer The Data Channel is Closed');
+			io('Peer The Data Channel is Closed');
 			this.onClose();
 			dc.isOpen = false;
 		};
 		this.dc = dc;
 	}
-	async mkOffer() {
+	async mkO() {
 		this.p = await this.prepareNewConn(true);
 		return this.p.localDescription;
 	}
-	async mkAns() {
-		console.log('WebRTCPeer makeAnswer sending Answer. Creating remote session description...');
-		if (!this.p) {
-			console.error('WebRTCPeer makeAnswer peerConnection NOT exist!');
-			return;
-		}
+	async mkA() {
+		io('Peer mkAns sending Answer. Creating remote session description...');
+		if (!this.p) return err('Peer mkAns peerConnection NOT exist!');
 		try {
 			const a = await this.p.createAnswer();
-			console.log('WebRTCPeer makeAnswer createAnswer() succsess in promise answer:', a);
+			io('Peer mkAns createAnswer() succsess in promise answer:', a);
 			await this.p.setLocalDescription(a);
-			console.log(`WebRTCPeer makeAnswer setLocalDescription() succsess in promise${this.p.localDescription}`);
+			io(`Peer mkAns setLocalDescription() succsess in promise${this.p.localDescription}`);
 			return this.p.localDescription;
 		} catch (e) {
 			ef(e, this.id, this.l);
 		}
 	}
-	async setOfferAndAns(sdp) {
-		console.warn(`WebRTCPeer setOfferAndAswer sdp ${sdp}`);
-		console.warn(sdp);
+	async setOandA(s) {
+		w(`Peer setOfferAndAns sdp ${s}`);
+		w(s);
 		try {
 			while (this.cs.length < 1) {
 				const o = new RTCSessionDescription({
 					type: 'offer',
-					sdp,
+					sdp: s,
 				});
-				if (this.p) {
-					console.error('WebRTCPeer setOfferAndAswer peerConnection alreay exist!');
-				}
+				if (this.p) err('Peer setOfferAndAns peerConnection alreay exist!');
 				this.p = await this.prepareNewConn(true);
-				console.warn(`WebRTCPeer setOfferAndAswer this.p${this.p} offer:`, o);
+				w(`Peer setOfferAndAns this.p${this.p} offer:`, o);
 				await this.p.setRemoteDescription(o);
-				console.log(
-					`WebRTCPeer setOfferAndAswer setRemoteDescription(answer) succsess in promise name:${this.name}`
-				);
-				const a = await this.mkAns();
-				console.warn(`WebRTCPeer setOfferAndAswer ans ${a}`);
-				if (this.cs.length < 1 || a) {
-					return a;
-				}
-				await sleep(Math.floor(Math.random() * 1000) + 1000);
+				io(`Peer setOfferAndAns setRemoteDescription(answer) succsess in promise name:${this.name}`);
+				const a = await this.mkA();
+				w(`Peer setOfferAndAns ans ${a}`);
+				if (this.cs.length < 1 || a) return a;
+				await slp(Math.floor(rnd(1000)) + 1000);
 			}
 		} catch (e) {
 			ef(e, this.id, this.l);
 		}
 		return null;
 	}
-	async setAns(sdp) {
+	async setA(s) {
 		const answer = new RTCSessionDescription({
 			type: 'answer',
-			sdp: typeof sdp === 'object' ? J.parse(sdp) : sdp,
+			sdp: pv(s),
 		});
-		if (!this.p) {
-			throw 'WebRTCPeer peerConnection NOT exist!';
-		}
+		if (!this.p) throw 'Peer peerConnection NOT exist!';
 		await this.p.setRemoteDescription(answer);
-		console.log('WebRTCPeer setRemoteDescription(answer) succsess in promise');
+		io('Peer setRemoteDescription(answer) succsess in promise');
 		return true;
 	}
 	isOpened() {
 		const dc = this.dc;
-		if (!dc) {
-			return false;
-		}
-		let isOpend = false;
+		if (!dc) return false;
+		let isO = false;
 		switch (dc.readyState) {
 			case 'connecting':
-				isOpend = now() - this.lastSend < 20000;
+				isO = now() - this.lastSnd < 20000;
 				break;
 			case 'open':
-				isOpend = true;
-				this.lastSend = now();
+				isO = true;
+				this.lastSnd = now();
 				break;
 			case 'closing':
 			case 'closed':
-				isOpend = false;
+				isO = false;
 				break;
 		}
-		return isOpend;
+		return isO;
 	}
 	send(m, bt = 'blob') {
 		const dc = this.dc;
-		if (!dc) {
-			return false;
-		}
+		if (!dc) return false;
 		dc.binaryType = bt;
-		console.log(`Connection SEND!; dc.binaryType : ${dc.binaryType}`);
+		io(`Connection SEND!; dc.binaryType : ${dc.binaryType}`);
 		switch (dc.readyState) {
 			case 'connecting':
-				console.log(`Connection not open; queueing: ${m}`);
+				io(`Connection not open; queueing: ${m}`);
 				this.q.push(m);
 				break;
 			case 'open':
-				this.sendOnQueue(bt);
+				this.sendOnQ(bt);
 				dc.send(m, bt);
-				this.lastSend = now();
+				this.lastSnd = now();
 				break;
 			case 'closing':
-				console.log(`Attempted to send message while closing: ${m}`);
+				io(`Attempted to send message while closing: ${m}`);
 				this.q.push(m);
 				break;
 			case 'closed':
-				console.warn('Error! Attempt to send while connection closed.');
+				w('Error! Attempt to send while connection closed.');
 				this.q.push(m);
 				this.close();
 				break;
 		}
 		return dc.readyState;
 	}
-	sendOnQueue(bt) {
+	sendOnQ(bt) {
 		const l = this.q.length;
-		for (let i = 0; i < l; i++) {
-			this.dc.send(this.q.shift(), bt);
-		}
+		for (let i = 0; i < l; i++) this.dc.send(this.q.shift(), bt);
 	}
 	close() {
 		if (this.p || this.dc) {
@@ -1609,7 +1301,7 @@ class WebRTCPeer {
 				this.dc.close();
 				this.dc = null;
 			}
-			console.log('WebRTCPeer peerConnection is closed.');
+			io('Peer peerConnection is closed.');
 		}
 	}
 	getCandidates() {
@@ -1617,7 +1309,7 @@ class WebRTCPeer {
 	}
 	setCandidates(cs) {
 		for (const c of cs) {
-			console.log('WebRTCPeer setCandidates candidate', c);
+			io('Peer setCandidates candidate', c);
 			this.p.addIceCandidate(c).catch((e) => {
 				ef(e, this.id, this.l);
 			});
@@ -1628,12 +1320,9 @@ class WebRTCPeer {
 //////Hash Core///////////////////////////////////////////////
 export class H {
 	static async d(m, sc = 1, algo = 'SHA-256', isAB = false) {
-		let r = m.buffer ? (m instanceof Uint8Array ? B64U.dpU8a(m) : B.u8a(m.buffer)) : te.encode(m);
-		for (let i = 0; i < sc; i++) {
-			r = await window.crypto.subtle.digest(algo, r);
-		}
-		// console.log('digest result:', result);
-		return isAB ? r : B64U.ab2b64u(r);
+		let r = m.buffer ? (m instanceof Uint8Array ? B64.dpU8a(m) : B.u8a(m.buffer)) : te.encode(m);
+		for (let i = 0; i < sc; i++) r = await window.crypto.subtle.digest(algo, r);
+		return isAB ? r : B64.a2U(r);
 	}
 }
 class B {
@@ -1647,113 +1336,98 @@ class B {
 		return new Int32Array(a);
 	}
 }
-class B64U {
+class B64 {
 	static isSameAb(abA, abB) {
-		return B64U.ab2B64(abA) === B64U.ab2B64(abB);
+		return B64.a2B(abA) === B64.a2B(abB);
 	}
 	static isB64(s = '') {
 		return s % 4 === 0 && /[+/=0-9a-zA-Z]+/.test(s);
 	}
-	static str2u8a(s) {
+	static s2u(s) {
 		return te.encode(s);
 	}
-	static u8a2str(u8a) {
+	static u2s(u8a) {
 		return td.decode(u8a);
 	}
-	static ab2B64(abi) {
+	static a2B(abi) {
 		const ab = abi.buffer ? abi.buffer : abi;
-		// console.log('ab2Base64 ab:', ab.byteLength);
-		return window.btoa(B64U.u8a2bs(B.u8a(ab)));
+		return window.btoa(B64.u2b(B.u8a(ab)));
 	}
-	static u8a2B64(u8a) {
-		// console.log('u8a2Base64 u8a:', u8a.length);
-		return window.btoa(B64U.u8a2bs(u8a));
+	static u2B(u8a) {
+		return window.btoa(B64.u2b(u8a));
 	}
-	static u8a2I32a(u8a) {
-		const u8a4 = B.u8a(4);
-		const len1 = u8a.length;
-		const len = Math.ceil(len1 / 4);
-		const i32a = B.i32a(len);
-		for (let i = 0; i < len; i++) {
-			u8a4[0] = u8a[i + 0];
-			u8a4[1] = len1 < i + 1 ? 0 : u8a[i + 1];
-			u8a4[2] = len1 < i + 2 ? 0 : u8a[i + 2];
-			u8a4[3] = len1 < i + 3 ? 0 : u8a[i + 3];
-			i32a[i] = B.i32a(u8a4.buffer)[0];
+	static u2I(u) {
+		const f = B.u8a(4);
+		const l = u.length;
+		const n = Math.ceil(l / 4);
+		const i32a = B.i32a(n);
+		for (let i = 0; i < n; i++) {
+			f[0] = u[i + 0];
+			f[1] = l < i + 1 ? 0 : u[i + 1];
+			f[2] = l < i + 2 ? 0 : u[i + 2];
+			f[3] = l < i + 3 ? 0 : u[i + 3];
+			i32a[i] = B.i32a(f.buffer)[0];
 		}
 		return i32a;
 	}
-	static u8a2u32a(u8a) {
-		const u8a4 = B.u8a(4);
-		const len1 = u8a.length;
-		const len = Math.ceil(len1 / 4);
-		const u32a = B.u32a(len);
-		for (let i = 0; i < len; i++) {
-			u8a4[0] = u8a[i + 0];
-			u8a4[1] = len1 < i + 1 ? 0 : u8a[i + 1];
-			u8a4[2] = len1 < i + 2 ? 0 : u8a[i + 2];
-			u8a4[3] = len1 < i + 3 ? 0 : u8a[i + 3];
-			u32a[i] = B.u32a(u8a4.buffer)[0];
+	static u8a2u32a(u) {
+		const f = B.u8a(4);
+		const l = u.length;
+		const n = Math.ceil(l / 4);
+		const u32a = B.u32a(n);
+		for (let i = 0; i < n; i++) {
+			f[0] = u[i + 0];
+			f[1] = l < i + 1 ? 0 : u[i + 1];
+			f[2] = l < i + 2 ? 0 : u[i + 2];
+			f[3] = l < i + 3 ? 0 : u[i + 3];
+			u32a[i] = B.u32a(f.buffer)[0];
 		}
 		return u32a;
 	}
-	static ab2b64u(ab) {
-		return B64U.b642b64u(B64U.ab2B64(ab));
+	static a2U(ab) {
+		return B64.B2U(B64.a2B(ab));
 	}
-	static b642ab(b64) {
-		const bs = window.atob(b64);
-		return B64U.bs2u8a(bs);
+	static B2a(b64) {
+		return B64.b2u(window.atob(b64));
 	}
-	static b64u2ab(b64u) {
-		return B64U.b642ab(B64U.b64u2b64(b64u));
+	static U2a(b64u) {
+		return B64.B2a(B64.U2B(b64u));
 	}
-	static b642b64u(b64) {
+	static B2U(b64) {
 		return b64 ? b64.split('+').join('-').split('/').join('_').split('=').join('') : b64;
 	}
-	static b64u2b64(b64u) {
+	static U2B(b64u) {
 		const l = b64u.length;
 		const c = l % 4 > 0 ? 4 - (l % 4) : 0;
 		let rb64 = b64u.split('-').join('+').split('_').join('/');
-		for (let i = 0; i < c; i++) {
-			rb64 += '=';
-		}
+		for (let i = 0; i < c; i++) rb64 += '=';
 		return rb64;
 	}
-	static joinU8as(u8as) {
-		// console.log('□□joinU8ss A u8as', u8as);
+	static jus(u8as) {
 		let sl = 0;
 		const c = u8as.length;
-		for (let i = 0; i < c; i++) {
-			sl += u8as[i].byteLength;
-		}
+		for (let i = 0; i < c; i++) sl += u8as[i].byteLength;
 		const u = B.u8a(sl);
-		let offset = 0;
+		let o = 0;
 		for (let i = 0; i < c; i++) {
 			const u8a = u8as[i];
-			u.set(u8a, offset);
-			offset += u8a.byteLength;
+			u.set(u8a, o);
+			o += u8a.byteLength;
 		}
-		// console.log('□□joinU8ss B united', u);
 		return u;
 	}
-	static u8a2bs(u8a) {
+	static u2b(u8a) {
 		const r = [];
-		// console.log(`uint8Array2BinaryString u8a:${u8a.length}`);
-		for (const e of u8a) {
-			r.push(String.fromCharCode(e));
-		}
-		// console.log(`uint8Array2BinaryString r:${r.length}`);
+		for (const e of u8a) r.push(String.fromCharCode(e));
 		return r.join('');
 	}
-	static bs2u8a(bs) {
+	static b2u(bs) {
 		const l = bs.length;
 		const a = B.u8a(new ArrayBuffer(l));
-		for (let i = 0; i < l; i++) {
-			a[i] = bs.charCodeAt(i);
-		}
+		for (let i = 0; i < l; i++) a[i] = bs.charCodeAt(i);
 		return a;
 	}
-	static blob2ab(b) {
+	static L2a(b) {
 		return new Promise((r) => {
 			const fr = new FileReader();
 			fr.onload = () => {
@@ -1761,7 +1435,7 @@ class B64U {
 			};
 			fr.onerror = () => {
 				r(fr.error);
-				console.error(fr.error);
+				err(fr.error);
 			};
 			fr.readAsArrayBuffer(b);
 		});
@@ -1769,15 +1443,13 @@ class B64U {
 	static dpU8a(u8a) {
 		const l = u8a.length;
 		const n = B.u8a(l);
-		for (let i = 0; i < l; i++) {
-			n[i] = u8a[i];
-		}
+		for (let i = 0; i < l; i++) n[i] = u8a[i];
 		return n;
 	}
 }
 class Cy {
 	static async getKey(pass, salt) {
-		const pU8A = B64U.str2u8a(pass).buffer;
+		const pU8A = B64.s2u(pass).buffer;
 		const h = await H.d(pU8A, 100, 'SHA-256', true);
 		const km = await crypto.subtle.importKey('raw', h, { name: 'PBKDF2' }, false, ['deriveKey']);
 		const k = await crypto.subtle.deriveKey(
@@ -1795,49 +1467,49 @@ class Cy {
 		return [k, salt];
 	}
 	static getSalt(saltI, isAB) {
-		return saltI ? (isAB ? B.u8a(saltI) : B64U.str2u8a(saltI)) : crypto.getRandomValues(B.u8a(16));
+		return saltI ? (isAB ? B.u8a(saltI) : B64.s2u(saltI)) : crv(B.u8a(16));
 	}
 	static async importKeyAESGCM(kAb, usages = ['encrypt', 'decrypt']) {
 		return await crypto.subtle.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
 	}
 	static getFixedField() {
-		return crypto.getRandomValues(B.u8a(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
+		return crv(B.u8a(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
 	}
 	static getInvocationField() {
-		return crypto.getRandomValues(B.u32a(1));
+		return crv(B.u32a(1));
 	}
 	static secureMathRandom() {
-		return crypto.getRandomValues(B.u32a(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
+		return crv(B.u32a(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
 	}
-	static async encodeStrAES256GCM(s, pk) {
-		return await Cy.encodeAES256GCM(B64U.str2u8a(s), pk);
+	static async encStrAES256GCM(s, pk) {
+		return await Cy.encAES256GCM(B64.s2u(s), pk);
 	}
-	static async encodeAES256GCM(u8a, pk, saltI = null, isAB) {
+	static async encAES256GCM(u8a, pk, saltI = null, isAB) {
 		const s = Cy.getSalt(saltI, isAB);
 		const k = await Cy.loadKey(pk, s);
 		const fp = Cy.getFixedField();
 		const ip = Cy.getInvocationField();
 		const iv = Uint8Array.from([...fp, ...B.u8a(ip.buffer)]);
 		const edAb = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, u8a.buffer);
-		// console.log('encodeAES256GCM encryptedDataAB:', edAb);
+		// info('encodeAES256GCM encryptedDataAB:', edAb);
 		return [
-			B64U.ab2b64u(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
-			B64U.ab2b64u(iv.buffer),
-			B64U.ab2b64u(s.buffer),
+			B64.a2U(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
+			B64.a2U(iv.buffer),
+			B64.a2U(s.buffer),
 		].join(',');
 	}
-	static async decodeAES256GCMasStr(ers, pk) {
-		return B64U.u8a2str(await Cy.decodeAES256GCM(ers, pk));
+	static async decAES256GCMasStr(ers, pk) {
+		return B64.u2s(await Cy.decAES256GCM(ers, pk));
 	}
 	static async loadKey(pk, salt) {
-		const s = typeof salt === 'string' ? B.u8a(B64U.b64u2ab(salt)) : salt;
-		const [key] = typeof pk === 'string' ? await Cy.getKey(pk, s) : { passk: pk };
+		const s = isStr(salt) ? B.u8a(B64.U2a(salt)) : salt;
+		const [key] = isStr(pk) ? await Cy.getKey(pk, s) : { passk: pk };
 		return key;
 	}
-	static async decodeAES256GCM(ers, pk) {
+	static async decAES256GCM(ers, pk) {
 		const [edB64U, ip, salt] = ers.split(',');
-		const iv = B.u8a(B64U.b64u2ab(ip));
-		const ed = B64U.b64u2ab(edB64U);
+		const iv = B.u8a(B64.U2a(ip));
+		const ed = B64.U2a(edB64U);
 		const k = await Cy.loadKey(pk, salt);
 		let dd = null;
 		try {
