@@ -27,6 +27,7 @@ const isFn = (s) => typeof s === 'function';
 const ct = (t) => clearTimeout(t);
 const st = (f, w) => setTimeout(f, w);
 const pv = (a) => (a && isStr(a) ? Jp(a) : a);
+const ov = (a) => (typeof a === 'object' ? Jp(a) : a);
 const ef = (e, id = '', l = null) => {
 	w(`${id} ${e.message}`);
 	w(e.stack);
@@ -1234,7 +1235,7 @@ class Peer {
 	async setA(s) {
 		const answer = new RTCSessionDescription({
 			type: 'answer',
-			sdp: pv(s),
+			sdp: ov(s),
 		});
 		if (!this.p) throw 'Peer peerConnection NOT exist!';
 		await this.p.setRemoteDescription(answer);
