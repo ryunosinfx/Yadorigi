@@ -533,8 +533,8 @@ class M {
 				z.reqM.delete(h);
 				r(S.T_OUT);
 			}, S.MaxWaitMs);
-			const conf = await z.getCf(z.gHash, tsh, z.group);
-			return await z.A.sndBigD(conf, kp, nt, ab, z.l);
+			const c = await z.getCf(z.gHash, tsh, z.group);
+			return await z.A.sndBigD(c, kp, nt, ab, z.l);
 		};
 		return new Promise(fn);
 	}
@@ -543,8 +543,7 @@ class M {
 		const s = ts.shift();
 		const h = ts.pop();
 		const r = this.reqM.get(h);
-		const tm = ts.join('/');
-		return r ? r(tdn, f.name, tm, f.data, s) : io('onRespons resolve:', r);
+		return r ? r(tdn, f.name, ts.join('/'), f.data, s) : io('onRespons resolve:', r);
 	}
 	setOnReq(
 		cb = async (k, t, d) => {
@@ -1139,20 +1138,16 @@ class Peer {
 		});
 	}
 	onO(e) {
-		io(`Peer.onO is not Overrided name:${this.name}`);
-		io(e);
+		io(`Peer.onO is not Overrided name:${this.name}`, e);
 	}
 	onError(e) {
-		io(`Peer.onError is not Overrided name:${this.name}`);
-		io(e);
+		io(`Peer.onError is not Overrided name:${this.name}`, e);
 	}
 	onMsg(m) {
-		io(`Peer.onMessage is not Overrided name:${this.name}`);
-		io(m);
+		io(`Peer.onMessage is not Overrided name:${this.name}`, m);
 	}
 	onClose() {
-		io(`Peer.onClose is not Overrided name:${this.name}`);
-		io('close');
+		io(`Peer.onClose is not Overrided name:${this.name}`, 'close');
 	}
 	dcSetup(dc) {
 		if (this.dc && dc.id !== this.dc.id && this.isOpenDc)
@@ -1309,11 +1304,11 @@ class Peer {
 		return 'setCandidates OK';
 	}
 }
-//////Hash Core///////////////////////////////////////////////
+const cy = crypto.subtle;
 export class H {
 	static async d(m, sc = 1, algo = 'SHA-256', isAB = false) {
 		let r = m.buffer ? (m instanceof Uint8Array ? B64.dpU8a(m) : B.u8a(m.buffer)) : te.encode(m);
-		for (let i = 0; i < sc; i++) r = await window.crypto.subtle.digest(algo, r);
+		for (let i = 0; i < sc; i++) r = await cy.digest(algo, r);
 		return isAB ? r : B64.a2U(r);
 	}
 }
@@ -1441,8 +1436,8 @@ class Cy {
 	static async getKey(pass, salt) {
 		const pU8A = B64.s2u(pass).buffer;
 		const h = await H.d(pU8A, 100, 'SHA-256', true);
-		const km = await crypto.subtle.importKey('raw', h, { name: 'PBKDF2' }, false, ['deriveKey']);
-		const k = await crypto.subtle.deriveKey(
+		const km = await cy.importKey('raw', h, { name: 'PBKDF2' }, false, ['deriveKey']);
+		const k = await cy.deriveKey(
 			{
 				name: 'PBKDF2',
 				salt,
@@ -1460,7 +1455,7 @@ class Cy {
 		return saltI ? (isAB ? B.u8a(saltI) : B64.s2u(saltI)) : crv(B.u8a(16));
 	}
 	static async importKeyAESGCM(kAb, usages = ['encrypt', 'decrypt']) {
-		return await crypto.subtle.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
+		return await cy.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
 	}
 	static getFixedField() {
 		return crv(B.u8a(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
@@ -1476,12 +1471,10 @@ class Cy {
 	}
 	static async encAES256GCM(u8a, pk, saltI = null, isAB) {
 		const s = Cy.getSalt(saltI, isAB);
-		const k = await Cy.loadKey(pk, s);
 		const fp = Cy.getFixedField();
 		const ip = Cy.getInvocationField();
 		const iv = Uint8Array.from([...fp, ...B.u8a(ip.buffer)]);
-		const edAb = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, u8a.buffer);
-		// info('encodeAES256GCM encryptedDataAB:', edAb);
+		const edAb = await cy.encrypt({ name: 'AES-GCM', iv }, await Cy.lk(pk, s), u8a.buffer);
 		return [
 			B64.a2U(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
 			B64.a2U(iv.buffer),
@@ -1491,19 +1484,17 @@ class Cy {
 	static async decAES256GCMasStr(ers, pk) {
 		return B64.u2s(await Cy.decAES256GCM(ers, pk));
 	}
-	static async loadKey(pk, salt) {
+	static async lk(pk, salt) {
 		const s = isStr(salt) ? B.u8a(B64.U2a(salt)) : salt;
 		const [key] = isStr(pk) ? await Cy.getKey(pk, s) : { passk: pk };
 		return key;
 	}
 	static async decAES256GCM(ers, pk) {
 		const [edB64U, ip, salt] = ers.split(',');
-		const iv = B.u8a(B64.U2a(ip));
 		const ed = B64.U2a(edB64U);
-		const k = await Cy.loadKey(pk, salt);
 		let dd = null;
 		try {
-			dd = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, k, ed);
+			dd = await cy.decrypt({ name: 'AES-GCM', iv: B.u8a(B64.U2a(ip)) }, await Cy.lk(pk, salt), ed);
 		} catch (e) {
 			ef(e);
 			return null;
