@@ -85,7 +85,7 @@ export class ESWebRTCConnecterU {
 		this.#i.close(tsh);
 	}
 	sendBigMessage(tsh, name, type, ab) {
-		this.#i.sendBigMsg(tsh, name, type, ab);
+		this.#i.sndBigMsg(tsh, name, type, ab);
 	}
 	broadcastBigMessage(m) {
 		this.#i.bcBigMsg(m);
@@ -263,7 +263,7 @@ class M {
 	}
 	isOpd(cf) {
 		const i = cf.w.isOpened();
-		this.l.log(`◆◆M isOpd conf.w.isOpend:${i}:${cf.target}`);
+		this.l.log(`◆◆M isOpd conf.w.isOpd:${i}:${cf.target}`);
 		return i;
 	}
 	async startNego(cf) {
@@ -407,7 +407,7 @@ class M {
 				cf.isAns
 			}/!conf.isGetFst:${!cf.isGetFst}/conf.isExcangedCandidates:${cf.isExcangedCandidates}`
 		);
-		if (cf.w.isOpend || cf.isStop || v === true || v === null || v === 'null')
+		if (cf.w.isOpd || cf.isStop || v === true || v === null || v === 'null')
 			return this.l.log(`M====LISTENER==END====value:${v}/conf.isStop:${cf.isStop}`);
 		if (cf.isAns && px === AN) {
 			this.l.log(`M A AS ANSWER conf.isAns:${cf.isAns} A px:${px} conf.isGetFst:${cf.isGetFst}`);
@@ -601,7 +601,7 @@ class A {
 	}
 	async sndBigD(cf, n, t, ab, l = console) {
 		l.log(`★★A sendBigD A sndMsg msg:${ab}/${cf.w}/${cf.w.isOpend}`);
-		if (!cf || !cf.w || !cf.w.isOpend) return;
+		if (!cf || !cf.w || !cf.w.isOpd) return;
 		const w = cf.w;
 		const dn = cf.targetDeviceName;
 		const u8a = B.u8a(ab);
@@ -715,7 +715,7 @@ class A {
 		return Math.ceil(m.byteLength / S.SIZE) === i && S.STATUS[s] === S.COMPLE;
 	}
 	async rcvBigSndD(cf, dAB) {
-		if (!cf || !cf.w || !cf.w.isOpend) return;
+		if (!cf || !cf.w || !cf.w.isOpd) return;
 		const w = cf.w;
 		const u8a = B.u8a(dAB);
 		const bU8A = u8a.subarray(33); //index,signAll,data
@@ -912,7 +912,7 @@ class U {
 	}
 	static sndOnDC(cf, m, l = console, bt = 'blob') {
 		l.log(`Mtil sndMsg msg:${m}`);
-		return cf && cf.w && cf.w.isOpend ? cf.w.send(m, bt) : null;
+		return cf && cf.w && cf.w.isOpd ? cf.w.send(m, bt) : null;
 	}
 	static parseSdp(i, l = console) {
 		const s = pv(i);
@@ -1000,7 +1000,6 @@ class WebRTCConn {
 		this.l.log(`-WebRTCConn-init--3----WebRTCConn----pOffer:${this.pOffer.name} ----pAnswer:${this.pAnswer.name}`);
 		return true;
 	}
-
 	async getOfferSdp() {
 		return (await this.inited) ? await this.pOffer.mkO() : '';
 	}
@@ -1029,7 +1028,7 @@ class WebRTCConn {
 		};
 	}
 	send(m, bt = 'blob') {
-		// info(`WebRTCConn send msg:${msg}/binaryType:${bt}`);
+		io(`WebRTCConn send msg:${m}/binaryType:${bt}`);
 		return this.isTestMode
 			? this.onMsgCB(!isStr(m) && m instanceof Blob ? (m.buffer ? new Blob(m) : m.byteLength ? B.u8a(m) : m) : m)
 			: this.wPeer.send(m, bt);
@@ -1076,7 +1075,7 @@ class WebRTCConn {
 		this.pAnswer.close();
 	}
 	isOpened() {
-		return this.isTestMode ? true : this.wPeer ? this.wPeer.isOpened() : false;
+		return this.isTestMode ? true : this.wPeer ? this.wPeer.isOpd() : false;
 	}
 }
 const opt = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
@@ -1131,7 +1130,7 @@ class Peer {
 				switch (p.iceConnectionState) {
 					case 'closed':
 					case 'failed':
-						if (this.p && this.isOpend) {
+						if (this.p && this.isOpd) {
 							this.close();
 						}
 						break;
@@ -1242,7 +1241,7 @@ class Peer {
 		io('Peer setRemoteDescription(answer) succsess in promise');
 		return true;
 	}
-	isOpened() {
+	isOpd() {
 		const dc = this.dc;
 		if (!dc) return false;
 		let isO = false;
