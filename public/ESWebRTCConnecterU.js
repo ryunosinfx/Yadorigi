@@ -15,7 +15,6 @@ const Jp = (a) => J.parse(a);
 const Js = (a) => J.stringify(a);
 const SALT =
 	'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
-///////////////////////////
 const w = (...a) => console.warn(a);
 const io = (...a) => console.info(a);
 const err = (...a) => console.error(a);
@@ -24,47 +23,45 @@ const crv = (t) => crypto.getRandomValues(t);
 const isStr = (s) => typeof s === 'string';
 const isArr = (a) => Array.isArray(a);
 const isFn = (s) => typeof s === 'function';
+const pr = (f) => new Promise(f);
 const ct = (t) => clearTimeout(t);
 const st = (f, w) => setTimeout(f, w);
+const gBl = (b) => b.byteLength;
 const pv = (a) => (a && isStr(a) ? Jp(a) : a);
 const ov = (a) => (typeof a === 'object' ? Jp(a) : a);
+const cb = (a) => a;
 const ef = (e, id = '', l = null) => {
-	w(`${id} ${e.message}`);
-	w(e.stack);
-	if (l && l.log && l !== console) {
-		l.log(`${id} ${e.message}`);
-		l.log(e.stack);
-	}
+	cb(w(`${id} ${e.message}`), w(e.stack));
+	if (l && l.log && l !== console) cb(l.log(`${id} ${e.message}`), l.log(e.stack));
+	return null;
 };
-function getEF(id, l) {
-	return (e) => ef(e, id, l);
+function getEF(i, l) {
+	return (e) => ef(e, i, l);
 }
-function slp(ms = SlpMs) {
-	return new Promise((r) => st(() => r(), ms));
+function slp(s = SlpMs) {
+	return pr((r) => st(() => r(), s));
 }
-function dcd(d, id, l) {
+function dcd(d, i, l) {
 	try {
 		const o = pv(d);
 		return o && o.message ? o.message : null;
 	} catch (e) {
-		ef(e, id, l);
+		return ef(e, i, l);
 	}
-	return null;
 }
-async function mkH(s = [location.origin, navigator.userAgent, now()], st = Math.floor(rnd(100)) + (now() % 100) + 1) {
-	return await H.d(Js(s), st);
+function mkH(s = [location.origin, navigator.userAgent, now()], st = Math.floor(rnd(100)) + (now() % 100) + 1) {
+	return H.d(Js(s), st);
 }
-async function dcb(e, g, t) {
+function dcb(e, g, t) {
 	return e + g + t;
 }
-///////////////////////////isArr
 export class ESWebRTCConnecterU {
 	#i = null;
-	constructor(l = console, onRcv = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
-		this.#i = new M(l, onRcv);
+	constructor(l = console, onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
+		this.#i = new M(l, onR);
 	}
-	async init(u, g, p, dn) {
-		await this.#i.init(u, g, p, dn);
+	init(u, g, p, dn) {
+		this.#i.init(u, g, p, dn);
 	}
 	setOnOpenFunc(fn = dcb) {
 		this.#i.onO = fn;
@@ -72,11 +69,11 @@ export class ESWebRTCConnecterU {
 	setOnCloseFunc(fn = dcb) {
 		this.#i.onC = fn;
 	}
-	async startWaitAutoConnect() {
-		await this.#i.startWaitAutoConn();
+	startWaitAutoConnect() {
+		this.#i.startWaitAutoConn();
 	}
-	async stopWaitAutoConnect() {
-		await this.#i.stopWaitAutoConn();
+	stopWaitAutoConnect() {
+		this.#i.stopWaitAutoConn();
 	}
 	closeAll() {
 		this.#i.closeAll();
@@ -96,21 +93,15 @@ export class ESWebRTCConnecterU {
 	broadcastMessage(m) {
 		this.#i.bcMsg(m);
 	}
-	async request(tsh, kp = '/', t = 'GET', m) {
-		return await this.#i.req(tsh, kp, t, m);
+	request(tsh, kp = '/', t = 'GET', m) {
+		return this.#i.req(tsh, kp, t, m);
 	}
-	setOnRequest(
-		cb = async (kp, t, d) => {
-			io(`keyPath:${kp}/type:${t}`, d);
-			return d;
-		}
-	) {
-		this.#i.setOnReq(cb);
+	setOnRequest(c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) {
+		this.#i.setOnReq(c);
 	}
 }
-///////////////////////////
 class M {
-	constructor(l = console, onRcv = (tdn, m) => io(`M trgtDevNm:${tdn},msg:${m}`)) {
+	constructor(l = console, onR = (tdn, m) => io(`M trgtDevNm:${tdn},msg:${m}`)) {
 		const z = this;
 		z.l = l;
 		z.l.log('M');
@@ -118,52 +109,49 @@ class M {
 		z.thrds = [];
 		z.cfs = {};
 		z.conns = {};
-		z.onRcvCB = onRcv;
-		z.A = new A(onRcv);
+		z.onRcvCB = onR;
+		z.A = new A(onR);
 	}
 	async init(u, g, p, dn, salt = SALT) {
 		const z = this;
 		z.l.log('M INIT START');
 		z.url = u;
-		z.group = g;
-		z.passwd = p;
-		z.devName = dn;
+		z.grp = g;
+		z.pwd = p;
+		z.dn = dn;
 		z.hash = await mkH([u, g, p, dn], HshScrtchCnt);
-		z.singHash = await mkH([u, g, p, salt], HshScrtchCnt);
+		z.sHash = await mkH([u, g, p, salt], HshScrtchCnt);
 		z.gHash = await mkH([u, g, p, salt], HshScrtchCnt);
-		z.nowHash = await mkH([now(), u, g, p, dn, salt], HshScrtchCnt);
-		z.sgnlH = await z.enc({ hash: z.nowHash, group: g, devName: dn });
+		z.nHash = await mkH([now(), u, g, p, dn, salt], HshScrtchCnt);
+		z.sgnlH = await z.enc({ hash: z.nHash, group: g, devName: dn });
 		z.l.log(`M INIT END z.hash:${z.hash} devName:${dn}`);
 		z.reqM = new Map();
 	}
-	async enc(o, k = this.singHash) {
-		return await Cy.enc(Js(o), k);
+	enc(o, k = this.sHash) {
+		return Cy.enc(Js(o), k);
 	}
-	async dec(es, k = this.singHash) {
+	async dec(es, k = this.sHash) {
 		try {
 			return Jp(await Cy.dec(es, k));
 		} catch (e) {
-			ef(e, es, this.l);
+			return ef(e, es, this.l);
 		}
-		return null;
 	}
 	async startWaitAutoConn() {
 		const z = this;
 		await z.inited;
 		z.isStopAuto = z.isWaiting = false;
 		let c = 3,
-			isFst = true;
+			isF = true;
 		while (z.isStopAuto === false) {
 			const gh = z.gHash;
 			await slp(WaitAutoInterval / 5);
 			if (!gh) continue;
-			if (c === 0 || isFst) {
+			if (c === 0 || isF) {
 				await z.sndW(gh);
-				isFst = false;
+				isF = false;
 				c = 3;
-			} else {
-				c--;
-			}
+			} else c--;
 			const l = await z.getWL(gh);
 			if (!isArr(l)) continue;
 			z.l.log(l);
@@ -173,7 +161,7 @@ class M {
 				if (d > 10000) continue;
 				const v = pv(r.value);
 				if (v.hash !== z.sgnlH && v.hash.indexOf(z.sgnlH) !== 0) {
-					await z.onCatchAnother(gh, n, v.hash, z.group);
+					await z.onCatchAnother(gh, n, v.hash, z.grp);
 					break;
 				}
 			}
@@ -217,10 +205,7 @@ class M {
 		}
 		z.nego(c).catch(getEF(now, z.l));
 		await slp(100);
-		if (isO) {
-			await slp(Math.floor(rnd(500)) + 750);
-			z.offer(c).catch(getEF(now, z.l));
-		}
+		if (isO) cb(await slp(Math.floor(rnd(500)) + 750), z.offer(c).catch(getEF(now, z.l)));
 		st(() => {
 			isHotS = false;
 			z.isStop = true;
@@ -229,15 +214,11 @@ class M {
 		while (isHotS) await slp(100);
 		z.isStop = false;
 	}
-	async sndW(gh) {
-		await this.post(
-			gh,
-			{ msg: WAIT, hash: this.sgnlH, exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5 },
-			WAIT
-		);
+	sndW(gh) {
+		this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5 }, WAIT);
 	}
-	async sndWN(gh, tsh) {
-		await this.post(
+	sndWN(gh, tsh) {
+		this.p(
 			gh,
 			{
 				msg: WAIT,
@@ -248,7 +229,7 @@ class M {
 		);
 	}
 	async getWL(gh) {
-		const d = await this.load(gh, WAIT);
+		const d = await this.g(gh, WAIT);
 		const o = d ? Jp(d) : null;
 		return o ? o.message : null;
 	}
@@ -257,42 +238,42 @@ class M {
 		this.l.log(`◆◆M isOpd conf.w.isOpd:${i}:${cf.target}`);
 		return i;
 	}
-	async nego(cf) {
+	async nego(c) {
 		const z = this;
-		cf.isStop = false;
-		st(U.getStopFn(cf), WaitAutoInterval);
-		while (cf.isStop === false && z.isStopAuto === false) {
+		c.isStop = false;
+		st(U.getStopFn(c), WaitAutoInterval);
+		while (c.isStop === false && z.isStopAuto === false) {
 			st(() => {
-				if (cf.isA) return;
+				if (c.isA) return;
 				else if (z.thrds.length < 4) z.thrds.push(1);
 				else return;
-				z.load(cf.pxOs).then(async (d1) => {
-					const ck = await H.d(cf.pxOs + d1);
+				z.g(c.pxOs).then(async (d1) => {
+					const ck = await H.d(c.pxOs + d1);
 					z.thrds.pop(1);
-					const d = dcd(d1, cf.id, z.l);
-					if (d && !cf.cache[ck]) {
-						cf.cache[ck] = 1;
-						z.listener(cf, OF, d);
+					const d = dcd(d1, c.id, z.l);
+					if (d && !c.cache[ck]) {
+						c.cache[ck] = 1;
+						z.listener(c, OF, d);
 					}
 				});
 			}, SlpMs);
 			st(() => {
-				if (!cf.isA) return;
+				if (!c.isA) return;
 				else if (z.thrds.length < 4) z.thrds.push(1);
 				else return;
-				z.load(cf.pxAs).then(async (data) => {
-					const ck = await H.d(cf.pxAs + data);
+				z.g(c.pxAs).then(async (data) => {
+					const ck = await H.d(c.pxAs + data);
 					z.thrds.pop(1);
-					const d = dcd(data, cf.id, z.l);
-					if (d && !cf.cache[ck]) {
-						cf.cache[ck] = 1;
-						z.listener(cf, AN, d);
+					const d = dcd(data, c.id, z.l);
+					if (d && !c.cache[ck]) {
+						c.cache[ck] = 1;
+						z.listener(c, AN, d);
 					}
 				});
 			}, SlpMs);
 			await slp();
 		}
-		z.rsCf(cf);
+		z.rsCf(c);
 	}
 	async stopWaitAutoConn() {
 		const z = this;
@@ -305,33 +286,32 @@ class M {
 	async offer(cf) {
 		cf.isA = false;
 		const o = await cf.w.getOfferSdp();
-		this.l.log('M setOnRecieve OFFER post offer:', o);
-		await this.post(cf.pxAt, await this.enc(o, cf.nowHK));
+		this.l.log('M setOnRcv OFFER post offer:', o);
+		await this.p(cf.pxAt, await this.enc(o, cf.nowHK));
 	}
-	async post(g, o, c = 'g') {
+	async p(g, o, c = 'g') {
 		const n = now();
 		const d = await GA.post2GAS(this.url, {
 			group: g,
 			cmd: c,
 			data: isStr(o) ? o : Js(o),
 		});
-		this.l.log(`M====post====${g}/${c} d:${now() - n} data:`, d);
+		this.l.log(`M==post==${g}/${c} d:${now() - n} data:`, d);
 	}
-	async load(g, c = 'g') {
+	async g(g, c = 'g') {
 		const n = now();
 		const d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
-		this.l.log(`M==${n}_${Math.floor(rnd(1000))}====load====${g}/${c} ====${now() - n} data:`, d);
-		return d;
+		return cb(d, this.l.log(`M==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
 	}
-	async getConKey(gh, sh) {
+	async getCfK(gh, sh) {
 		const o = sh === 'test' ? { devName: 'test' } : await this.dec(sh);
 		return [Js([gh, o ? o.devName : null]), o];
 	}
 	async getCf(gh, tsh, g) {
 		const z = this;
-		const [k, oT] = await z.getConKey(gh, tsh);
+		const [k, oT] = await z.getCfK(gh, tsh);
 		if (!oT) return null;
-		const [s] = await z.getConKey(gh, z.sgnlH);
+		const [s] = await z.getCfK(gh, z.sgnlH);
 		let c = z.cfs[k];
 		const tdn = oT.devName;
 		if (!c) {
@@ -346,21 +326,16 @@ class M {
 				pxOs: s + OF,
 				isStop: false,
 				cache: {},
-				id: `${now()} ${z.devName}`,
+				id: `${now()} ${z.dn}`,
 			};
 			c.w = new WebRTCConn(z.l, tsh === 'test');
-			c.w.setOnMsg(async (m) => {
-				io('conf.w.setOnMsg((msg):', m);
-				await z.onMsgByConf(c, tdn, tsh, m);
-			});
-			c.w.setOnOpen((e) => {
-				z.l.log(`####★###OPEN！###★####trgtDevNm:${tdn}`, oT);
-				z.onO(e, g, tsh, tdn);
+			c.w.setMf(async (m) => io('conf.w.setMf((msg):', m, await z.onMsgByCf(c, tdn, tsh, m)));
+			c.w.setOf((e) => {
+				cb(z.l.log(`###★###OPEN！###★###trgtDevNm:${tdn}`, oT), z.onO(e, g, tsh, tdn));
 				c.isStop = true;
 			});
-			c.w.setOnClose((e) => {
-				z.l.log(`####☆###CLOSE###☆####trgtDevNm:${tdn}`);
-				z.onC(e, g, tsh, tdn);
+			c.w.setCf((e) => {
+				cb(z.l.log(`###☆###CLOSE###☆###trgtDevNm:${tdn}`), z.onC(e, g, tsh, tdn));
 				c.isStop = false;
 			});
 			z.cfs[k] = c;
@@ -368,345 +343,309 @@ class M {
 		c.nowHK = oT.nowHash;
 		return c;
 	}
-	async onMsgByConf(cf, tdn, tsh, m) {
+	async onMsgByCf(c, tdn, tsh, m) {
 		const z = this;
-		const ab =
-			m instanceof Blob ? await B64.L2a(m) : m.buffer && m.buffer.byteLength ? m.buffer : m.byteLength ? m : null;
-		const dU8A = z.A.getBigSndDResFormat(tdn, ab);
+		const a = m instanceof Blob ? await Y.L2a(m) : m.buffer && gBl(m.buffer) ? m.buffer : gBl(m) ? m : null;
+		const dU8A = z.A.getBigSndDResFormat(tdn, a);
 		return dU8A
-			? io('☆onMsgByConf A', dU8A, m, await z.onRcvBigDRes(cf, tdn, dU8A))
-			: (await z.A.isBigSndD(ab, tdn))
-			? io('☆onMsgByConf B', ab, m, await z.onRcvBigD(cf, tdn, ab, tsh))
-			: !ab && typeof m === 'string'
+			? io('☆onMsgByConf A', dU8A, m, await z.onRcvBigDRes(c, tdn, dU8A))
+			: (await z.A.isBSD(a, tdn))
+			? io('☆onMsgByConf B', a, m, await z.onRcvBigD(c, tdn, a, tsh))
+			: !a && typeof m === 'string'
 			? io('☆onMsgByConf C', m, z.onRcvCB(tdn, m))
-			: io('☆onMsgByConf D', m, z.onRcvCB(tdn, { ab }));
+			: io('☆onMsgByConf D', m, z.onRcvCB(tdn, { ab: a }));
 	}
-	rsCf(cf) {
-		cf.isA = true;
-		cf.isGF = cf.isEx = cf.isStop = false;
-		const c = Object.keys(cf.cache);
-		for (const k of c) delete cf.cache[k];
+	rsCf(c) {
+		c.isA = true;
+		c.isGF = c.isEx = c.isStop = false;
+		const s = Object.keys(c.cache);
+		for (const k of s) delete c.cache[k];
 		return null;
 	}
-	async listener(cf, px, ve) {
+	async listener(c, px, ve) {
 		const z = this;
-		const v = await z.dec(ve, z.nowHash);
+		const v = await z.dec(ve, z.nHash);
 		z.l.log(
-			`M====LISTENER==RECEIVE=A====px:${px}/${px === AN}//value:${v}/conf.isA:${
-				cf.isA
-			}/!conf.isGF:${!cf.isGF}/conf.isEx:${cf.isEx}`
+			`M==LISTENER==RECEIVE=A==px:${px}/${px === AN}//value:${v}/conf.isA:${
+				c.isA
+			}/!conf.isGF:${!c.isGF}/conf.isEx:${c.isEx}`
 		);
-		if (cf.w.isOpd || cf.isStop || v === true || v === null || v === 'null')
-			return z.l.log(`M====LISTENER==END====value:${v}/conf.isStop:${cf.isStop}`);
-		if (cf.isA && px === AN) {
-			z.l.log(`M A AS ANSWER conf.isA:${cf.isA} A px:${px} conf.isGF:${cf.isGF}`);
-			if (!cf.isGF) {
-				const a = await z.ans(cf, v);
-				z.l.log(`M====LISTENER==answer=A====typeof answer :${typeof a}`, a);
-				await z.post(cf.pxOt, await z.enc(a, cf.nowHK));
-				cf.isGF = true;
-			} else if (!cf.isEx) {
-				cf.isEx = true;
-				const c = cf.w.setCandidates(pv(v), now());
-				z.l.log('M====LISTENER==answer candidats=A====', c);
+		if (c.w.isOpd || c.isStop || v === true || v === null || v === 'null')
+			return z.l.log(`M==LISTENER==END==value:${v}/conf.isStop:${c.isStop}`);
+		if (c.isA && px === AN) {
+			z.l.log(`M A AS ANSWER conf.isA:${c.isA} A px:${px} conf.isGF:${c.isGF}`);
+			if (!c.isGF) {
+				const a = await z.ans(c, v);
+				z.l.log(`M==LISTENER==answer=A==typeof answer :${typeof a}`, a);
+				await z.p(c.pxOt, await z.enc(a, c.nowHK));
+				c.isGF = true;
+			} else if (!c.isEx) {
+				c.isEx = true;
+				z.l.log('M==LISTENER==answer candidats=A==', c.w.setCs(pv(v), now()));
 			}
-		} else if (!cf.isA && px === OF) {
-			z.l.log(`M B AS OFFER conf.isA:${cf.isA}/B px:${px}/!conf.isGF:${!cf.isGF}`);
-			if (!cf.isGF) {
-				const c = await z.conn(cf, v);
-				z.l.log('M====LISTENER==make offer candidates=A====', c);
-				cf.isGF = true;
-				await z.post(cf.pxAt, await z.enc(c, cf.nowHK));
-			} else if (!cf.isEx) {
-				cf.isEx = true;
-				const c = v ? cf.w.setCandidates(pv(v), now()) : null;
-				z.l.log('M====LISTENER==set offer candidats=A====', c);
+		} else if (!c.isA && px === OF) {
+			z.l.log(`M B AS OFFER conf.isA:${c.isA}/B px:${px}/!conf.isGF:${!c.isGF}`);
+			if (!c.isGF) {
+				const o = await z.conn(c, v);
+				z.l.log('M==LISTENER==make offer candidates=A==', o);
+				c.isGF = true;
+				await z.p(c.pxAt, await z.enc(o, c.nowHK));
+			} else if (!c.isEx) {
+				c.isEx = true;
+				z.l.log('M==LISTENER==set offer candidats=A==', v ? c.w.setCs(pv(v), now()) : null);
 			}
 		}
 	}
-	async ans(cf, o) {
+	async ans(c, o) {
 		st(async () => {
-			if (cf.isStop) return;
-			const c = await cf.w.connAns();
-			while (!cf.isGF) await slp(Math.floor(rnd(200)) + 50);
-			await this.post(cf.pxOt, await this.enc(c, cf.nowHK));
+			if (c.isStop) return;
+			const o = await c.w.connAns();
+			while (!c.isGF) await slp(Math.floor(rnd(200)) + 50);
+			await this.p(c.pxOt, await this.enc(o, c.nowHK));
 		});
-		return cf.isStop ? null : await cf.w.ans(U.parseSdp(o, this.l));
+		return c.isStop ? null : await c.w.ans(U.pSdp(o, this.l));
 	}
-	conn(cf, si) {
-		if (cf.isStop) return;
-		const f = async (r) => (cf.isStop ? null : await cf.w.conn(U.parseSdp(si, this.l), (c) => r(c)));
-		return new Promise(f);
+	conn(c, si) {
+		return c.isStop ? null : pr(async (r) => (c.isStop ? null : await c.w.conn(U.pSdp(si, this.l), (c) => r(c))));
 	}
 	closeAll() {
 		for (const k in this.cfs) this.cc(this.cfs[k]);
 	}
 	cc(c) {
-		if (c && c.w && c.w.isOpend) return c.w.close() === this.rsCf(c);
+		if (c && c.w) return c.w.close() === this.rsCf(c);
 	}
-	async close(tsh) {
-		this.cc(await this.getCf(this.gHash, tsh, this.group));
+	async close(h) {
+		this.cc(await this.getCf(this.gHash, h, this.grp));
 	}
-	async sndBigMsg(tsh, n, t, ab) {
-		return await this.A.sndBigD(await this.getCf(this.gHash, tsh, this.group), n, t, ab, this.l);
+	async sndBigMsg(h, n, t, b) {
+		return await this.A.sBD(await this.getCf(this.gHash, h, this.grp), n, t, b, this.l);
 	}
-	async bcBigMsg(n, t, ab) {
+	async bcBigMsg(n, t, b) {
 		const ps = [];
-		for (const k in this.cfs) ps.push(this.A.sndBigD(this.cfs[k], n, t, ab, this.l));
+		for (const k in this.cfs) ps.push(this.A.sBD(this.cfs[k], n, t, b, this.l));
 		return Promise.all(ps);
 	}
-	async sendMsg(tsh, m) {
-		U.sndOnDC(await this.getCf(this.gHash, tsh, this.group), m, this.l);
+	async sendMsg(h, m) {
+		U.sndOnDC(await this.getCf(this.gHash, h, this.grp), m, this.l);
 	}
 	bcMsg(m) {
 		for (const k in this.cfs) U.sndOnDC(this.cfs[k], m, this.l);
 	}
-	async onRcvBigD(cf, tdn, m, tsh) {
+	async onRcvBigD(c, d, m, h) {
 		const z = this;
-		const { files, isCmpl, res } = await z.A.rcvBigSndD(cf, m);
+		const { files, isCmpl, res } = await z.A.rcvBSD(c, m);
 		io(`☆ M onRcvBigD A isArr(files):${isArr(files)}/isCmpl:${isCmpl}`, res);
 		if (isCmpl && isArr(files)) {
-			io(`☆ M onRcvBigD B files.byteLength:${files.byteLength}/isCmpl:${isCmpl}`);
+			io(`☆ M onRcvBigD B files.byteLength:${gBl(files)}/isCmpl:${isCmpl}`);
 			for (const f of files) {
 				io(`☆ M onRcvBigD C file${f}/isCmpl:${isCmpl}`, f);
-				if (z.A.isReq(f)) {
+				if (z.A.isRq(f)) {
 					io(`☆ M onRcvBigD D file${f}/isCmpl:${isCmpl}`);
-					return await z.onReqD(tdn, f, tsh);
-				} else if (z.A.isRes(f)) {
+					return await z.onReqD(d, f, h);
+				} else if (z.A.isRs(f)) {
 					io(`☆ M onRcvBigD E file${f}/isCmpl:${isCmpl}`);
-					return await z.onRes(tdn, f);
+					return await z.onRes(d, f);
 				}
 				io(`☆ M onRcvBigD F file${f}/isCmpl:${isCmpl}`);
 			}
 			io(`☆ M onRcvBigD G files:${files}/isCmpl:${isCmpl}`);
-			z.onRcvCB(tdn, files);
+			z.onRcvCB(d, files);
 		}
 		return [];
 	}
-	async onReqD(tdn, f, tsh) {
+	async onReqD(n, f, h) {
 		const ts = f.type.split('/');
 		const PQ = ts.shift();
-		const h = ts.pop();
-		const { key, type, result, status } = await this.onReq(tdn, f.name, ts.join('/'), f.data);
-		const nt = [PQ, status, type, h].join('/');
-		return await this.sndBigMsg(tsh, key, this.A.cnvtType2Res(nt), result);
+		const s = ts.pop();
+		const { key, type, result, status } = await this.onReq(n, f.name, ts.join('/'), f.data);
+		const nt = [PQ, status, type, s].join('/');
+		return await this.sndBigMsg(h, key, this.A.cnvtType2Res(nt), result);
 	}
-	async onRcvBigDRes(cf, tdn, dU8A) {
-		return this.A.isComplBigSndDRes(dU8A)
-			? await this.A.rcvBigSndDCompl(dU8A)
-			: this.A.isBigSndDRes(dU8A)
-			? await this.A.rcvBigSndDRes(dU8A)
+	async onRcvBigDRes(c, n, u) {
+		return this.A.isCBSDRs(u)
+			? await this.A.rcvBigSndDCompl(u)
+			: this.A.isBSDRs(u)
+			? await this.A.rcvBSDRs(u)
 			: null;
 	}
-	/////////////////////////////////////////////////////////////////
-	req(tsh, kp, t, m) {
+	req(h, kp, t, m) {
 		const z = this;
-		const fn = async (r) => {
-			const ab = isStr(m) ? B64.s2u(m) : m.byteLength ? m : m.buffer ? m.buffer : B64.s2u(Js(m));
-			const h = await H.d(now() + rnd() + tsh + kp + SALT + t);
-			const th = m.byteLength ? 'arraybuffer' : m.buffer ? 'typedarray' : typeof m;
-			const nt = `${S.ReqH}${th}/${h}`; // PorQ/type/hash
+		return pr(async (r) => {
+			const a = isStr(m) ? Y.s2u(m) : gBl(m) ? m : m.buffer ? m.buffer : Y.s2u(Js(m));
+			const h = await H.d(now() + rnd() + h + kp + SALT + t);
+			const th = gBl(m) ? 'arraybuffer' : m.buffer ? 'typedarray' : typeof m;
+			const n = `${S.RqH}${th}/${h}`; // PorQ/type/hash
 			z.reqM.set(h, r);
-			st(() => {
-				z.reqM.delete(h);
-				r(S.T_OUT);
-			}, S.MaxWaitMs);
-			const c = await z.getCf(z.gHash, tsh, z.group);
-			return await z.A.sndBigD(c, kp, nt, ab, z.l);
-		};
-		return new Promise(fn);
+			st(() => cb(z.reqM.delete(h), r(S.T_OUT)), S.MaxWaitMs);
+			return await z.A.sBD(await z.getCf(z.gHash, h, z.grp), kp, n, a, z.l);
+		});
 	}
-	onRes(tdn, f) {
-		const ts = f.type.split('/');
-		const s = ts.shift();
-		const r = this.reqM.get(ts.pop());
-		return r ? r(tdn, f.name, ts.join('/'), f.data, s) : io('onRespons resolve:', r);
+	onRes(n, f) {
+		const t = f.type.split('/');
+		const s = t.shift();
+		const r = this.reqM.get(t.pop());
+		return r ? r(n, f.name, t.join('/'), f.data, s) : io('onRespons resolve:', r);
 	}
-	setOnReq(
-		cb = async (k, t, d) => {
-			io(`key:${k}/type:${t}`, d);
-			return { key: k, type: t, result: d, status: 404 };
-		}
-	) {
-		this.onReq = cb;
+	setOnReq(c = (k, t, d) => cb({ key: k, type: t, result: d, status: 404 }, io(`key:${k}/type:${t}`, d))) {
+		this.onReq = c;
 	}
 }
 class A {
 	constructor(onCmpCB) {
-		this.sndM = new Map();
-		this.rcvM = new Map();
+		this.sM = new Map();
+		this.rM = new Map();
 		this.onCmpCB = onCmpCB;
 	}
-	isReq(f) {
-		return this.isR(f, S.ReqH);
+	isRq(f) {
+		return this.isR(f, S.RqH);
 	}
-	isRes(f) {
-		return this.isR(f, S.ResH);
+	isRs(f) {
+		return this.isR(f, S.RsH);
 	}
 	isR(f, h) {
 		return (
-			f &&
-			f.type &&
-			f.type.indexOf(h) === 0 &&
-			f.type.split('/').length >= 3 &&
-			B64.isB64(f.type.split('/').pop())
+			f && f.type && f.type.indexOf(h) === 0 && f.type.split('/').length >= 3 && Y.isB64(f.type.split('/').pop())
 		);
 	}
 	cnvtType2Res(t) {
-		return t ? (t.indexOf(S.ReqH) === 0 ? t.replace(S.ReqH, S.ResH) : t) : t;
+		return t ? (t.indexOf(S.RqH) === 0 ? t.replace(S.RqH, S.RsH) : t) : t;
 	}
-	async isBigSndD(d, dn) {
+	async isBSD(a, n) {
 		const M = S.MIN;
-		io(`☆☆A isBigSndD A devName:${dn}/MIN:${M}`, d);
-		if (
-			!d ||
-			isStr(d) ||
-			(!d.byteLength && !d.buffer) ||
-			(!d.buffer && d.byteLength < M) ||
-			(d.buffer && d.buffer.byteLength < M)
-		)
+		io(`☆☆A isBSD A devName:${n}/MIN:${M}`, a);
+		if (!a || isStr(a) || (!gBl(a) && !a.buffer) || (!a.buffer && gBl(a) < M) || (a.buffer && gBl(a.buffer) < M))
 			return false; // 1,256/8=32byte,data
-		const dnU8A = B64.s2u(dn);
-		io(`☆☆A isBigSndD B devName:${dn}`, dnU8A);
-		const f1 = dnU8A[0] * 1;
-		const dU8A = d.byteLength && d.byteLength > 0 ? B.u8a(d) : d.buffer ? B.u8a(d.buffer) : NullArr;
-		io(`☆☆A isBigSndD C data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${dU8A[0]}`, dU8A);
-		if (f1 !== dU8A[0] * 1) {
-			io(`☆☆A isBigSndD C1 data.byteLength:${d.byteLength}/f1:${f1}/dU8A[0]:${dU8A[0]}/type:${typeof f1}`);
+		const b = Y.s2u(n);
+		io(`☆☆A isBSD B devName:${n}`, b);
+		const f1 = b[0] * 1;
+		const d = gBl(a) && gBl(a) > 0 ? B.u8(a) : a.buffer ? B.u8(a.buffer) : NullArr;
+		io(`☆☆A isBSD C data.byteLength:${gBl(a)}/f1:${f1}/dU8A[0]:${d[0]}`, d);
+		if (f1 !== d[0] * 1) {
+			io(`☆☆A isBSD C1 data.byteLength:${gBl(a)}/f1:${f1}/dU8A[0]:${d[0]}/type:${typeof f1}`);
 			return false;
 		}
-		const hU8A = dU8A.subarray(1, 33);
-		const dhU8A = dU8A.subarray(33); //index,signAll,data
-		const h = B64.a2B(await H.d(dhU8A, 1, undefined, true));
-		const hB64 = B64.u2B(hU8A);
-		const r = hB64 === h;
-		io(
-			`☆☆A isBigSndD D data.byteLength:${d.byteLength}/hU8A:${hU8A}/result:${r}/hB64:${hB64}/hash:${h}/dhU8A:`,
-			dhU8A
-		);
+		const u = d.subarray(1, 33);
+		const z = d.subarray(33);
+		const h = Y.a2B(await H.d(z, 1, undefined, true));
+		const j = Y.u2B(u);
+		const r = j === h;
+		io(`☆☆A isBSD D data.byteLength:${gBl(a)}/hU8A:${u}/result:${r}/hB64:${j}/hash:${h}/dhU8A:`, z);
 		return r;
 	}
-	async sndBigD(cf, n, t, ab, l = console) {
-		l.log(`★★A sendBigD A sndMsg msg:${ab}/${cf.w}/${cf.w.isOpend}`);
-		if (!cf || !cf.w || !cf.w.isOpd) return;
-		const w = cf.w;
-		const dn = cf.trgtDevNm;
-		const u8a = B.u8a(ab);
-		const { dasendDataAb, signatureU8A, count, f1 } = await S.mkBigSndDMeta(u8a, dn, t, n);
-		io(`★★A sendBigD B dasendDataAb:${dasendDataAb}`, dasendDataAb);
-		const sB64 = B64.a2B(signatureU8A.buffer);
-		const sq = new Map();
-		const idx = -1;
-		const i = B.i32a(1).fill(idx);
-		const rh = B64.a2B(await S.mkResAb(f1, B.u8a(dasendDataAb).subarray(69), i.buffer, signatureU8A));
-		this.sndM.set(sB64, {
-			sq,
+	async sBD(c, n, t, a, l = console) {
+		l.log(`★★A sBD A sndMsg msg:${a}/${c.w}/${c.w.isOpend}`);
+		if (!c || !c.w || !c.w.isOpd) return;
+		const w = c.w;
+		const dn = c.trgtDevNm;
+		const u = B.u8(a);
+		const { dasendDataAb, signatureU8A, count, f1 } = await S.mkBSDM(u, dn, t, n);
+		io(`★★A sBD B dasendDataAb:${dasendDataAb}`, dasendDataAb);
+		const s = Y.a2B(signatureU8A.buffer);
+		const q = new Map();
+		const i = B.i32(1).fill(-1);
+		const h = Y.a2B(await S.mkResAb(f1, B.u8(dasendDataAb).subarray(69), i.buffer, signatureU8A));
+		this.sM.set(s, {
+			sq: q,
 			t,
 			n,
-			byteLength: ab.byteLength,
+			byteLength: gBl(a),
 			status: S.SENDING,
 		});
-		io(`★★A sendBigD C01 resHashB64:${rh}/i:`, rh);
-		const r = await this.sndTran(w, dasendDataAb, rh, sq, idx);
-		io(`★★A sendBigD C02 result:${r}/i:`, i);
+		io(`★★A sBD C01 resHashB64:${h}/i:`, h);
+		const r = await this.sT(w, dasendDataAb, h, q, -1);
+		io(`★★A sBD C02 result:${r}/i:`, i);
 		if (r === S.COMPLE) return true;
 		if (r === S.T_OUT) return false;
-		let of = 0;
-		const ps = [];
-		for (let i = 0; i < count; i++) {
-			io(`★★A sendBigD D count:${count}/i:${i}/offset:`, of);
-			const end = i === count - 1 ? ab.byteLength : of + S.SIZE;
-			const p = u8a.subarray(of, end);
-			ps.push(this.sndTranApart(w, p, f1, signatureU8A, sq, i));
-			of = of += S.SIZE;
+		const b = [];
+		for (let i = 0, f = 0; i < count; i++) {
+			io(`★★A sBD D count:${count}/i:${i}/offset:`, f);
+			const e = i === count - 1 ? gBl(a) : f + S.SZ;
+			const p = u.subarray(f, e);
+			b.push(this.sTA(w, p, f1, signatureU8A, q, i));
+			f = f += S.SZ;
 		}
-		await Promise.all(ps);
-		io(`★★A sendBigD E result:${r}`, r);
+		await Promise.all(b);
+		io(`★★A sBD E result:${r}`, r);
 	}
-	async sndTranApart(w, p, f1, sU8A, sq, i) {
-		const a = B.i32a(1);
+	async sTA(w, p, f1, s, sq, i) {
+		const a = B.i32(1);
 		a.fill(i);
-		io(`★★★A sndTranApart A index:${i}`, a);
-		const rh = B64.u2B(await S.mkResAb(f1, p, a.buffer, sU8A));
-		const sAB = await S.mkBigSndD(p, f1, sU8A, i);
-		io(`★★★A sndTranApart B resHashB64:${rh}`, rh);
-		io(`★★★A sndTranApart C partU8A:${p}`, p);
-		io(`★★★A sndTranApart D signatureU8A:${sU8A}`, sU8A);
+		io(`★★★A sTranA A idx:${i}`, a);
+		const rh = Y.u2B(await S.mkResAb(f1, p, a.buffer, s));
+		const b = await S.mkBSD(p, f1, s, i);
+		io(`★★★A sTranA B resHashB64:${rh}`, rh);
+		io(`★★★A sTranA C partU8A:${p}`, p);
+		io(`★★★A sTranA D signatureU8A:${s}`, s);
 		let isS = false,
 			isC = false;
 		while (isS === false) {
-			const r = await this.sndTran(w, sAB, rh, sq, i);
-			io(`★★★A sndTranApart E index:${i}/result:${r}`, p);
+			const r = await this.sT(w, b, rh, sq, i);
+			io(`★★★A sTranA E idx:${i}/result:${r}`, p);
 			if (r === S.COMPLE) isS = isC = true;
 			if (r === S.OK) isS = true;
 		}
 		return isC;
 	}
-	sndTran(w, ab, rh = '', sq = new Map(), i) {
-		ct(sq.has(rh) ? sq.get(rh).tm : null);
-		return new Promise((r) => {
-			const tm = st(() => r(S.T_OUT), S.WaitMs);
-			sq.set(rh, { index: i, timer: tm, resolve: r });
-			io(`★★★★A snedTran index:${i}/resHashB64:${rh}/ ${ab}`, ab);
-			w.send(ab, 'arraybuffer');
+	sT(w, a, h = '', q = new Map(), i) {
+		ct(q.has(h) ? q.get(h).tm : null);
+		return pr((r) => {
+			q.set(h, { idx: i, timer: st(() => r(S.T_OUT), S.WaitMs), resolve: r });
+			io(`★★★★A snedTran idx:${i}/resHashB64:${h}/ ${a}`, a);
+			w.send(a, 'arraybuffer');
 		});
 	}
-	getBigSndDResFormat(dn, d) {
+	getBigSndDResFormat(n, d) {
 		const M = S.MIN;
-		io(`☆☆A A getBigSndDResFormat devName:${dn}/data:`, d);
+		io(`☆☆A A getBigSndDResFormat devName:${n}/data:`, d);
 		if (
 			d === null ||
 			isStr(d) ||
-			(!d.byteLength && !d.buffer) ||
-			(d.byteLength && d.byteLength < M) ||
-			(d.buffer && d.buffer.byteLength < M)
+			(!gBl(d) && !d.buffer) ||
+			(gBl(d) && gBl(d) < M) ||
+			(d.buffer && gBl(d.buffer) < M)
 		)
-			return false; // 1,256/8=32byte,data(index4byte,data)
-		io(`☆☆A B getBigSndDResFormat devName:${dn}/data:`, d);
-		const dnU8A = B64.s2u(dn);
-		const f1 = dnU8A[0];
-		const dU8A = !isArr(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
+			return false;
+		io(`☆☆A B getBigSndDResFormat devName:${n}/data:`, d);
+		const a = Y.s2u(n);
+		const f1 = a[0];
+		const b = !isArr(d) && gBl(d) && gBl(d) > 0 ? B.u8(d) : B.u8(d.buffer);
 		io(`☆☆A C getBigSndDResFormat f1:${f1}/data:`, d);
-		if (f1 !== dU8A[0]) return false;
-		const idx = B64.u2I(dU8A.subarray(33, 37))[0];
-		io(`☆☆A D getBigSndDResFormat index:${idx}/f1:`, f1);
-		const sB64 = B64.u2B(dU8A.subarray(37, 69));
-		const m = this.sndM.get(sB64);
-		io(`☆☆A E getBigSndDResFormat signatureB64:${sB64}/m:`, m);
-		return m && m.sq && m.byteLength >= idx * S.SIZE && idx >= -1 ? dU8A : null;
+		if (f1 !== b[0]) return false;
+		const ix = Y.u2I(b.subarray(33, 37))[0];
+		io(`☆☆A D getBigSndDResFormat idx:${ix}/f1:`, f1);
+		const s = Y.u2B(b.subarray(37, 69));
+		const m = this.sM.get(s);
+		io(`☆☆A E getBigSndDResFormat signatureB64:${s}/m:`, m);
+		return m && m.sq && gBl(m) >= ix * S.SZ && ix >= -1 ? b : null;
 	}
-	isBigSndDRes(dU8A) {
-		const h = B64.u2B(dU8A);
-		const i = B64.u2I(dU8A.subarray(33, 37))[0];
-		const sB64 = B64.u2B(dU8A.subarray(37, 69));
-		const m = this.sndM.get(sB64);
-		const sq = m && m.sq ? m.sq : null;
-		io(`☆☆☆☆A isBigSndDRes  A index:${i}/signatureB64:${sB64} /hashB64:${h} sq.get(hashB64):/m:`, sq.get(h), m);
-		const t = sq && sq.get(h) ? sq.get(h) : { index: null };
-		if (t.index === i) {
-			io(`☆☆☆☆A isBigSndDRes B index:${i}`);
-			ct(t.timer);
-			return true;
-		}
-		io(`☆☆☆☆A isBigSndDRes C index:${i} task:`, t);
-		return false;
+	isBSDRs(d) {
+		const h = Y.u2B(d);
+		const i = Y.u2I(d.subarray(33, 37))[0];
+		const s = Y.u2B(d.subarray(37, 69));
+		const m = this.sM.get(s);
+		const q = m && m.sq ? m.sq : null;
+		io(`☆☆☆☆A isBSDRs  A idx:${i}/signatureB64:${s} /hashB64:${h} sq.get(hashB64):/m:`, q.get(h), m);
+		const t = q && q.get(h) ? q.get(h) : { idx: null };
+		return t.idx === i
+			? cb(true, io(`☆☆☆☆A isBSDRs B idx:${i}`), ct(t.timer))
+			: cb(false, io(`☆☆☆☆A isBSDRs C idx:${i} task:`, t));
 	}
-	isComplBigSndDRes(dU8A) {
-		const i = B64.u2I(dU8A.subarray(33, 37))[0];
-		const s = dU8A[dU8A.length - 1];
-		const m = this.sndM.get(B64.u2B(dU8A.subarray(37, 69)));
-		io(`☆☆☆☆A isComplBigSndDRes index:${i}/ESBSU.STATUS[status] :${S.STATUS[s]}/m:`, m);
-		return Math.ceil(m.byteLength / S.SIZE) === i && S.STATUS[s] === S.COMPLE;
+	isCBSDRs(d) {
+		const i = Y.u2I(d.subarray(33, 37))[0];
+		const s = d[d.length - 1];
+		const m = this.sM.get(Y.u2B(d.subarray(37, 69)));
+		io(`☆☆☆☆A isCBSDRs idx:${i}/ESBSU.STATUS[status] :${S.ST[s]}/m:`, m);
+		return Math.ceil(gBl(m) / S.SZ) === i && S.ST[s] === S.COMPLE;
 	}
-	async rcvBigSndD(cf, dAB) {
-		if (!cf || !cf.w || !cf.w.isOpd) return;
-		const w = cf.w;
-		const bU8A = B.u8a(dAB).subarray(33); //index,signAll,data
-		const i = B64.u2I(bU8A.subarray(0, 4))[0]; //index,signAll,data
-		const sB64 = B64.u2B(bU8A.subarray(4, 36)); //index,signAll,data
-		const dU8A = bU8A.subarray(36); //index,signAll,data
-		let o = this.rcvM.get(sB64);
-		io(`☆☆☆A rcvBigSndD A index:${i}/signatureB64:`, sB64);
+	async rcvBSD(c, b) {
+		if (!c || !c.w || !c.w.isOpd) return;
+		const w = c.w;
+		const a = B.u8(b).subarray(33); //idx,signAll,data
+		const i = Y.u2I(a.subarray(0, 4))[0]; //idx,signAll,data
+		const s = Y.u2B(a.subarray(4, 36)); //idx,signAll,data
+		const d = a.subarray(36); //idx,signAll,data
+		let o = this.rM.get(s);
+		io(`☆☆☆A rcvBSD A idx:${i}/signatureB64:`, s);
 		if (!o) {
 			o = {
 				m: [{ type: null, name: null }],
@@ -718,182 +657,178 @@ class A {
 				full: null,
 				cmpU64: null,
 			};
-			this.rcvM.set(sB64, o);
+			this.rM.set(s, o);
 		}
-		io(`☆☆☆A rcvBigSndD B index:${i}/o:`, o);
+		io(`☆☆☆A rcvBSD B idx:${i}/o:`, o);
 		if (i === -1) {
-			io('☆☆☆A rcvBigSndD C B64U.u8a2str(dU8A):', B64.u2s(dU8A));
-			const mt = Jp(B64.u2s(dU8A));
+			io('☆☆☆A rcvBSD C B64U.u8a2str(dU8A):', Y.u2s(d));
+			const t = Jp(Y.u2s(d));
 			let isR = false;
-			for (const m of o.m) {
-				if (m.name === mt.name && m.type === mt.type) {
+			for (const m of o.m)
+				if (m.name === t.name && m.type === t.type) {
 					isR = true;
 					break;
 				}
-			}
 			if (!isR) {
-				o.m.push({ name: mt.name, type: mt.type });
-				o.signature = mt.signature;
-				o.byteLength = mt.byteLength;
-				o.count = mt.count;
-				const l = Math.ceil(mt.count / 8);
-				const cc = B.u8a(l);
+				o.m.push({ name: t.name, type: t.type });
+				o.signature = t.signature;
+				o.byteLength = gBl(t);
+				o.count = t.count;
+				const l = Math.ceil(t.count / 8);
+				const cc = B.u8(l);
 				cc.fill(0);
 				o.cntr = cc;
-				const cpc = B.u8a(l);
+				const cpc = B.u8(l);
 				cpc.fill(255);
-				cpc[cc.length - 1] = mt.count % 8 ? Math.pow(2, mt.count % 8) - 1 : 255;
-				o.cmpU64 = B64.u2B(cpc);
+				cpc[cc.length - 1] = t.count % 8 ? Math.pow(2, t.count % 8) - 1 : 255;
+				o.cmpU64 = Y.u2B(cpc);
 			}
 		} else {
 			const ci = Math.floor(i / 8);
 			o.cntr[ci] = o.cntr[ci] | (1 << i % 8);
-			o.data[(2147483648 + i).toFixed()] = dU8A;
+			o.data[(2147483648 + i).toFixed()] = d;
 		}
-		io(`☆☆☆A rcvBigSndD D index:${i}/m o.cntr:${o.cntr}/o.data:`, o.data);
-		io(`☆☆☆A rcvBigSndD E index:${i}/B64U.u8a2Base64(o.cntr):${B64.u2B(o.cntr)}/o.cntr:`, o.cntr);
-		const isCmp = o.cmpU64 === B64.u2B(o.cntr);
-		io(`☆☆☆A rcvBigSndD F index:${i}/o.cmpU64:${o.cmpU64}/isCmpl:`, isCmp);
-		const r0 = await S.mkBigSndDRes(dAB, i);
-		io(`☆☆☆A rcvBigSndD G index:${i}/res:`, r0);
+		io(`☆☆☆A rcvBSD D idx:${i}/m o.cntr:${o.cntr}/o.data:`, o.data);
+		io(`☆☆☆A rcvBSD E idx:${i}/B64U.u8a2Base64(o.cntr):${Y.u2B(o.cntr)}/o.cntr:`, o.cntr);
+		const isC = o.cmpU64 === Y.u2B(o.cntr);
+		io(`☆☆☆A rcvBSD F idx:${i}/o.cmpU64:${o.cmpU64}/isCmpl:`, isC);
+		const r0 = await S.mkBSDRs(b, i);
+		io(`☆☆☆A rcvBSD G idx:${i}/res:`, r0);
 		w.send(r0.buffer, 'arraybuffer');
-		if (isCmp) {
-			io(`☆☆☆A rcvBigSndD H index:${i}/isCmpl:`, isCmp);
-			const { united, isValid } = await S.unitD(o);
-			const r1 = await S.mkBigSndDRes(dAB, o.count + 1, isValid ? S.COMPLE : S.NG);
+		if (isC) {
+			io(`☆☆☆A rcvBSD H idx:${i}/isCmpl:`, isC);
+			const { united, isV } = await S.unitD(o);
+			const r1 = await S.mkBSDRs(b, o.count + 1, isV ? S.COMPLE : S.NG);
 			w.send(r1.buffer, 'arraybuffer');
-			io(`☆☆☆A rcvBigSndD I index:${i}/isCmpl:${isCmp}/isValid:${isValid}/united:`, united);
-			if (isValid) {
-				io(`☆☆☆A rcvBigSndD J index:${i}/isValid:`, isValid);
+			io(`☆☆☆A rcvBSD I idx:${i}/isCmpl:${isC}/isV:${isV}/united:`, united);
+			if (isV) {
+				io(`☆☆☆A rcvBSD J idx:${i}/isV:`, isV);
 				const fs = [];
-				for (const m of o.m) {
+				for (const m of o.m)
 					if (!m.type && !m.name) continue;
-					fs.push({ name: m.name, type: [m.type].join('/'), data: united });
-				}
-				return { files: fs, isCmpl: isCmp, res: r1 };
+					else fs.push({ name: m.name, type: [m.type].join('/'), data: united });
+				return { files: fs, isCmpl: isC, res: r1 };
 			}
 		}
-		io(`☆☆☆A rcvBigSndD K index:${i}/isCmpl:${isCmp}/res:`, r0);
-		return { res: r0, isCmpl: isCmp };
+		io(`☆☆☆A rcvBSD K idx:${i}/isCmpl:${isC}/res:`, r0);
+		return { res: r0, isCmpl: isC };
 	}
-	async rcvBigSndDRes(dU8A) {
-		const li = dU8A.length - 1;
-		io(`☆☆☆☆A rcvBigSndDRes A lastIndex:${li}`);
-		const s = S.STATUS[dU8A[li]];
-		dU8A[li] = S.STATUS.indexOf(S.OK);
-		const h = B64.u2B(dU8A);
-		const m = this.sndM.get(B64.u2B(dU8A.subarray(37, 69)));
-		const t = m && m.sq && m.sq.get(h) ? m.sq.get(h) : { index: null };
+	async rcvBSDRs(d) {
+		const li = d.length - 1;
+		io(`☆☆☆☆A rcvBSDRs A lastIndex:${li}`);
+		const s = S.ST[d[li]];
+		d[li] = S.ST.indexOf(S.OK);
+		const h = Y.u2B(d);
+		const m = this.sM.get(Y.u2B(d.subarray(37, 69)));
+		const t = m && m.sq && m.sq.get(h) ? m.sq.get(h) : { idx: null };
 		const r = t.resolve;
 		return isFn(r) ? r(s) !== true : false;
 	}
-	async rcvBigSndDCompl(dU8A) {
-		const m = this.sndM.get(B64.u2B(dU8A.subarray(37, 69)));
-		if (m && m.sq) {
+	async rcvBigSndDCompl(d) {
+		const m = this.sM.get(Y.u2B(d.subarray(37, 69)));
+		if (m && m.sq)
 			for (const [k, v] of m.sq) {
 				if (isFn(v)) v(S.COMPLE);
 				m.sq.delete(k);
 			}
-		}
 	}
 }
 class S {
-	static SIZE = 8000;
+	static SZ = 8000;
 	static MIN = 1 + 32 + 4 + 32 + 1;
 	static WaitMs = 30000;
 	static MaxWaitMs = 60000;
-	static ReqH = 'Q/';
-	static ResH = 'P/';
+	static RqH = 'Q/';
+	static RsH = 'P/';
 	static OK = 'OK';
 	static NG = 'NG';
 	static COMPLE = 'COMPLE';
 	static SENDING = 'SENDING';
 	static T_OUT = 'TIME_OUT';
-	static STATUS = [S.T_OUT, S.OK, S.NG, S.COMPLE, S.SENDING];
-	static async mkBigSndDMeta(d, dn, t, name) {
-		const f1 = B.u8a(1).fill(B64.s2u(dn)[0]);
-		const bl = d.buffer.byteLength;
-		const c = Math.ceil(bl / S.SIZE);
+	static ST = [S.T_OUT, S.OK, S.NG, S.COMPLE, S.SENDING];
+	static async mkBSDM(d, o, t, n) {
+		const f1 = B.u8(1).fill(Y.s2u(o)[0]);
+		const b = gBl(d.buffer);
+		const c = Math.ceil(b / S.SZ);
 		const s = await H.d(d); //BASE64
-		const sU8A = B.u8a(B64.U2a(s));
-		const j = Js({ type: t, name, signature: s, byteLength: bl, count: c });
-		const u = B64.jus([B.u8a(B.i32a(1).fill(-1).buffer), sU8A, B64.s2u(j)]); // 4+32=36
-		const sAb = await H.d(u, 1, undefined, true);
+		const a = B.u8(Y.U2a(s));
+		const j = Js({ type: t, name: n, signature: s, byteLength: b, count: c });
+		const u = Y.jus([B.u8(B.i32(1).fill(-1).buffer), a, Y.s2u(j)]); // 4+32=36
+		const h = await H.d(u, 1, undefined, true);
 		const r = {
-			dasendDataAb: B64.jus([f1, B.u8a(sAb), u]).buffer, // 1+32=33 33+36 = 69
-			signatureU8A: sU8A,
+			dasendDataAb: Y.jus([f1, B.u8(h), u]).buffer, // 1+32=33 33+36 = 69
+			signatureU8A: a,
 			count: c,
 			f1,
 		};
 		return r;
 	}
-	static async mkBigSndD(u8a, f1, sU8A, i) {
-		const I1 = B.i32a(1).fill(i);
-		const bU8a = B64.jus([B.u8a(I1.buffer), sU8A, u8a]);
-		const signAb = await H.d(bU8a, 1, undefined, true);
-		const dU8A = B64.jus([f1, B.u8a(signAb), bU8a]);
-		const r = dU8A.buffer;
-		io('□□ESBigSndUtil makeBigSndD A result', r);
+	static async mkBSD(u, f1, s, i) {
+		const a = B.i32(1).fill(i);
+		const b = Y.jus([B.u8(a.buffer), s, u]);
+		const c = await H.d(b, 1, undefined, true);
+		const d = Y.jus([f1, B.u8(c), b]);
+		const r = d.buffer;
+		io('□□ESBigSndUtil mkBSD A result', r);
 		return r;
 	}
-	static async mkBigSndDRes(d, i = -1, f = S.OK) {
-		io(`☆☆☆☆ ESBSU mkBigSndDRes A index:${i}/flg:${f}/data:`, d);
-		const dU8A = !isArr(d) && d.byteLength && d.byteLength > 0 ? B.u8a(d) : B.u8a(d.buffer);
-		io(`☆☆☆☆ ESBSU mkBigSndDRes B isArr(d):${isArr(d)}/dU8A.length:${dU8A.length}/dU8A:`, dU8A);
-		const f1 = B.u8a(1);
-		f1[0] = dU8A[0];
-		const iI32a = B64.u2I(i > 0 ? B.u8a(B.i32a(1).fill(i).buffer) : dU8A.subarray(33, 37));
-		const sU8A = dU8A.subarray(37, 69);
-		const bU8A = dU8A.subarray(69);
+	static async mkBSDRs(d, i = -1, f = S.OK) {
+		io(`☆☆☆☆ ESBSU mkBSDRs A idx:${i}/flg:${f}/data:`, d);
+		const u = !isArr(d) && gBl(d) && gBl(d) > 0 ? B.u8(d) : B.u8(d.buffer);
+		io(`☆☆☆☆ ESBSU mkBSDRs B isArr(d):${isArr(d)}/dU8A.length:${u.length}/dU8A:`, u);
+		const f1 = B.u8(1);
+		f1[0] = u[0];
+		const a = Y.u2I(i > 0 ? B.u8(B.i32(1).fill(i).buffer) : u.subarray(33, 37));
+		const s = u.subarray(37, 69);
+		const b = u.subarray(69);
 		const _f = S.bOK(f);
-		io(`☆☆☆☆ ESBSU mkBigSndDRes C indexI32A:${iI32a}/signatureU8A.length:${sU8A.length}/signatureU8A:`, sU8A);
-		return await S.mkResAb(f1, bU8A, iI32a.buffer, sU8A, _f);
+		io(`☆☆☆☆ ESBSU mkBSDRs C idxI32A:${a}/signatureU8A.length:${s.length}/signatureU8A:`, s);
+		return await S.mkResAb(f1, b, a.buffer, s, _f);
 	}
 	static bOK(f = S.OK) {
-		return B.u8a(1).fill(S.STATUS.indexOf(f));
+		return B.u8(1).fill(S.ST.indexOf(f));
 	}
-	static async mkResAb(f1, dU8A, iAb, sU8A, f = S.bOK()) {
-		io(`☆☆☆☆☆ ESBSU mkResAb A f1:${f1}/indexAb:${B.i32a(iAb)[0]}/signatureU8A:${sU8A.length}/signatureU8A:`, sU8A);
-		const h = B.u8a(await H.d(dU8A, 1, undefined, true)); //ab
-		io(`☆☆☆☆☆ ESBSU mkResAb B f1:${f1}/dU8A.length:${dU8A.length}/hashU8A:${h.length} ${B64.u2B(h)} /dU8A:`, dU8A);
-		return B64.jus([f1, h, B.u8a(iAb), sU8A, f]);
+	static async mkResAb(f1, u, iA, s, f = S.bOK()) {
+		io(`☆☆☆☆☆ ESBSU mkResAb A f1:${f1}/idxAb:${B.i32(iA)[0]}/signatureU8A:${s.length}/signatureU8A:`, s);
+		const h = B.u8(await H.d(u, 1, undefined, true)); //ab
+		io(`☆☆☆☆☆ ESBSU mkResAb B f1:${f1}/dU8A.length:${u.length}/hashU8A:${h.length} ${Y.u2B(h)} /dU8A:`, u);
+		return Y.jus([f1, h, B.u8(iA), s, f]);
 	}
 	static async unitD(o) {
-		io('☆☆☆☆☆ ESBSU unitData A map:', o);
-		if (o.full) return { united: o.full, isValid: true };
+		io('☆☆☆☆☆ ESBSU unitD A map:', o);
+		if (o.full) return { united: o.full, isV: true };
 		const d = o.data;
 		const s = Object.keys(d);
 		s.sort();
-		io('☆☆☆☆☆ ESBSU unitData B keys:', s);
+		io('☆☆☆☆☆ ESBSU unitD B keys:', s);
 		const a = [];
 		for (const k of s) a.push(d[k]);
-		const dU8A = B64.jus(a);
-		io(`☆☆☆☆☆ ESBSU unitData C dU8A.length:${dU8A.length}`, dU8A);
-		const u = B.u8a(o.byteLength);
+		const b = Y.jus(a);
+		io(`☆☆☆☆☆ ESBSU unitD C dU8A.length:${b.length}`, b);
+		const u = B.u8(gBl(o));
 		let c = 0;
 		for (const k of s) {
 			const g = d[k];
 			u.set(g, c);
 			delete d[k];
-			c += g.byteLength;
+			c += gBl(g);
 		}
 		s.splice(0, s.length);
 		const h = await H.d(u);
-		io(`☆☆☆☆☆ ESBSU unitData D map.signature:${o.signature} /digest:${h} /united:`, u);
+		io(`☆☆☆☆☆ ESBSU unitD D map.signature:${o.signature} /digest:${h} /united:`, u);
 		const i = h === o.signature;
 		o.full = i ? u : null;
-		return { united: u, isValid: i };
+		return { united: u, isV: i };
 	}
 }
 class U {
-	static getStopFn(cf) {
-		return () => (cf.isStop = true);
+	static getStopFn(c) {
+		return () => (c.isStop = true);
 	}
-	static sndOnDC(cf, m, l = console, bt = 'blob') {
-		l.log(`Mtil sndMsg msg:${m}`);
-		return cf && cf.w && cf.w.isOpd ? cf.w.send(m, bt) : null;
+	static sndOnDC(c, m, l = console, bt = 'blob') {
+		return cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l.log(`Mtil sndMsg msg:${m}`));
 	}
-	static parseSdp(i, l = console) {
+	static pSdp(i, l = console) {
 		const s = pv(i);
 		l.log(`M parseSdp ${typeof i}/sdpInput:${i}`);
 		if (!s.sdp) return null;
@@ -902,6 +837,15 @@ class U {
 		return s.sdp;
 	}
 }
+const GAB = {
+	method: 'POST',
+	redirect: 'follow',
+	Accept: 'application/json',
+	'Content-Type': cType,
+	headers: {
+		'Content-Type': cType,
+	},
+};
 class GA {
 	static c(d) {
 		return d && typeof d === 'object'
@@ -911,158 +855,143 @@ class GA {
 			: d;
 	}
 	static async getTxtGAS(p, d = {}) {
-		io('GA----getTxtGAS--A----');
-		const r = await fetch(`${p}?${GA.c(d)}`, {
-			method: 'GET',
-			redirect: 'follow',
-			Accept: 'application/json',
-			'Content-Type': cType,
-		});
-		return await r.text();
+		io('GA--getTxtGAS--A--');
+		const a = Jp(Js(GAB));
+		a.method = 'GET';
+		return await (await fetch(`${p}?${GA.c(d)}`, a)).text();
 	}
 	static async post2GAS(p, d) {
-		w('GA----post2GAS--A----', d);
-		const r = await fetch(`${p}`, {
-			method: 'POST',
-			redirect: 'follow',
-			Accept: 'application/json',
-			'Content-Type': cType,
-			body: `${GA.c(d)}`,
-			headers: {
-				'Content-Type': cType,
-			},
-		});
-		return await r.text();
+		w('GA--post2GAS--A--', d);
+		const a = Jp(Js(GAB));
+		a.body = `${GA.c(d)}`;
+		return await (await fetch(`${p}`, a)).text();
 	}
 }
+const sS = [
+	{
+		urls: 'stun:stun.l.google.com:19302',
+	},
+];
 class WebRTCConn {
-	constructor(
-		l = console,
-		isTM = false,
-		stunSrv = [
-			{
-				urls: 'stun:stun.l.google.com:19302',
-			},
-		]
-	) {
+	constructor(l = console, isTM = false, stunSrv = sS) {
 		const z = this;
 		z.isTestMode = isTM;
 		z.pO = new Peer('OFFER', stunSrv);
 		z.pA = new Peer('ANSWER', stunSrv);
-		z.wPeer = null;
-		z.onOpenCB = z.onCloseCB = z.onMsgCB = z.onErrCB = () => {};
+		z.p = null;
+		z.oOf = z.oCf = z.oMf = z.oEf = () => {};
 		z.isOpd = isTM ? true : false;
 		z.l = l;
-		z.inited = z.init();
+		z.ip = z.init();
 	}
 	async init() {
 		const z = this;
-		z.l.log('-WebRTCConn-init--0----WebRTCConn----');
+		z.l.log('-WebRTCConn-init--0--WebRTCConn--');
 		z.close();
-		z.pO.onO = (e) => {
-			z.onOpenCB(e);
-			z.wPeer = z.pO;
-			z.l.log('-WebRTCConn-onO--1-pOffer----WebRTCConn----');
-			z.wPeer.onC = z.onCloseCB;
-			z.wPeer.onMsg = z.onMsgCB;
-			z.wPeer.onError = z.onErrCB;
+		z.pO.oO = (e) => {
+			z.oOf(e);
+			z.p = z.pO;
+			z.l.log('-WebRTCConn-onO--1-pOffer--WebRTCConn--');
+			z.p.oC = z.oCf;
+			z.p.oM = z.oMf;
+			z.p.oE = z.oEf;
 			z.isOpd = true;
 		};
-		z.pA.onO = (e) => {
-			z.onOpenCB(e);
-			z.wPeer = z.pA;
-			z.l.log('-WebRTCConn-onO--1-pAnswer----pAnswer----');
-			z.wPeer.onC = z.onCloseCB;
-			z.wPeer.onMsg = z.onMsgCB;
-			z.wPeer.onError = z.onErrCB;
+		z.pA.oO = (e) => {
+			z.oOf(e);
+			z.p = z.pA;
+			z.l.log('-WebRTCConn-onO--1-pAns--pAns--');
+			z.p.oC = z.oCf;
+			z.p.oM = z.oMf;
+			z.p.oE = z.oEf;
 			z.isOpd = true;
 		};
-		z.l.log(`-WebRTCConn-init--3----WebRTCConn----pOffer:${z.pO.name} ----pAnswer:${z.pA.name}`);
+		z.l.log(`-WebRTCConn-init--3--WebRTCConn--pOffer:${z.pO.n} --pAns:${z.pA.n}`);
 		return true;
 	}
 	async getOfferSdp() {
-		return (await this.inited) ? await this.pO.mkO() : '';
+		return (await this.ip) ? await this.pO.mkO() : '';
 	}
-	setOnOpen(cb) {
-		this.onOpenCB = (e) => w(`-WebRTCConn-onOpenCallBack--1----event:${e}`, cb(e));
+	setOf(f) {
+		this.oOf = (e) => w(`-WebRTCConn-onOpenCallBack--1--event:${e}`, f(e));
 	}
-	setOnClose(cb) {
-		this.onCloseCB = (e) => w(`-WebRTCConn-onCloseCallBack--1----event:${e}`, cb(e));
+	setCf(f) {
+		this.oCf = (e) => w(`-WebRTCConn-onCloseCallBack--1--event:${e}`, f(e));
 	}
-	setOnMsg(cb) {
-		this.onMsgCB = (m) => w(`-WebRTCConn-onMessageCallBack--1----msg:${m}`, cb(m));
+	setMf(f) {
+		this.oMf = (m) => w(`-WebRTCConn-onMessageCallBack--1--msg:${m}`, f(m));
 	}
-	setOnErr(cb) {
-		this.onErrCB = (e) => w(`-WebRTCConn-onErrorCallBack--1----error:${e}`, cb(e));
+	setEf(f) {
+		this.oEf = (e) => w(`-WebRTCConn-onErrorCallBack--1--error:${e}`, f(e));
 	}
-	send(m, bt = 'blob') {
-		io(`WebRTCConn send msg:${m}/binaryType:${bt}`);
+	send(m, t = 'blob') {
+		io(`WebRTCConn send msg:${m}/binaryType:${t}`);
 		return this.isTestMode
-			? this.onMsgCB(!isStr(m) && m instanceof Blob ? (m.buffer ? new Blob(m) : m.byteLength ? B.u8a(m) : m) : m)
-			: this.wPeer.send(m, bt);
+			? this.oMf(!isStr(m) && m instanceof Blob ? (m.buffer ? new Blob(m) : gBl(m) ? B.u8(m) : m) : m)
+			: this.p.s(m, t);
 	}
 	async ans(sdp) {
-		return !sdp ? null : (await this.inited) ? await this.pA.setOandA(sdp) : null;
+		return !sdp ? null : (await this.ip) ? await this.pA.sOA(sdp) : null;
 	}
-	async conn(sdp, fn) {
+	async conn(sdp, f) {
 		if (!sdp) return null;
-		const r = await this.pO.setA(sdp).catch(getEF(now(), this.l));
-		this.wPeer = this.pO;
-		if (r && fn) this.setOnCandidates(fn);
+		const r = await this.pO.sA(sdp).catch(getEF(now(), this.l));
+		this.p = this.pO;
+		if (r && f) this.setOnCandidates(f);
 		return r;
 	}
 	connAns() {
-		return new Promise((r) => {
-			this.wPeer = this.pA;
+		return pr((r) => {
+			this.p = this.pA;
 			this.setOnCandidates(async (c) => {
 				await slp(Math.floor(rnd(400)) + 200);
 				r(c);
 			});
 		});
 	}
-	async setOnCandidates(fn) {
+	async setOnCandidates(f) {
 		let c = 1;
 		while (c < 100 && !this.isOpd) {
 			await slp(Math.floor(rnd(20 * c)) + 100);
 			c += 1;
-			if (!this.wPeer) continue;
-			const cs = this.wPeer.getCandidates();
+			if (!this.p) continue;
+			const cs = this.p.gCs();
 			io(`WebRTCConn setOnCandidates count:${c}/candidates:${cs}`);
 			if (isArr(cs) && cs.length > 0) {
-				fn(cs);
+				f(cs);
 				break;
 			}
 		}
 	}
-	setCandidates(ci) {
-		const c = pv(ci);
-		return !isArr(c) ? `setCandidates candidates:${c}` : this.wPeer.setCandidates(c);
+	setCs(i) {
+		const c = pv(i);
+		return !isArr(c) ? `setCandidates candidates:${c}` : this.p.sCs(c);
 	}
 	close() {
-		this.pO.close();
-		this.pA.close();
+		this.pO.c();
+		this.pA.c();
 	}
 	isOpened() {
-		return this.isTestMode ? true : this.wPeer ? this.wPeer.isOpd() : false;
+		return this.isTestMode ? true : this.p ? this.p.isO() : false;
 	}
 }
 const opt = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
 class Peer {
 	constructor(n, stunSrvs, l = null) {
-		this.name = n;
+		this.n = n;
 		this.p = null;
 		this.cs = [];
 		this.cf = { iceServers: stunSrvs };
 		this.l = l;
-		this.id = `${now()} ${this.name}`;
+		this.id = `${now()} ${this.n}`;
 		this.q = [];
-		this.isOpenDc = false;
+		this.isOD = false;
 	}
-	prepareNewConn(isWithDataChannel) {
-		return new Promise((resolve, reject) => {
-			w('-Peer-prepareNewConn--0----Peer----');
+	pNC(isWithDataChannel) {
+		return new Promise((rv, rj) => {
+			w('-Peer-prepareNewConn--0--');
 			const p = new RTCPeerConnection(this.cf, opt);
-			w('-Peer-prepareNewConn--1----Peer----');
+			w('-Peer-prepareNewConn--1--');
 			p.ontrack = (e) => io(`-Peer- peer.ontrack() evt:${e}`);
 			// peer.onaddstream = evt => {
 			// 	info('-- peer.onaddstream()vevt:' + evt);
@@ -1074,28 +1003,28 @@ class Peer {
 					: io(`-Peer--onicecandidate--- empty ice event peer.localDescription:${p.localDescription}`);
 			p.onnegotiationneeded = async () => {
 				try {
-					io(`-Peer1--onnegotiationneeded----Peer----createOffer() succsess in promise name:${this.name}`);
+					io(`-Peer1--onnegotiationneeded--createOffer() OK in promise name:${this.n}`);
 					const o = await p.createOffer();
 					io(
-						`-Peer2--onnegotiationneeded----Peer----createOffer() succsess in promise;iceConnectionState;${p.iceConnectionState}`
+						`-Peer2--onnegotiationneeded--createOffer() OK in promise;iceConnectionState;${p.iceConnectionState}`
 					);
 					await p.setLocalDescription(o);
 					io(
-						`-Peer3--onnegotiationneeded----Peer----setLocalDescription() succsess in promise;iceConnectionState${p.iceConnectionState}`
+						`-Peer3--onnegotiationneeded--setLocalDescription() OK in promise;iceConnectionState${p.iceConnectionState}`
 					);
-					resolve(p);
+					rv(p);
 				} catch (e) {
-					reject(e);
+					rj(e);
 					ef(e, this.id, this.l);
 				}
 			};
 			p.oniceconnectionstatechange = () => {
-				io(`Peer ICE connection Status has changed to ${p.iceConnectionState}`);
+				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}`);
 				switch (p.iceConnectionState) {
 					case 'closed':
 					case 'failed':
-						if (this.p && this.isOpd) {
-							this.close();
+						if (this.p && this.isO) {
+							this.c();
 						}
 						break;
 					case 'disconnected':
@@ -1103,72 +1032,68 @@ class Peer {
 				}
 			};
 			p.ondatachannel = (e) => {
-				w(`-Peer-ondatachannel--1----Peer----evt:${e}`);
-				this.dcSetup(e.channel);
+				w(`-Peer-ondatachannel--1--evt:${e}`);
+				this.dS(e.channel);
 			};
-			w(`-Peer-prepareNewConn--2----Peer----isWithDataChannel:${isWithDataChannel}`);
-			if (isWithDataChannel) this.dcSetup(p.createDataChannel(`chat${now()}`));
+			w(`-Peer-prepareNewConn--2--isWithDataChannel:${isWithDataChannel}`);
+			if (isWithDataChannel) this.dS(p.createDataChannel(`chat${now()}`));
 		});
 	}
-	onO(e) {
-		io(`Peer.onO is not Overrided name:${this.name}`, e);
+	oO(e) {
+		io(`Peer.onO is not Overrided name:${this.n}`, e);
 	}
-	onError(e) {
-		io(`Peer.onError is not Overrided name:${this.name}`, e);
+	oE(e) {
+		io(`Peer.onError is not Overrided name:${this.n}`, e);
 	}
-	onMsg(m) {
-		io(`Peer.onMessage is not Overrided name:${this.name}`, m);
+	oM(m) {
+		io(`Peer.onMessage is not Overrided name:${this.n}`, m);
 	}
-	onC() {
-		io(`Peer.onC is not Overrided name:${this.name}`, 'close');
+	oC() {
+		io(`Peer.onC is not Overrided name:${this.n}`, 'close');
 	}
-	dcSetup(dc) {
-		if (this.dc && dc.id !== this.dc.id && this.isOpenDc)
-			io(`Peer The Data Channel be Closed. readyState:${this.dc.readyState} /${dc.id} !== ${this.dc.id}`);
-		dc.onerror = (e) => {
-			err('Peer Data Channel Error:', e);
-			this.onError(e);
-		};
-		dc.onmessage = (e) => {
-			io(`Peer Got Data Channel Message:typeof:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data);
-			this.onMsg(e.data);
-		};
-		dc.onopen = (e) => {
+	dS(c) {
+		io(`Peer The DataChannel opend. readyState:${c.id} !== ${c.id}`);
+		if (this.dc && c.id !== this.dc.id && this.isOD)
+			io(`Peer The DataChannel be Closed. readyState:${this.dc.readyState} /${c.id} !== ${this.dc.id}`);
+		c.onerror = (e) => cb(err('Peer D C Error:', e), this.oE(e));
+		c.onmessage = (e) =>
+			cb(io(`Peer Got D C Msg:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data), this.oM(e.data));
+		c.onopen = (e) => {
 			w(e);
-			if (!this.isOpenDc) {
-				dc.send(
-					`Peer dataChannel Hello World! OPEN SUCCESS! dc.id:${dc.id} label:${dc.label} ordered:${dc.ordered} protocol:${dc.protocol} binaryType:${dc.binaryType} maxPacketLifeTime:${dc.maxPacketLifeTime} maxRetransmits:${dc.maxRetransmits} negotiated:${dc.negotiated}`
+			if (!this.isOD) {
+				c.send(
+					`Peer dataChannel Hello World! OPEN OK! dc.id:${c.id} label:${c.label} ordered:${c.ordered} protocol:${c.protocol} binaryType:${c.binaryType} maxPacketLifeTime:${c.maxPacketLifeTime} maxRetransmits:${c.maxRetransmits} negotiated:${c.negotiated}`
 				);
-				this.onO(e);
-				this.isOpenDc = true;
+				this.oO(e);
+				this.isOD = true;
 			}
 		};
-		dc.onclose = () => {
-			io('Peer The Data Channel is Closed');
-			this.onC();
-			dc.isOpen = false;
+		c.onclose = () => {
+			io('Peer The DataChannel is Closed');
+			this.oC();
+			c.isOpen = false;
 		};
-		this.dc = dc;
+		this.dc = c;
 	}
 	async mkO() {
-		this.p = await this.prepareNewConn(true);
+		this.p = await this.pNC(true);
 		return this.p.localDescription;
 	}
 	async mkA() {
 		const z = this;
-		io('Peer mkAns sending Answer. Creating remote session description...');
+		io('Peer mkAns sending Ans. Creating remote session description...');
 		if (!z.p) return err('Peer mkAns peerConnection NOT exist!');
 		try {
 			const a = await z.p.createAnswer();
-			io('Peer mkAns createAnswer() succsess in promise answer:', a);
+			io('Peer mkAns createAnswer() ok in promise ans:', a);
 			await z.p.setLocalDescription(a);
-			io(`Peer mkAns setLocalDescription() succsess in promise${z.p.localDescription}`);
+			io(`Peer mkAns setLocalDescription() ok in promise${z.p.localDescription}`);
 			return z.p.localDescription;
 		} catch (e) {
-			ef(e, z.id, z.l);
+			return ef(e, z.id, z.l);
 		}
 	}
-	async setOandA(s) {
+	async sOA(s) {
 		w(`Peer setOfferAndAns sdp ${s}`);
 		w(s);
 		try {
@@ -1178,31 +1103,30 @@ class Peer {
 					sdp: s,
 				});
 				if (this.p) err('Peer setOfferAndAns peerConnection alreay exist!');
-				this.p = await this.prepareNewConn(true);
+				this.p = await this.pNC(true);
 				w(`Peer setOfferAndAns this.p${this.p} offer:`, o);
 				await this.p.setRemoteDescription(o);
-				io(`Peer setOfferAndAns setRemoteDescription(answer) succsess in promise name:${this.name}`);
+				io(`Peer setOfferAndAns setRemoteDescription(ans) ok in promise name:${this.n}`);
 				const a = await this.mkA();
 				w(`Peer setOfferAndAns ans ${a}`);
 				if (this.cs.length < 1 || a) return a;
 				await slp(Math.floor(rnd(1000)) + 1000);
 			}
 		} catch (e) {
-			ef(e, this.id, this.l);
+			return ef(e, this.id, this.l);
 		}
-		return null;
 	}
-	async setA(s) {
+	async sA(s) {
 		const a = new RTCSessionDescription({
 			type: 'answer',
 			sdp: ov(s),
 		});
 		if (!this.p) throw 'Peer peerConnection NOT exist!';
 		await this.p.setRemoteDescription(a);
-		io('Peer setRemoteDescription(answer) succsess in promise');
+		io('Peer setRemoteDescription(answer) ok in promise');
 		return true;
 	}
-	isOpd() {
+	isO() {
 		if (!this.dc) return false;
 		let isO = false;
 		switch (this.dc.readyState) {
@@ -1220,20 +1144,20 @@ class Peer {
 		}
 		return isO;
 	}
-	send(m, bt = 'blob') {
+	s(m, t = 'blob') {
 		const z = this;
-		const dc = z.dc;
-		if (!dc) return false;
-		dc.binaryType = bt;
-		io(`Connection SEND!; dc.binaryType : ${dc.binaryType}`);
-		switch (dc.readyState) {
+		const d = z.dc;
+		if (!d) return false;
+		d.binaryType = t;
+		io(`Conn SEND!; dc.binaryType : ${d.binaryType}`);
+		switch (d.readyState) {
 			case 'connecting':
-				io(`Connection not open; queueing: ${m}`);
+				io(`Conn not open; queueing: ${m}`);
 				z.q.push(m);
 				break;
 			case 'open':
-				z.sendOnQ(bt);
-				dc.send(m, bt);
+				z.sOQ(t);
+				d.send(m, t);
 				z.lastSnd = now();
 				break;
 			case 'closing':
@@ -1243,16 +1167,16 @@ class Peer {
 			case 'closed':
 				w('Error! Attempt to send while connection closed.');
 				z.q.push(m);
-				z.close();
+				z.c();
 				break;
 		}
-		return dc.readyState;
+		return d.readyState;
 	}
-	sendOnQ(bt) {
+	sOQ(bt) {
 		const l = this.q.length;
 		for (let i = 0; i < l; i++) this.dc.send(this.q.shift(), bt);
 	}
-	close() {
+	c() {
 		const z = this;
 		if (z.p || z.dc) {
 			if (z.p && z.p.iceConnectionState !== 'closed') {
@@ -1266,10 +1190,10 @@ class Peer {
 			io('Peer peerConnection is closed.');
 		}
 	}
-	getCandidates() {
+	gCs() {
 		return this.cs;
 	}
-	setCandidates(s) {
+	sCs(s) {
 		for (const c of s) {
 			io('Peer setCandidates candidate', c);
 			this.p.addIceCandidate(c).catch((e) => ef(e, this.id, this.l));
@@ -1280,25 +1204,25 @@ class Peer {
 const cy = crypto.subtle;
 export class H {
 	static async d(m, sc = 1, algo = 'SHA-256', isAB = false) {
-		let r = m.buffer ? (m instanceof Uint8Array ? B64.dpU8a(m) : B.u8a(m.buffer)) : te.encode(m);
+		let r = m.buffer ? (m instanceof Uint8Array ? Y.dpU(m) : B.u8(m.buffer)) : te.encode(m);
 		for (let i = 0; i < sc; i++) r = await cy.digest(algo, r);
-		return isAB ? r : B64.a2U(r);
+		return isAB ? r : Y.a2U(r);
 	}
 }
 class B {
-	static u8a(a) {
+	static u8(a) {
 		return new Uint8Array(a);
 	}
-	static u32a(a) {
+	static u32(a) {
 		return new Uint32Array(a);
 	}
-	static i32a(a) {
+	static i32(a) {
 		return new Int32Array(a);
 	}
 }
-class B64 {
+class Y {
 	static isSameAb(abA, abB) {
-		return B64.a2B(abA) === B64.a2B(abB);
+		return Y.a2B(abA) === Y.a2B(abB);
 	}
 	static isB64(s = '') {
 		return s % 4 === 0 && /[+/=0-9a-zA-Z]+/.test(s);
@@ -1310,47 +1234,47 @@ class B64 {
 		return td.decode(u);
 	}
 	static a2B(i) {
-		return window.btoa(B64.u2b(B.u8a(i.buffer ? i.buffer : i)));
+		return window.btoa(Y.u2b(B.u8(i.buffer ? i.buffer : i)));
 	}
 	static u2B(u) {
-		return window.btoa(B64.u2b(u));
+		return window.btoa(Y.u2b(u));
 	}
 	static u2I(u) {
-		const f = B.u8a(4);
+		const f = B.u8(4);
 		const l = u.length;
 		const n = Math.ceil(l / 4);
-		const i32a = B.i32a(n);
+		const i32a = B.i32(n);
 		for (let i = 0; i < n; i++) {
 			f[0] = u[i + 0];
 			f[1] = l < i + 1 ? 0 : u[i + 1];
 			f[2] = l < i + 2 ? 0 : u[i + 2];
 			f[3] = l < i + 3 ? 0 : u[i + 3];
-			i32a[i] = B.i32a(f.buffer)[0];
+			i32a[i] = B.i32(f.buffer)[0];
 		}
 		return i32a;
 	}
 	static u8a2u32a(u) {
-		const f = B.u8a(4);
+		const f = B.u8(4);
 		const l = u.length;
 		const n = Math.ceil(l / 4);
-		const u32a = B.u32a(n);
+		const u32a = B.u32(n);
 		for (let i = 0; i < n; i++) {
 			f[0] = u[i + 0];
 			f[1] = l < i + 1 ? 0 : u[i + 1];
 			f[2] = l < i + 2 ? 0 : u[i + 2];
 			f[3] = l < i + 3 ? 0 : u[i + 3];
-			u32a[i] = B.u32a(f.buffer)[0];
+			u32a[i] = B.u32(f.buffer)[0];
 		}
 		return u32a;
 	}
 	static a2U(a) {
-		return B64.B2U(B64.a2B(a));
+		return Y.B2U(Y.a2B(a));
 	}
 	static B2a(B) {
-		return B64.b2u(window.atob(B));
+		return Y.b2u(window.atob(B));
 	}
 	static U2a(U) {
-		return B64.B2a(B64.U2B(U));
+		return Y.B2a(Y.U2B(U));
 	}
 	static B2U(B) {
 		return B ? B.split('+').join('-').split('/').join('_').split('=').join('') : B;
@@ -1365,13 +1289,13 @@ class B64 {
 	static jus(s) {
 		let l = 0;
 		const c = s.length;
-		for (let i = 0; i < c; i++) l += s[i].byteLength;
-		const a = B.u8a(l);
+		for (let i = 0; i < c; i++) l += gBl(s[i]);
+		const a = B.u8(l);
 		let o = 0;
 		for (let i = 0; i < c; i++) {
 			const u = s[i];
 			a.set(u, o);
-			o += u.byteLength;
+			o += gBl(u);
 		}
 		return a;
 	}
@@ -1382,7 +1306,7 @@ class B64 {
 	}
 	static b2u(bs) {
 		const l = bs.length;
-		const a = B.u8a(new ArrayBuffer(l));
+		const a = B.u8(new ArrayBuffer(l));
 		for (let i = 0; i < l; i++) a[i] = bs.charCodeAt(i);
 		return a;
 	}
@@ -1390,23 +1314,19 @@ class B64 {
 		return new Promise((r) => {
 			const fr = new FileReader();
 			fr.onload = () => r(fr.result);
-			fr.onerror = () => {
-				r(fr.error);
-				err(fr.error);
-			};
+			fr.onerror = () => cb(r(fr.error), err(fr.error));
 			fr.readAsArrayBuffer(b);
 		});
 	}
-	static dpU8a(u) {
+	static dpU(u) {
 		const l = u.length;
-		const n = B.u8a(l);
+		const n = B.u8(l);
 		for (let i = 0; i < l; i++) n[i] = u[i];
 		return n;
 	}
 }
 class Cy {
-	static async getKey(p, s) {
-		const h = await H.d(B64.s2u(p).buffer, 100, 'SHA-256', true);
+	static async gK(p, s) {
 		const k = await cy.deriveKey(
 			{
 				name: 'PBKDF2',
@@ -1414,57 +1334,93 @@ class Cy {
 				iterations: 100000,
 				hash: 'SHA-256',
 			},
-			await cy.importKey('raw', h, { name: 'PBKDF2' }, false, ['deriveKey']),
+			await cy.importKey('raw', await H.d(Y.s2u(p).buffer, 100, 'SHA-256', true), { name: 'PBKDF2' }, false, [
+				'deriveKey',
+			]),
 			{ name: 'AES-GCM', length: 256 },
 			false,
 			['encrypt', 'decrypt']
 		);
 		return [k, s];
 	}
-	static getSalt(saltI, isAB) {
-		return saltI ? (isAB ? B.u8a(saltI) : B64.s2u(saltI)) : crv(B.u8a(16));
+	static gS(saltI, isAB) {
+		return saltI ? (isAB ? B.u8(saltI) : Y.s2u(saltI)) : crv(B.u8(16));
 	}
 	static async importKeyAESGCM(kAb, usages = ['encrypt', 'decrypt']) {
 		return await cy.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
 	}
 	static gFF() {
-		return crv(B.u8a(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
+		return crv(B.u8(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
 	}
 	static gIF() {
-		return crv(B.u32a(1));
+		return crv(B.u32(1));
 	}
 	static srand() {
-		return crv(B.u32a(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
+		return crv(B.u32(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
 	}
 	static async enc(s, pk) {
-		return await Cy.encAES256GCM(B64.s2u(s), pk);
+		return await Cy.encAES256GCM(Y.s2u(s), pk);
 	}
-	static async encAES256GCM(u8a, pk, saltI = null, isAB) {
-		const s = Cy.getSalt(saltI, isAB);
-		const fp = Cy.gFF();
-		const ip = Cy.gIF();
-		const iv = Uint8Array.from([...fp, ...B.u8a(ip.buffer)]);
-		const edAb = await cy.encrypt({ name: 'AES-GCM', iv }, await Cy.lk(pk, s), u8a.buffer);
+	static async encAES256GCM(u, pk, saltI = null, isAB) {
+		const s = Cy.gS(saltI, isAB);
+		const iv = Uint8Array.from([...Cy.gFF(), ...B.u8(Cy.gIF().buffer)]);
+		const edAb = await cy.encrypt({ name: 'AES-GCM', iv }, await Cy.lk(pk, s), u.buffer);
 		return [
-			B64.a2U(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
-			B64.a2U(iv.buffer),
-			B64.a2U(s.buffer),
+			Y.a2U(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
+			Y.a2U(iv.buffer),
+			Y.a2U(s.buffer),
 		].join(',');
 	}
 	static async dec(ers, pk) {
-		return B64.u2s(await Cy.decAES256GCM(ers, pk));
+		return Y.u2s(await Cy.decAES256GCM(ers, pk));
 	}
 	static async lk(pk, s) {
-		const [key] = isStr(pk) ? await Cy.getKey(pk, isStr(s) ? B.u8a(B64.U2a(s)) : s) : { passk: pk };
-		return key;
+		return (isStr(pk) ? await Cy.gK(pk, isStr(s) ? B.u8(Y.U2a(s)) : s) : [pk])[0];
 	}
 	static async decAES256GCM(ers, p) {
 		const [U, ip, s] = ers.split(',');
 		try {
-			return B.u8a(await cy.decrypt({ name: 'AES-GCM', iv: B.u8a(B64.U2a(ip)) }, await Cy.lk(p, s), B64.U2a(U)));
+			return B.u8(await cy.decrypt({ name: 'AES-GCM', iv: B.u8(Y.U2a(ip)) }, await Cy.lk(p, s), Y.U2a(U)));
 		} catch (e) {
-			ef(e);
-			return null;
+			return ef(e);
 		}
+	}
+}
+const PX = '_A_';
+const cache = {};
+class LSM {
+	static send(cp, i, l = console) {
+		this.i = i;
+		l.log('===SEND=A=====');
+		const m = typeof i === 'string' ? i : Js(i);
+		l.log(`send prefix:"${cp}"/message:${m}`);
+		const key = `${PX + cp}_${Date.now()}`;
+		localStorage.setItem(key, m);
+		l.log('===SEND=B=====');
+	}
+	static setOnRcv(
+		cp,
+		func = (p, e) => {
+			io(p, e);
+		},
+		l = console
+	) {
+		l.log(`setOnRcv prefix:${cp}`);
+		cache.listene = (event) => {
+			// l.log(`OnRecieve prefix:${prefix} "${JSON.stringify(event)}"`);
+			// l.log(event);
+			const k = event.key;
+			// l.log(`key:${key}`);
+			const px = `${PX + cp}_`;
+			// l.log(px);
+			if (k.indexOf(px) === 0) {
+				l.log(`OnRecieve callfunc prefix:${cp}`);
+				func(cp, event);
+			}
+		};
+		window.addEventListener('storage', cache.listene);
+	}
+	static rmOnRcv() {
+		window.removeEventListener('storage', cache.listene);
 	}
 }
