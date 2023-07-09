@@ -30,15 +30,17 @@ const gBl = (b) => b.byteLength;
 const pv = (a) => (a && isStr(a) ? Jp(a) : a);
 const ov = (a) => (typeof a === 'object' ? Jp(a) : a);
 const cb = (a) => a;
+const rsm = () => Math.floor(rnd(SlpMs)) + SlpMs;
+
 const ef = (e, id = '', l = null) => {
 	cb(w(`${id} ${e.message}`), w(e.stack));
-	if (l && l.log && l !== console) cb(l.log(`${id} ${e.message}`), l.log(e.stack));
+	if (l && isFn(l)) cb(l(`${id} ${e.message}`), l(e.stack));
 	return null;
 };
 function getEF(i, l) {
 	return (e) => ef(e, i, l);
 }
-function slp(s = SlpMs) {
+function slp(s = rsm()) {
 	return pr((r) => st(() => r(), s));
 }
 function dcd(d, i, l) {
@@ -103,8 +105,8 @@ export class ESWebRTCConnecterU {
 class M {
 	constructor(l = console, onR = (tdn, m) => io(`M trgtDevNm:${tdn},msg:${m}`)) {
 		const z = this;
-		z.l = l;
-		z.l.log('M');
+		z.l = (a) => l.log(a);
+		z.l('M');
 		z.c = {};
 		z.thrds = [];
 		z.cfs = {};
@@ -114,7 +116,6 @@ class M {
 	}
 	async init(u, g, p, dn, salt = SALT) {
 		const z = this;
-		z.l.log('M INIT START');
 		z.url = u;
 		z.grp = g;
 		z.pwd = p;
@@ -124,7 +125,7 @@ class M {
 		z.gHash = await mkH([u, g, p, salt], HshScrtchCnt);
 		z.nHash = await mkH([now(), u, g, p, dn, salt], HshScrtchCnt);
 		z.sgnlH = await z.enc({ hash: z.nHash, group: g, devName: dn });
-		z.l.log(`M INIT END z.hash:${z.hash} devName:${dn}`);
+		z.l(`M INIT z.hash:${z.hash} devName:${dn}`);
 		z.reqM = new Map();
 	}
 	enc(o, k = this.sHash) {
@@ -154,7 +155,7 @@ class M {
 			} else c--;
 			const l = await z.getWL(gh);
 			if (!isArr(l)) continue;
-			z.l.log(l);
+			z.l(l);
 			const n = now();
 			for (const r of l) {
 				const d = n - r.exp;
@@ -204,21 +205,22 @@ class M {
 			if (rc >= 2) break;
 		}
 		z.nego(c).catch(getEF(now, z.l));
-		await slp(100);
+		await slp();
+		z.l(`M=====isO:${isO}`);
 		if (isO) cb(await slp(Math.floor(rnd(500)) + 750), z.offer(c).catch(getEF(now, z.l)));
 		st(() => {
 			isHotS = false;
 			z.isStop = true;
 		}, WaitAutoInterval);
 		isHotS = true;
-		while (isHotS) await slp(100);
+		while (isHotS) await slp();
 		z.isStop = false;
 	}
 	sndW(gh) {
-		this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5 }, WAIT);
+		return this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5 }, WAIT);
 	}
 	sndWN(gh, tsh) {
-		this.p(
+		return this.p(
 			gh,
 			{
 				msg: WAIT,
@@ -233,9 +235,9 @@ class M {
 		const o = d ? Jp(d) : null;
 		return o ? o.message : null;
 	}
-	isOpd(cf) {
-		const i = cf.w.isOpened();
-		this.l.log(`◆◆M isOpd conf.w.isOpd:${i}:${cf.target}`);
+	isOpd(c) {
+		const i = c.w.isOp();
+		this.l(`◆◆M isOpd conf.w.isOpd:${i}:${c.target}`);
 		return i;
 	}
 	async nego(c) {
@@ -248,32 +250,34 @@ class M {
 				else if (z.thrds.length < 4) z.thrds.push(1);
 				else return;
 				z.g(c.pxOs).then(async (d1) => {
-					const ck = await H.d(c.pxOs + d1);
-					z.thrds.pop(1);
+					const k = await H.d(c.pxOs + d1);
+					z.thrds.pop();
 					const d = dcd(d1, c.id, z.l);
-					if (d && !c.cache[ck]) {
-						c.cache[ck] = 1;
-						z.listener(c, OF, d);
+					z.l(`nego offer d:${d}/c.cache[k]:${c.cache[k]}`);
+					if (d && !c.cache[k]) {
+						c.cache[k] = 1;
+						z.lsnr(c, OF, d);
 					}
 				});
-			}, SlpMs);
+			}, rsm());
 			st(() => {
 				if (!c.isA) return;
 				else if (z.thrds.length < 4) z.thrds.push(1);
 				else return;
 				z.g(c.pxAs).then(async (data) => {
-					const ck = await H.d(c.pxAs + data);
-					z.thrds.pop(1);
+					const k = await H.d(c.pxAs + data);
+					z.thrds.pop();
 					const d = dcd(data, c.id, z.l);
-					if (d && !c.cache[ck]) {
-						c.cache[ck] = 1;
-						z.listener(c, AN, d);
+					z.l(`nego ans d:${d}/c.cache[k]:${c.cache[k]}`);
+					if (d && !c.cache[k]) {
+						c.cache[k] = 1;
+						z.lsnr(c, AN, d);
 					}
 				});
-			}, SlpMs);
+			}, rsm());
 			await slp();
 		}
-		z.rsCf(c);
+		await z.rsCf(c);
 	}
 	async stopWaitAutoConn() {
 		const z = this;
@@ -281,13 +285,15 @@ class M {
 		z.isStopAuto = true;
 		for (const k in z.cfs) z.cfs[k].isStop = true;
 		await slp(Math.floor(rnd(1000)) + 2500);
-		for (const k in z.cfs) z.rsCf(z.cfs[k]);
+		const p = [];
+		for (const k in z.cfs) p.push(z.rsCf(z.cfs[k]));
+		await Promise.all(p);
 	}
-	async offer(cf) {
-		cf.isA = false;
-		const o = await cf.w.getOfferSdp();
-		this.l.log('M setOnRcv OFFER post offer:', o);
-		await this.p(cf.pxAt, await this.enc(o, cf.nowHK));
+	async offer(c) {
+		c.isA = false;
+		const o = await c.w.getOfferSdp();
+		this.l('M setOnRcv OFFER post offer:', o);
+		await this.p(c.pxAt, await this.enc(o, c.nowHK));
 	}
 	async p(g, o, c = 'g') {
 		const n = now();
@@ -296,12 +302,12 @@ class M {
 			cmd: c,
 			data: isStr(o) ? o : Js(o),
 		});
-		this.l.log(`M==post==${g}/${c} d:${now() - n} data:`, d);
+		this.l(`M==post==${g}/${c} d:${now() - n} data:`, d);
 	}
 	async g(g, c = 'g') {
 		const n = now();
 		const d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
-		return cb(d, this.l.log(`M==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
+		return cb(d, this.l(`M==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
 	}
 	async getCfK(gh, sh) {
 		const o = sh === 'test' ? { devName: 'test' } : await this.dec(sh);
@@ -328,14 +334,16 @@ class M {
 				cache: {},
 				id: `${now()} ${z.dn}`,
 			};
+			z.l(`Create New Conf! tsh:${tsh}/gh:${gh}/`, g);
 			c.w = new WebRTCConn(z.l, tsh === 'test');
 			c.w.setMf(async (m) => io('conf.w.setMf((msg):', m, await z.onMsgByCf(c, tdn, tsh, m)));
 			c.w.setOf((e) => {
-				cb(z.l.log(`###★###OPEN！###★###trgtDevNm:${tdn}`, oT), z.onO(e, g, tsh, tdn));
+				cb(z.l(`###★###OPEN！###★###trgtDevNm:${tdn}`, oT), z.onO(e, g, tsh, tdn));
 				c.isStop = true;
 			});
 			c.w.setCf((e) => {
-				cb(z.l.log(`###☆###CLOSE###☆###trgtDevNm:${tdn}`), z.onC(e, g, tsh, tdn));
+				cb(z.l(`###☆###CLOSE###☆###trgtDevNm:${tdn}`), z.onC(e, g, tsh, tdn));
+				z.close(tsh);
 				c.isStop = false;
 			});
 			z.cfs[k] = c;
@@ -355,44 +363,45 @@ class M {
 			? io('☆onMsgByConf C', m, z.onRcvCB(tdn, m))
 			: io('☆onMsgByConf D', m, z.onRcvCB(tdn, { ab: a }));
 	}
-	rsCf(c) {
+	async rsCf(c) {
 		c.isA = true;
 		c.isGF = c.isEx = c.isStop = false;
 		const s = Object.keys(c.cache);
 		for (const k of s) delete c.cache[k];
+		await slp(WaitAutoInterval);
 		return null;
 	}
-	async listener(c, px, ve) {
+	async lsnr(c, px, ve) {
 		const z = this;
 		const v = await z.dec(ve, z.nHash);
-		z.l.log(
+		z.l(
 			`M==LISTENER==RECEIVE=A==px:${px}/${px === AN}//value:${v}/conf.isA:${
 				c.isA
-			}/!conf.isGF:${!c.isGF}/conf.isEx:${c.isEx}`
+			}/!conf.isGF:${!c.isGF}/conf.isEx:${c.isEx}/c.isStop:${c.isStop}/c.w.isOpd:${c.w.isOpd}`
 		);
 		if (c.w.isOpd || c.isStop || v === true || v === null || v === 'null')
-			return z.l.log(`M==LISTENER==END==value:${v}/conf.isStop:${c.isStop}`);
+			return z.l(`M==LISTENER==END==value:${v}/conf.isStop:${c.isStop}`);
 		if (c.isA && px === AN) {
-			z.l.log(`M A AS ANSWER conf.isA:${c.isA} A px:${px} conf.isGF:${c.isGF}`);
+			z.l(`M==LISTENER=A AS ANSWER conf.isA:${c.isA} A px:${px} conf.isGF:${c.isGF}`);
 			if (!c.isGF) {
 				const a = await z.ans(c, v);
-				z.l.log(`M==LISTENER==answer=A==typeof answer :${typeof a}`, a);
+				z.l(`M==LISTENER==answer=A==typeof answer :${typeof a}`, a);
 				await z.p(c.pxOt, await z.enc(a, c.nowHK));
 				c.isGF = true;
 			} else if (!c.isEx) {
 				c.isEx = true;
-				z.l.log('M==LISTENER==answer candidats=A==', c.w.setCs(pv(v), now()));
+				z.l('M==LISTENER==answer candidats=A==', c.w.setCs(pv(v), now()));
 			}
 		} else if (!c.isA && px === OF) {
-			z.l.log(`M B AS OFFER conf.isA:${c.isA}/B px:${px}/!conf.isGF:${!c.isGF}`);
+			z.l(`M==LISTENER=B AS OFFER conf.isA:${c.isA}/B px:${px}/!conf.isGF:${!c.isGF}`);
 			if (!c.isGF) {
 				const o = await z.conn(c, v);
-				z.l.log('M==LISTENER==make offer candidates=A==', o);
+				z.l('M==LISTENER==make offer candidates=A==', o);
 				c.isGF = true;
 				await z.p(c.pxAt, await z.enc(o, c.nowHK));
 			} else if (!c.isEx) {
 				c.isEx = true;
-				z.l.log('M==LISTENER==set offer candidats=A==', v ? c.w.setCs(pv(v), now()) : null);
+				z.l('M==LISTENER==set offer candidats=A==', v ? c.w.setCs(pv(v), now()) : null);
 			}
 		}
 	}
@@ -400,7 +409,7 @@ class M {
 		st(async () => {
 			if (c.isStop) return;
 			const o = await c.w.connAns();
-			while (!c.isGF) await slp(Math.floor(rnd(200)) + 50);
+			while (!c.isGF) await slp(Math.floor(rnd(300)) + 50);
 			await this.p(c.pxOt, await this.enc(o, c.nowHK));
 		});
 		return c.isStop ? null : await c.w.ans(U.pSdp(o, this.l));
@@ -409,13 +418,16 @@ class M {
 		return c.isStop ? null : pr(async (r) => (c.isStop ? null : await c.w.conn(U.pSdp(si, this.l), (c) => r(c))));
 	}
 	closeAll() {
-		for (const k in this.cfs) this.cc(this.cfs[k]);
+		for (const k in this.cfs) this.cc(k);
 	}
-	cc(c) {
-		if (c && c.w) return c.w.close() === this.rsCf(c);
+	async cc(k) {
+		const c = this.cfs[k];
+		this.l(`M==CLOSE==c:${c}/k:${k}`);
+		delete this.cfs[k];
+		if (c && c.w) return c.w.close() === (await this.rsCf(c));
 	}
 	async close(h) {
-		this.cc(await this.getCf(this.gHash, h, this.grp));
+		await this.cc((await this.getCfK(this.gHash, h))[0]);
 	}
 	async sndBigMsg(h, n, t, b) {
 		return await this.A.sBD(await this.getCf(this.gHash, h, this.grp), n, t, b, this.l);
@@ -532,8 +544,8 @@ class A {
 		io(`☆☆A isBSD D data.byteLength:${gBl(a)}/hU8A:${u}/result:${r}/hB64:${j}/hash:${h}/dhU8A:`, z);
 		return r;
 	}
-	async sBD(c, n, t, a, l = console) {
-		l.log(`★★A sBD A sndMsg msg:${a}/${c.w}/${c.w.isOpend}`);
+	async sBD(c, n, t, a, l) {
+		l(`★★A sBD A sndMsg msg:${a}/${c.w}/${c.w.isOpend}`);
 		if (!c || !c.w || !c.w.isOpd) return;
 		const w = c.w;
 		const dn = c.trgtDevNm;
@@ -825,27 +837,19 @@ class U {
 	static getStopFn(c) {
 		return () => (c.isStop = true);
 	}
-	static sndOnDC(c, m, l = console, bt = 'blob') {
-		return cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l.log(`Mtil sndMsg msg:${m}`));
+	static sndOnDC(c, m, l, bt = 'blob') {
+		return cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l(`Mtil sndMsg msg:${m}`));
 	}
-	static pSdp(i, l = console) {
+	static pSdp(i, l) {
 		const s = pv(i);
-		l.log(`M parseSdp ${typeof i}/sdpInput:${i}`);
+		l(`U parseSdp ${typeof i}/sdpInput:${i}`);
 		if (!s.sdp) return null;
 		s.sdp = s.sdp.replace(/\\r\\n/g, '\r\n');
-		l.log(s);
+		l(s);
 		return s.sdp;
 	}
 }
-const GAB = {
-	method: 'POST',
-	redirect: 'follow',
-	Accept: 'application/json',
-	'Content-Type': cType,
-	headers: {
-		'Content-Type': cType,
-	},
-};
+const GAB = `{"method": "POST","redirect": "follow","Accept": "application/json","Content-Type": "${cType}","headers": {"Content-Type": "${cType}"}}`;
 class GA {
 	static c(d) {
 		return d && typeof d === 'object'
@@ -856,13 +860,13 @@ class GA {
 	}
 	static async getTxtGAS(p, d = {}) {
 		io('GA--getTxtGAS--A--');
-		const a = Jp(Js(GAB));
+		const a = Jp(GAB);
 		a.method = 'GET';
 		return await (await fetch(`${p}?${GA.c(d)}`, a)).text();
 	}
 	static async post2GAS(p, d) {
 		w('GA--post2GAS--A--', d);
-		const a = Jp(Js(GAB));
+		const a = Jp(GAB);
 		a.body = `${GA.c(d)}`;
 		return await (await fetch(`${p}`, a)).text();
 	}
@@ -873,7 +877,7 @@ const sS = [
 	},
 ];
 class WebRTCConn {
-	constructor(l = console, isTM = false, stunSrv = sS) {
+	constructor(l, isTM = false, stunSrv = sS) {
 		const z = this;
 		z.isTestMode = isTM;
 		z.pO = new Peer('OFFER', stunSrv);
@@ -886,43 +890,46 @@ class WebRTCConn {
 	}
 	async init() {
 		const z = this;
-		z.l.log('-WebRTCConn-init--0--WebRTCConn--');
+		z.l('-WebRTCConn-init--0--');
 		z.close();
 		z.pO.oO = (e) => {
 			z.oOf(e);
 			z.p = z.pO;
-			z.l.log('-WebRTCConn-onO--1-pOffer--WebRTCConn--');
 			z.p.oC = z.oCf;
 			z.p.oM = z.oMf;
 			z.p.oE = z.oEf;
+			z.l('-WebRTCConn-onO--1-pOffer--');
 			z.isOpd = true;
 		};
 		z.pA.oO = (e) => {
 			z.oOf(e);
 			z.p = z.pA;
-			z.l.log('-WebRTCConn-onO--1-pAns--pAns--');
 			z.p.oC = z.oCf;
 			z.p.oM = z.oMf;
 			z.p.oE = z.oEf;
+			z.l('-WebRTCConn-onO--1-pAns--');
 			z.isOpd = true;
 		};
-		z.l.log(`-WebRTCConn-init--3--WebRTCConn--pOffer:${z.pO.n} --pAns:${z.pA.n}`);
+		z.l(`-WebRTCConn-init--3--pOffer:${z.pO.n}/${z.pO.oO} --pAns:${z.pA.n}/${z.pA.oO}`);
 		return true;
 	}
 	async getOfferSdp() {
 		return (await this.ip) ? await this.pO.mkO() : '';
 	}
+	onC() {
+		this.isOpd = this.isOp();
+	}
 	setOf(f) {
-		this.oOf = (e) => w(`-WebRTCConn-onOpenCallBack--1--event:${e}`, f(e));
+		this.oOf = (e) => w(`-WebRTCConn-onOpenCB--1--event:${e}`, f(e));
 	}
 	setCf(f) {
-		this.oCf = (e) => w(`-WebRTCConn-onCloseCallBack--1--event:${e}`, f(e));
+		this.oCf = (e) => w(`-WebRTCConn-onCloseCB--1--event:${e}`, this.onC(), f(e));
 	}
 	setMf(f) {
-		this.oMf = (m) => w(`-WebRTCConn-onMessageCallBack--1--msg:${m}`, f(m));
+		this.oMf = (m) => w(`-WebRTCConn-onMessageCB--1--msg:${m}`, f(m));
 	}
 	setEf(f) {
-		this.oEf = (e) => w(`-WebRTCConn-onErrorCallBack--1--error:${e}`, f(e));
+		this.oEf = (e) => w(`-WebRTCConn-onErrorCB--1--error:${e}`, f(e));
 	}
 	send(m, t = 'blob') {
 		io(`WebRTCConn send msg:${m}/binaryType:${t}`);
@@ -971,7 +978,7 @@ class WebRTCConn {
 		this.pO.c();
 		this.pA.c();
 	}
-	isOpened() {
+	isOp() {
 		return this.isTestMode ? true : this.p ? this.p.isO() : false;
 	}
 }
@@ -986,6 +993,7 @@ class Peer {
 		this.id = `${now()} ${this.n}`;
 		this.q = [];
 		this.isOD = false;
+		this.isCo = false;
 	}
 	pNC(isWithDataChannel) {
 		return new Promise((rv, rj) => {
@@ -1000,7 +1008,7 @@ class Peer {
 			p.onicecandidate = (e) =>
 				e.candidate
 					? this.cs.push(e.candidate)
-					: io(`-Peer--onicecandidate--- empty ice event peer.localDescription:${p.localDescription}`);
+					: io(`-Peer--onicecandidate--- empty ice event:${p.localDescription}/e.candidate:${e.candidate}`);
 			p.onnegotiationneeded = async () => {
 				try {
 					io(`-Peer1--onnegotiationneeded--createOffer() OK in promise name:${this.n}`);
@@ -1018,16 +1026,27 @@ class Peer {
 					ef(e, this.id, this.l);
 				}
 			};
-			p.oniceconnectionstatechange = () => {
-				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}`);
+			p.oniceconnectionstatechange = (e) => {
+				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}/name:${this.n}`);
 				switch (p.iceConnectionState) {
+					case 'connected':
+						st(() => {
+							if (this.dc.readyState !== 'open') this.c();
+						}, 100);
+						this.isCo = true;
+						break;
+					case 'checking':
+						this.isCo = true;
+						break;
 					case 'closed':
 					case 'failed':
 						if (this.p && this.isO) {
 							this.c();
 						}
+						this.isCo = false;
 						break;
 					case 'disconnected':
+						this.isCo = false;
 						break;
 				}
 			};
@@ -1040,26 +1059,26 @@ class Peer {
 		});
 	}
 	oO(e) {
-		io(`Peer.onO is not Overrided name:${this.n}`, e);
+		io(`Peer.onO is no setting name:${this.n}`, e);
 	}
 	oE(e) {
-		io(`Peer.onError is not Overrided name:${this.n}`, e);
+		io(`Peer.onError is no setting name:${this.n}`, e);
 	}
 	oM(m) {
-		io(`Peer.onMessage is not Overrided name:${this.n}`, m);
+		io(`Peer.onMessage is no setting name:${this.n}`, m);
 	}
 	oC() {
-		io(`Peer.onC is not Overrided name:${this.n}`, 'close');
+		io(`Peer.onC is no setting name:${this.n}`, 'close');
 	}
 	dS(c) {
-		io(`Peer The DataChannel opend. readyState:${c.id} !== ${c.id}`);
+		io(`Peer The DataChannel SetupStart. readyState:${c.id} !== ${c.id}`);
 		if (this.dc && c.id !== this.dc.id && this.isOD)
 			io(`Peer The DataChannel be Closed. readyState:${this.dc.readyState} /${c.id} !== ${this.dc.id}`);
 		c.onerror = (e) => cb(err('Peer D C Error:', e), this.oE(e));
 		c.onmessage = (e) =>
 			cb(io(`Peer Got D C Msg:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data), this.oM(e.data));
 		c.onopen = (e) => {
-			w(e);
+			w('dc onopen', e, this.dc.readyState);
 			if (!this.isOD) {
 				c.send(
 					`Peer dataChannel Hello World! OPEN OK! dc.id:${c.id} label:${c.label} ordered:${c.ordered} protocol:${c.protocol} binaryType:${c.binaryType} maxPacketLifeTime:${c.maxPacketLifeTime} maxRetransmits:${c.maxRetransmits} negotiated:${c.negotiated}`
@@ -1194,8 +1213,9 @@ class Peer {
 		return this.cs;
 	}
 	sCs(s) {
+		if (this.isCo) return;
 		for (const c of s) {
-			io('Peer setCandidates candidate', c);
+			io(`Peer setCandidates candidate${Js(c)}`, c);
 			this.p.addIceCandidate(c).catch((e) => ef(e, this.id, this.l));
 		}
 		return 'setCandidates OK';
@@ -1350,13 +1370,13 @@ class Cy {
 		return await cy.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
 	}
 	static gFF() {
-		return crv(B.u8(12)); // 96bitをUint8Arrayで表すため、96 / 8 = 12が桁数となる。
+		return crv(B.u8(12));
 	}
 	static gIF() {
 		return crv(B.u32(1));
 	}
 	static srand() {
-		return crv(B.u32(1))[0] / 4294967295; // 0から1の間の範囲に調整するためにUInt32の最大値(2^32 -1)で割る
+		return crv(B.u32(1))[0] / 4294967295;
 	}
 	static async enc(s, pk) {
 		return await Cy.encAES256GCM(Y.s2u(s), pk);
@@ -1365,11 +1385,7 @@ class Cy {
 		const s = Cy.gS(saltI, isAB);
 		const iv = Uint8Array.from([...Cy.gFF(), ...B.u8(Cy.gIF().buffer)]);
 		const edAb = await cy.encrypt({ name: 'AES-GCM', iv }, await Cy.lk(pk, s), u.buffer);
-		return [
-			Y.a2U(edAb), // 暗号化されたデータには、必ず初期ベクトルの変動部とパスワードのsaltを添付して返す。
-			Y.a2U(iv.buffer),
-			Y.a2U(s.buffer),
-		].join(',');
+		return [Y.a2U(edAb), Y.a2U(iv.buffer), Y.a2U(s.buffer)].join(',');
 	}
 	static async dec(ers, pk) {
 		return Y.u2s(await Cy.decAES256GCM(ers, pk));
