@@ -1,955 +1,681 @@
-const MODE_R = 'readonly';
-const MODE_RW = 'readwrite';
-const cmdSelectAll = 'cmdSelectAll';
-const cmdSelectByKey = 'cmdSelectByKey';
-const cmdSelectByKeys = 'cmdSelectByKeys';
-const cmdSelectFirstOne = 'cmdSelectFirstOne';
-const cmdBulkInsertUpdate = 'cmdBulkInsertUpdate';
-const cmdInsertUpdate = 'cmdInsertUpdate';
-const cmdDeleteWithRange = 'cmdDeleteWithRange';
-const cmdDelete = 'cmdDelete';
-const cmdTruncate = 'cmdTruncate';
-const cmdCreateStore = 'cmdCreateStore';
-const cmdDeleteStore = 'cmdDeleteStore';
-const cmdCreateIndex = 'cmdCreateIndex';
-const cmdDeleteIndex = 'cmdDeleteIndex';
-const cmdGetObjectStoreNames = 'cmdGetObjectStoreNames';
-const ef = (e, regect = () => {}, id = '', logger = null) => {
-	console.warn(`${id} ${e.message}`);
-	console.warn(e.stack);
-	if (logger && logger.log && logger !== console) {
-		logger.log(`${id} ${e.message}`);
-		logger.log(e.stack);
+const M_R = 'readonly';
+const M_RW = 'readwrite';
+const cSAll = 'cmdSelectAll';
+const cSByKey = 'cmdSelectByKey';
+const cSByKeys = 'cmdSelectByKeys';
+const cSF1 = 'cmdSelectFirstOne';
+const cBulkIU = 'cmdBulkInsertUpdate';
+const cIU = 'cmdInsertUpdate';
+const cDelWithRng = 'cmdDeleteWithRange';
+const cDel = 'cmdDelete';
+const cTrunc = 'cmdTruncate';
+const cCreateOB = 'cmdCreateStore';
+const cDelOB = 'cmdDeleteStore';
+const cCreateIdx = 'cmdCreateIndex';
+const cDelIdx = 'cmdDeleteIndex';
+const cGetOBN = 'cmdGetObjectStoreNames';
+const Js = (a) => JSON.stringify(a);
+const w = (...a) => console.warn(a);
+const io = (...a) => console.info(a);
+const err = (...a) => console.error(a);
+const pr = (f) => new Promise(f);
+const now = () => Date.now();
+const isArr = (a) => Array.isArray(a);
+const ct = (t) => clearTimeout(t);
+const st = (f, w) => setTimeout(f, w);
+const ef = (e, rj = () => {}, id = '', l = null) => {
+	w(`${id} ${e.message}`);
+	w(e.stack);
+	if (l && l.log && l !== console) {
+		l.log(`${id} ${e.message}`);
+		l.log(e.stack);
 	}
-	regect(e);
+	rj(e);
 };
-const onRequest = (request, resolve, reject, result) => {
-	request.onsuccess = (event) => {
-		console.log(event);
-		resolve(result ? result : request.result);
-	};
-	request.onerror = (e) => {
-		ef(e, reject);
-	};
+const oR = (r, rv, rj, rslt) => {
+	r.onsuccess = (e) => rv(!io(e) && rslt ? rslt : r.result);
+	r.onerror = (e) => ef(e, rj);
 };
-function throwNewError(callerName) {
+const gD = (d) => (d === null || d === undefined ? null : d.data);
+const cb = async () => {};
+function tE(m, rj = cb) {
 	return (e) => {
-		ef(e);
-		console.error(callerName ? callerName : `/${e}`);
+		ef(e, rj);
+		err(m ? m : `/${e}`);
 		throw new Error(e);
 	};
 }
-const cb = async () => {};
+const mkR = (d, kpn, k) => {
+	const r = {
+		data: d,
+	};
+	r[kpn] = k;
+	return r;
+};
 const ua = navigator.userAgent.replace(/[.0-9]+/g, 'x');
-const constant = {
-	systemDbName: 'IDBWrapperSys',
+const cnst = {
+	sysDbName: 'IDBWrapperSys',
 	cacheObName: 'cacheTimes',
 	dbName: 'IDBWrapper',
 	ua: ua,
 	domain: window.location,
-	keypathName: 'pk',
+	kpn: 'pk',
 };
-const systemDbName = constant.systemDbName;
-const cacheObName = constant.cacheObName;
-const keypathName = constant.keypathName;
-const core = new IndexeddbCore(systemDbName);
-const currentDbName = constant.dbName;
+const sysDBN = cnst.sysDbName;
+const CDBNa = cnst.cacheObName;
+const kpnA = cnst.kpn;
+const co = new IdbC(sysDBN);
+const crrntDBN = cnst.dbName;
 export class idbw {
-	constructor(dbName = currentDbName) {
-		this.dbName = dbName;
+	constructor(d = crrntDBN) {
+		this.dbn = d;
 	}
 	async init() {}
-	async getObAccessor(obName = currentDbName, keyPathName = 'pk') {
-		return await IndexeddbAccessor.getInstance(obName, keyPathName, this.dbName);
+	async getAccessor(tn = crrntDBN, kpn = 'pk') {
+		return await IdbA.getInst(tn, kpn, this.dbn);
 	}
 }
 // const initQueue = [];
-let dbName = constant.dbName;
+let dbName = cnst.dbName;
 // stock par db
-const idbHelperMap = new Map();
-const idbAccessors = new Map();
-const keyPathName = 'pk';
-class IndexeddbAccessor {
+const hM = new Map();
+const aM = new Map();
+const kpnH = 'pk';
+class IdbA {
 	#i = null;
-	static SystemDBAccessor = null;
-	constructor(objectStoreName, keypathName = constant.keypathName, isAutoincrements = false, currentDbName = dbName) {
-		if (!idbHelperMap.has(currentDbName)) {
-			this.#i = new IndexeddbHelper(currentDbName);
-			idbHelperMap.set(currentDbName, this.#i);
+	static SBBA = null;
+	constructor(tn, kpn = cnst.kpn, isAI = false, cObN = dbName, l = console) {
+		const z = this;
+		if (!hM.has(cObN)) {
+			z.#i = new IdbH(cObN);
+			hM.set(cObN, z.#i);
 		} else {
-			this.#i = idbHelperMap.get(currentDbName);
+			z.#i = hM.get(cObN);
 		}
-		this.keyPathName = keypathName;
-		this.objectStoreName = objectStoreName;
-		this.isAutoincrements = isAutoincrements;
+		z.kpn = kpn;
+		z.tn = tn;
+		z.isAI = isAI;
+		z.l = l;
 	}
-	static setDbName(dbNameNew) {
-		dbName = dbNameNew;
+	static setDbName(d) {
+		dbName = d;
 	}
-	static async getInstance(objectStoreName, keypathNamee, isAutoincrements = false, currentDbName = dbName, isCacheEnable = true) {
-		const key = JSON.stringify([currentDbName, objectStoreName]);
-		if (idbAccessors.has(key)) {
-			return idbAccessors.get(key);
-		}
-		if (!IndexeddbAccessor.SystemDBAccessor) {
-			IndexeddbAccessor.SystemDBAccessor = await IndexeddbAccessor.getInstance(cacheObName, keyPathName, false, systemDbName, false);
-		}
-		const inst = new IndexeddbAccessor(objectStoreName, keypathNamee, isAutoincrements, currentDbName);
-		await inst.init(isCacheEnable);
-		idbAccessors.set(key, inst);
-		return inst;
+	static async getInst(tn, kpn, isAI = false, cdbn = dbName, isC = true) {
+		const k = Js([cdbn, tn]);
+		if (aM.has(k)) return aM.get(k);
+		if (!IdbA.SBBA) IdbA.SBBA = await IdbA.getInst(CDBNa, kpnH, false, sysDBN, false);
+		const i = new IdbA(tn, kpn, isAI, cdbn);
+		await i.i(isC);
+		aM.set(k, i);
+		return i;
 	}
-	init(isEnableCache = true) {
-		this.isEnableCache = isEnableCache;
-		const func = async (resolve, reject) => {
-			await this.#i.init();
-			await this.#i.createStore(this.objectStoreName, this.keyPathName, this.isAutoincrements).catch((e) => {
-				ef(e, reject);
-				throw e;
-			});
-			resolve(true);
+	i(isC = true) {
+		const z = this;
+		z.isC = isC;
+		const f = async (rv, rj) => {
+			await z.#i.i();
+			await z.#i.creOS(z.tn, z.kpn, z.isAI).catch(tE('IdbA.init', rj));
+			rv(true);
 		};
-		return new Promise(func);
+		return pr(f);
 	}
 	async dump() {
 		return {};
 	}
 	async restore(dumpData) {
-		console.log(dumpData);
+		io(dumpData);
 		return;
 	}
-	async putByMap(dataMap, callback) {
-		for (const key in dataMap) {
-			const record = {
-				data: dataMap[key],
-			};
-			record[this.keyPathName] = key;
-			await this.putRecord(record, undefined, callback);
-		}
+	async putByMap(dM, cb) {
+		for (const k in dM) await this.p(mkR(dM[k], this.kpn, k), undefined, cb);
 	}
-	async put(key, data, callback) {
-		const record = {
-			data,
-		};
-		record[this.keyPathName] = key;
-		await this.putRecord(record, undefined, callback);
+	put(k, d, cb) {
+		return this.p(mkR(d, this.kpn, k), undefined, cb);
 	}
-	async putRecord(record, key, callback) {
-		let storeData = record;
-		if (record[this.keyPathName] === undefined) {
-			storeData = {
-				data: record,
-			};
-			storeData[this.keyPathName] = key;
-			// } else if (key !== undefined) {
-		}
-		return await this.#i.insertUpdate(this.objectStoreName, this.keyPathName, storeData, callback, this.isEnableCache);
+	p(r, k, cb) {
+		const z = this;
+		return z.#i.iu(z.tn, z.kpn, r[z.kpn] !== undefined ? r : mkR(r, z.kpn, k), cb, z.isC);
 	}
-	async getAsMap(keys) {
-		return Array.isArray(keys) ? await this.#i.selectByKeys(this.objectStoreName, keys, this.isEnableCache) : null;
+	getAsMap(ks) {
+		return isArr(ks) ? this.#i.slctByKs(this.tn, ks, this.isC) : null;
 	}
-	async getRecord(key) {
-		return key ? await this.#i.selectByKey(this.objectStoreName, key, this.isEnableCache) : null;
+	getRecord(k) {
+		return k ? this.#i.sByKey(this.tn, k, this.isC) : null;
 	}
-	async get(key) {
-		const recordAsDefaultLoad = await this.getRecord(key);
-		return recordAsDefaultLoad === undefined || recordAsDefaultLoad === null ? null : recordAsDefaultLoad.data;
+	async get(k) {
+		return gD(await this.getRecord(k));
 	}
-	async getAll() {
-		return await this.#i.selectAll(this.objectStoreName, this.isEnableCache);
+	getAll() {
+		return this.#i.slctAll(this.tn, this.isC);
 	}
-	async delete(key) {
-		return key ? await this.#i.delete(this.objectStoreName, key, this.isEnableCache) : null;
+	delete(k) {
+		return k ? this.#i.del(this.tn, k, this.isC) : null;
 	}
-	async remove(key) {
-		return await this.delete(key);
+	truncate() {
+		return this.#i.truncate(this.tn, this.isC);
 	}
-	async truncate() {
-		return await this.#i.truncate(this.objectStoreName, this.isEnableCache);
-	}
-	async getOsNames() {
-		return await this.#i.getObjectStoreNames();
+	getOsNames() {
+		return this.#i.getObjectStoreNames();
 	}
 }
-class IndexeddbHelper {
-	constructor(dbName) {
-		this.dbName = dbName;
-		this.core = new IndexeddbCore(dbName);
-		this.queue = [];
-		this.lastTaskMode = null;
-		this.lastLockTime = Date.now();
-		this.counter = 0;
-		this.isWithCache = true;
+class IdbH {
+	constructor(d) {
+		this.dbn = d;
+		this.co = new IdbC(d);
+		this.q = [];
+		this.lltMode = null;
+		this.lastLockTime = now();
+		this.c = 0;
+		this.isWC = true;
 	}
-	async init() {
-		this.cacheManager = await OnMmoryCacheManager.getInstance(this.dbName);
+	async i() {
+		this.CM = await OMCM.getI(this.dbn);
 	}
-	beWithCache(isWithCache = true) {
-		this.isWithCache = isWithCache;
+	beWC(isWC = true) {
+		this.isWC = isWC;
 	}
-	async deQueue() {
-		if (this.counter < 1) {
-			this.counter++;
-			if (this.counter > 1) {
-				this.counter--;
-				setTimeout(async () => {
-					await this.deQueue();
-				}, 0);
+	async dQ() {
+		const z = this;
+		const f = () => z.dQ();
+		if (z.c < 1) {
+			z.c++;
+			if (z.c > 1) {
+				z.c--;
+				st(f, 0);
 			} else {
-				await this.deQueueExec();
-				this.counter--;
-				if (this.counter < 1 && this.queue.length > 0) {
-					this.deQueue();
-				}
+				await z.dQE();
+				z.c--;
+				if (z.c < 1 && z.q.length > 0) z.dQ();
 			}
 		}
 	}
-	deQueueExec() {
-		const func = async (resolve, reject) => {
-			const q = this.queue;
+	dQE() {
+		const f = async (rv, rj) => {
+			const z = this;
+			const q = z.q;
+			const f = (e) => {
+				ef(e, rj);
+				alert(e);
+			};
 			while (q.length > 0) {
-				const promises = [];
-				const selectTasks = [];
+				const ps = [];
+				const st = [];
 				while (q.length > 0) {
-					const task = q.shift();
-					if (!task) {
-						continue;
-					}
-					if (this.lastTaskMode !== task.mode || task.mode === MODE_RW) {
-						//ここでそのまま発行、そして終わるまで待機
-						if (promises.length > 0) {
-							const results = await Promise.all(promises).catch((e) => {
-								ef(e, reject);
-								alert(e);
-							});
-							for (const index in results) {
-								selectTasks[index].resolve(results[index]);
-							}
-							promises.splice(0, promises.length);
-							this.executUpdateTask(task, resolve);
-						} else {
-							this.executUpdateTask(task, resolve);
+					const t = q.shift();
+					if (!t) continue;
+					if (z.lltMode !== t.mode || t.mode === M_RW) {
+						if (ps.length > 0) {
+							const rs = await Promise.all(ps).catch(f);
+							for (const i in rs) st[i].rv(rs[i]);
+							ps.splice(0, ps.length);
 						}
+						await z.excUpT(t, rv);
 					} else {
-						const promise = this.execCmd(task.cmd, task.data); //じゃんじゃん流していこう。
-						promises.push(promise);
-						selectTasks.push(task);
+						const p = z.eC(t.cmd, t.data);
+						ps.push(p);
+						st.push(t);
 					}
-					this.lastTaskMode = task.mode;
+					z.lltMode = t.mode;
 				}
-				if (promises.length > 0) {
-					const results = await Promise.all(promises).catch((e) => {
-						ef(e, reject);
-						alert(e);
-					});
-					for (const index in results) {
-						selectTasks[index].resolve(results[index]);
-					}
-					promises.splice(0, promises.length);
-					resolve();
+				if (ps.length > 0) {
+					const rs = await Promise.all(ps).catch(f);
+					for (const i in rs) st[i].rv(rs[i]);
+					ps.splice(0, ps.length);
+					rv();
 				}
 			}
 		};
-		return new Promise(func);
+		return pr(f);
 	}
-	executSelectPromiseAndTask(task, resolve, updateTask) {
-		return updateTask ? this.executUpdateTask(updateTask, resolve) : null;
+	async excUpT(t, rv) {
+		const d = await this.eC(t.cmd, t.data);
+		t.rv(d);
+		rv(d);
 	}
-	executUpdateTask(task, resolve) {
-		const promise = this.execCmd(task.cmd, task.data);
-		promise.then((data) => {
-			task.resolve(data);
-			resolve(data);
+	eQR(c, d) {
+		return this.eQ(c, d, M_R);
+	}
+	eQW(c, d) {
+		return this.eQ(c, d, M_RW);
+	}
+	eQ(c, d, m) {
+		return pr((rv, rj) => cb(this.q.push({ cmd: c, data: d, rv, rj, mode: m }), this.dQ()));
+	}
+	async gC(tn, m, d, cbc = cb, isC) {
+		if (!isC) return await cbc();
+		const k = Js([m, d]);
+		const c = await this.CM.getC(tn, k);
+		if (c) return c;
+		const r = await cbc();
+		this.CM.uC(tn, k, r);
+		return r;
+	}
+	cc(tn, isC) {
+		return isC ? this.CM.trancC(tn) : null;
+	}
+	eC(c, d) {
+		const z = this;
+		const o = z.co;
+		const tn = d.tn;
+		const rng = d.rng;
+		const kpn = d.kpn;
+		const drct = d.drct;
+		const cons = d.cons;
+		const keys = d.keys;
+		const key = d.key;
+		const isC = d.isC;
+		if (cSAll === c) return z.gC(tn, c, d, () => o.sAll({ tn, rng, drct, ofst: d.offset, cnt: d.lc }, d.cb), isC);
+		if (cSByKey === c) return z.gC(tn, c, d, () => o.sByK({ tn, key }), isC);
+		if (cSByKeys === c) return z.gC(tn, c, d, () => o.slctByKs({ tn, keys }), isC);
+		if (cSF1 === c) return z.gC(tn, c, d, () => o.sF1({ tn, rng, drct }), isC);
+		if (cBulkIU === c) return cb(z.cc(tn, isC), o.bulkIU(tn, kpn, d.data, d.cb));
+		if (cIU === c) return cb(z.cc(tn, isC), o.IU(tn, kpn, d.data, d.cb));
+		if (cDelWithRng === c) return cb(z.cc(tn, isC), o.delWithRng({ tn, rng, cons }));
+		if (cDel === c) return cb(z.cc(tn, isC), o.del(tn, d.kpv));
+		if (cTrunc === c) return cb(z.CM.trancC(tn), o.truncate({ tn }));
+		if (cCreateOB === c) return o.cs({ tn, kpn, isAI: d.isAI });
+		if (cDelOB === c) return cb(z.CM.cc(), o.ds(tn));
+		if (cCreateIdx === c) return o.cIdx(tn, kpn, d.isMultiColumns);
+		if (cDelIdx === c) return o.di(tn, d.idxN);
+		if (cGetOBN === c) return o.getOBN();
+	}
+	slctAllFM(tn, k, drct, ofst, lc, isC = true) {
+		const n = k.slice(0, -1) + String.fromCharCode(k.slice(-1).charCodeAt() + 1);
+		return this.slctAll(tn, IDBKeyRange.bound(k, n, false, true), drct, ofst, lc, isC);
+	}
+	slctAll(tn, rng, drct, ofst, lc, isC = true) {
+		return this.eQR(cSAll, {
+			tn,
+			rng,
+			drct,
+			ofst,
+			lc,
+			isC,
 		});
 	}
-	enQueueReadTask(cmd, data) {
-		return this.enQueueTask(cmd, data, MODE_R);
+	sByKey(tn, k, isC = true) {
+		return this.eQR(cSByKey, { tn, key: k, isC });
 	}
-	enQueueWriteTask(cmd, data) {
-		return this.enQueueTask(cmd, data, MODE_RW);
+	sByKeys(tn, ks, isC = true) {
+		return this.eQR(cSByKeys, { tn, keys: ks, isC });
 	}
-	enQueueTask(cmd, data, mode) {
-		return new Promise((resolve, reject) => {
-			const task = { cmd, data, resolve, reject, mode };
-			this.queue.push(task);
-			this.deQueue();
+	sF1(tn, r, drct, isC = true) {
+		return this.eQR(cSF1, { tn, rng: r, drct, isC });
+	}
+	bulkIU(tn, kpn, d, cb, isC = true) {
+		return this.eQW(cBulkIU, {
+			tn,
+			kpn,
+			data: d,
+			cb,
+			isC: isC,
 		});
 	}
-	async getCache(cachekey, cmd, data, callback = cb, isCacheEnable) {
-		if (!isCacheEnable) {
-			return await callback();
-		}
-		const key = JSON.stringify([cmd, data]);
-		const cache = await this.cacheManager.getCache(cachekey, key);
-		if (cache) {
-			return cache;
-		}
-		const result = await callback();
-		this.cacheManager.updateCache(cachekey, key, result);
-		return result;
+	iu(tn, kpn, d, cb, isC = true) {
+		return this.eQW(cIU, { tn, kpn, data: d, cb, isC });
 	}
-	clearCache(cachekey, isCacheEnable) {
-		return isCacheEnable ? this.cacheManager.trancateCache(cachekey) : null;
+	delWithRange(tn, r, drct, isC = true) {
+		return this.eQW(cDelWithRng, { tn, rng: r, drct, isC });
 	}
-	async execCmd(cmd, data) {
-		const cachekey = data.tableName;
-		const isCacheEnable = data.isCacheEnable;
-		if (cmdSelectAll === cmd) {
-			return this.getCache(cachekey, cmd, data, async () => await this.core._selectAll(data.tableName, data.range, data.direction, data.offset, data.limmitCount, isCacheEnable), isCacheEnable);
-		}
-		if (cmdSelectByKey === cmd) {
-			return this.getCache(cachekey, cmd, data, async () => await this.core._selectByKey(data.tableName, data.key), isCacheEnable);
-		}
-		if (cmdSelectByKeys === cmd) {
-			return this.getCache(cachekey, cmd, data, async () => await this.core._selectByKeys(data.tableName, data.keys), isCacheEnable);
-		}
-		if (cmdSelectFirstOne === cmd) {
-			return this.getCache(cachekey, cmd, data, async () => await this.core._selectFirstOne(data.tableName, data.range, data.direction), isCacheEnable);
-		}
-		if (cmdBulkInsertUpdate === cmd) {
-			this.clearCache(cachekey, isCacheEnable);
-			return await this.core._bulkInsertUpdate(data.tableName, data.keyPathName, data.data, data.callback);
-		}
-		if (cmdInsertUpdate === cmd) {
-			this.clearCache(cachekey, isCacheEnable);
-			return await this.core._insertUpdate(data.tableName, data.keyPathName, data.data, data.callback);
-		}
-		if (cmdDeleteWithRange === cmd) {
-			this.clearCache(cachekey, isCacheEnable);
-			return await this.core._deleteWithRange(data.tableName, data.range, data.condetions);
-		}
-		if (cmdDelete === cmd) {
-			this.clearCache(cachekey, isCacheEnable);
-			return await this.core._delete(data.tableName, data.keyPathValue);
-		}
-		if (cmdTruncate === cmd) {
-			this.cacheManager.trancateCache(data.tableName);
-			return await this.core._truncate(data.tableName);
-		}
-		if (cmdCreateStore === cmd) {
-			return await this.core._createStore(data.tableName, data.keyPathName, data.isAutoIncrement);
-		}
-		if (cmdDeleteStore === cmd) {
-			this.cacheManager.cacheClear();
-			return await this.core._deleteStore(data.tableName);
-		}
-		if (cmdCreateIndex === cmd) {
-			return await this.core._createIndex(data.tableName, data.keyPathName, data.isMultiColumns);
-		}
-		if (cmdDeleteIndex === cmd) {
-			return await this.core._deleteIndex(data.tableName, data.indexName);
-		}
-		if (cmdGetObjectStoreNames === cmd) {
-			return await this.core.getObjectStoreNames();
-		}
+	del(tn, kpn, isC = true) {
+		return this.eQW(cDel, { tn, kpv: kpn, isC });
 	}
-	async selectAllForwardMatch(tableName, key, direction, offset, limmitCount, isCacheEnable = true) {
-		const nextKey = key.slice(0, -1) + String.fromCharCode(key.slice(-1).charCodeAt() + 1); //Select In-line-Keyで返す。
-		const range = IDBKeyRange.bound(key, nextKey, false, true);
-		return await this.enQueueReadTask(cmdSelectAll, { tableName, range, direction, offset, limmitCount, isCacheEnable });
+	truncate(tn, isC = true) {
+		return this.eQW(cTrunc, { tn, isC });
 	}
-	async selectAll(tableName, range, direction, offset, limmitCount, isCacheEnable = true) {
-		return await this.enQueueReadTask(cmdSelectAll, { tableName, range, direction, offset, limmitCount, isCacheEnable }); //Select In-line-Keyで返す。
+	creOS(tn, kpn, isAI, isC = true) {
+		return this.eQW(cCreateOB, { tn, kpn, isAI, isC });
 	}
-	async selectByKey(tableName, key, isCacheEnable = true) {
-		return await this.enQueueReadTask(cmdSelectByKey, { tableName, key, isCacheEnable }); //Select In-line-return promise;Keyで返す。
+	delOB(tn, isC = true) {
+		return this.eQW(cDelOB, { tn, isC });
 	}
-	async selectByKeys(tableName, keys, isCacheEnable = true) {
-		return await this.enQueueReadTask(cmdSelectByKeys, { tableName, keys, isCacheEnable }); //Select In-line-return promise;Keyで返す。
+	creatIdx(tn, kpn, isMultiColumns) {
+		return this.eQW(cCreateIdx, { tn, kpn, isMultiColumns });
 	}
-	async selectFirstOne(tableName, range, direction, isCacheEnable = true) {
-		return await this.enQueueReadTask(cmdSelectFirstOne, { tableName, range, direction, isCacheEnable }); //Select FirstOnek
+	delIdx(tn, idxN) {
+		return this.eQW(cDelIdx, { tn, idxN });
 	}
-	async bulkInsertUpdate(tableName, keyPathName, data, callback, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdBulkInsertUpdate, { tableName, keyPathName, data, callback, isCacheEnable });
-	}
-	async insertUpdate(tableName, keyPathName, data, callback, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdInsertUpdate, { tableName, keyPathName, data, callback, isCacheEnable });
-	}
-	async deleteWithRange(tableName, range, direction, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdDeleteWithRange, { tableName, range, direction, isCacheEnable });
-	}
-	async delete(tableName, keyPathValue, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdDelete, { tableName, keyPathValue, isCacheEnable });
-	}
-	async truncate(tableName, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdTruncate, { tableName, isCacheEnable });
-	}
-	async createStore(tableName, keyPathName, isAutoIncrement, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdCreateStore, { tableName, keyPathName, isAutoIncrement, isCacheEnable });
-	}
-	async deleteStore(tableName, isCacheEnable = true) {
-		return await this.enQueueWriteTask(cmdDeleteStore, { tableName, isCacheEnable });
-	}
-	async creatIndex(tableName, keyPathName, isMultiColumns) {
-		return await this.enQueueWriteTask(cmdCreateIndex, { tableName, keyPathName, isMultiColumns });
-	}
-	async deleteIndex(tableName, indexName) {
-		return await this.enQueueWriteTask(cmdDeleteIndex, { tableName, indexName });
-	}
-	async getObjectStoreNames() {
-		return await this.enQueueReadTask(cmdGetObjectStoreNames, {});
+	getOBNs() {
+		return this.eQR(cGetOBN, {});
 	}
 }
-class OnMmoryCacheManager {
-	static cache = new Map();
-	constructor(dbName) {
-		this.maxSize = '';
-		this.dbName = dbName;
-		this.cache = new Map();
-		this.tableNames = [];
-		this.lastUpdateDateMap = new Map();
+class OMCM {
+	static c = new Map();
+	constructor(d) {
+		this.dbn = d;
+		this.c = new Map();
+		this.tns = [];
+		this.lUDM = new Map();
 	}
-	static async getInstance(dbName) {
-		let instance = OnMmoryCacheManager.cache.get(dbName);
-		if (instance) {
-			return instance;
-		}
-		instance = new OnMmoryCacheManager(dbName);
-		await instance.init();
-		OnMmoryCacheManager.cache.set(dbName, instance);
-		return instance;
+	static async getI(d) {
+		let i = OMCM.c.get(d);
+		if (i) return i;
+		i = new OMCM(d);
+		await i.init();
+		OMCM.c.set(d, i);
+		return i;
 	}
 	async init() {
-		await core._createStore(cacheObName, keypathName, false);
+		await co.cs({ tn: CDBNa, kpn: kpnA, isAI: false });
 	}
-	cacheClearWithDbUpdate(tableName) {
-		const tableCache = this.cache.get(tableName);
-		for (const index in tableCache) {
-			delete tableCache[index];
-		}
-		this.registeCacherUpdateTime(tableName);
+	ccWithObU(tn) {
+		const tc = this.c.get(tn);
+		for (const i in tc) delete tc[i];
+		return this.regiCUT(tn);
 	}
-	async registeCacherUpdateTime(tableName, now = Date.now()) {
-		this.lastUpdateDateMap[tableName] = now;
-		const dbTableKey = JSON.stringify([this.dbName, tableName]);
-		const updateTimeData = { updateTime: now };
-		updateTimeData[keypathName] = dbTableKey;
-		core._insertUpdate(cacheObName, keypathName, updateTimeData);
+	async regiCUT(tn, n = n()) {
+		this.lUDM[tn] = n;
+		const utd = { upT: n };
+		utd[kpnA] = Js([this.dbn, tn]);
+		co.IU(CDBNa, kpnA, utd);
+		return null;
 	}
-	cacheClear() {
-		for (const tableName of this.tableNames) {
-			const tableCache = this.cache.get(tableName);
-			for (const index in tableCache) {
-				delete tableCache[index];
-			}
-			this.cache.delete(tableName);
+	cc() {
+		for (const tn of this.tns) {
+			const tc = this.c.get(tn);
+			for (const i in tc) delete tc[i];
+			this.c.delete(tn);
 		}
 	}
-	async setCache(tableName, key, value) {
-		if (!value || !value.data) {
-			return;
+	async setC(tn, k, v) {
+		const z = this;
+		if (!v || !v.data) return;
+		const d = v.data;
+		for (const i in d) if (d[i] && d[i].byteLength) return;
+		const r = await co.sByK({ tn: CDBNa, key: Js([this.dbn, tn]) });
+		if (r && r.upT !== z.lUDM[tn]) return z.ccWithObU(tn);
+		else if (!z.lUDM[tn] && r.upT) z.regiCUT(tn, r.upT);
+		else if (!r.upT) z.regiCUT(tn);
+		let t = z.c.get(tn);
+		if (!t) {
+			t = {};
+			z.tns.push(tn);
+			z.c.set(tn, t);
 		}
-		const data = value.data;
-		for (const key in data) {
-			const elm = data[key];
-			if (elm && elm.byteLength) {
-				return;
-			}
-		}
-		const dbTableKey = JSON.stringify([this.dbName, tableName]);
-		const result = await core._selectByKey(cacheObName, dbTableKey);
-		if (result && result.updateTime !== this.lastUpdateDateMap[tableName]) {
-			this.cacheClearWithDbUpdate(tableName);
-			return null;
-		} else if (!this.lastUpdateDateMap[tableName] && result.updateTime) {
-			this.registeCacherUpdateTime(tableName, result.updateTime);
-		} else if (!result.updateTime) {
-			this.registeCacherUpdateTime(tableName);
-		}
-		let tableCache = this.cache.get(tableName);
-		if (!tableCache) {
-			tableCache = {};
-			this.tableNames.push(tableName);
-			this.cache.set(tableName, tableCache);
-		}
-		tableCache[key] = value;
+		t[k] = v;
 	}
-	async getCache(tableName, key) {
-		const dbTableKey = JSON.stringify([this.dbName, tableName]);
-		const result = await core._selectByKey(cacheObName, dbTableKey);
-		if (result && result.updateTime !== this.lastUpdateDateMap[tableName]) {
-			this.cacheClearWithDbUpdate(tableName);
-			return null;
-		}
-		const tableCache = this.cache.get(tableName);
-		return tableCache ? tableCache[key] : null;
+	async getC(tn, k) {
+		const r = await co.sByK({ tn: CDBNa, key: Js([this.dbn, tn]) });
+		if (r && r.upT !== this.lUDM[tn]) return this.ccWithObU(tn);
+		const t = this.c.get(tn);
+		return t ? t[k] : null;
 	}
-	updateCache(tableName, key, data) {
-		this.setCache(tableName, key, data);
+	uC(tn, k, d) {
+		this.setC(tn, k, d);
 	}
-	trancateCache(tableName) {
-		this.cacheClearWithDbUpdate(tableName);
+	trancC(tn) {
+		this.ccWithObU(tn);
 	}
-	removeCache(tableName, key) {
-		const tableCache = this.cache.get(tableName);
-		if (tableCache) {
-			tableCache.delete(key);
-		}
+	rmC(tn, key) {
+		const tC = this.c.get(tn);
+		if (tC) tC.delete(key);
 	}
 	maintainCache() {}
 }
-class IndexeddbCore {
-	constructor(dbName) {
-		this.IDBKeyRange = window.IDBKeyRange;
-		this.indexedDB = window.indexedDB;
-		this.dbName = dbName;
-		this.keyPathMap = {};
+class IdbC {
+	constructor(d) {
+		this.idb = window.indexedDB;
+		this.dbn = d;
+		this.kpM = {};
 		this.db = null;
-		this.lastVersion = null;
-		this.isUpdateOpen = false;
-		this.timer = null;
-		this.isDBClosed = true;
+		this.lastVer = null;
+		this.isUO = false;
+		this.t = null;
+		this.isDBC = true;
 	}
-	getOpenDB(newVersion) {
-		return new Promise((resolve, reject) => {
-			this.lastVersion = newVersion;
-			if (this.lastVersion && this.db) {
-				this.db.close();
-				this.isUpdateOpen = true;
-				// this.cacheClear();
-			} else if (this.db && this.isDBClosed === false) {
-				resolve(this.db);
-				return;
-			} else {
-				this.isUpdateOpen = this.lastVersion ? true : false;
-			}
-			const request = this.indexedDB.open(this.dbName, newVersion);
-			request.onsuccess = (event) => {
-				this.db = event.target.result;
-				this.isDBClosed = false;
-				resolve(this.db);
+	oDB(nv) {
+		return pr((rv, rj) => {
+			const z = this;
+			z.lastVer = nv;
+			if (z.lastVer && z.db) {
+				z.db.close();
+				z.isUO = true;
+			} else if (z.db && z.isDBC === false) return rv(z.db);
+			else z.isUO = z.lastVer ? true : false;
+
+			const f = (e) => {
+				z.db = e.target.result;
+				z.isDBC = false;
+				rv(z.db);
 			};
-			request.onupgradeneeded = (event) => {
-				this.db = event.target.result;
-				this.isDBClosed = false;
-				resolve(this.db);
-			};
-			request.onabort = (e) => {
-				ef(e, resolve);
-			};
-			request.onerror = (e) => {
-				ef(e, reject);
-			};
+			const r = z.idb.open(z.dbn, nv);
+			r.onsuccess = f;
+			r.onupgradeneeded = f;
+			r.onabort = (e) => ef(e, rv);
+			r.onerror = (e) => ef(e, rj);
 		});
 	}
-	closeDB() {
-		if (this.isUpdateOpen) {
-			this.beCloseDb();
-		} else {
-			if (this.timer) {
-				clearTimeout(this.timer);
-			}
-			this.timer = setTimeout(() => {
-				this.beCloseDb();
-			}, 1000);
-		}
+	cDB(v) {
+		if (this.isUO) return this.beCDB(v);
+		ct(this.t);
+		this.t = st(() => this.beCDB(), 1000);
+		return v;
 	}
-	beCloseDb() {
+	beCDB(v) {
 		this.db.close();
-		this.isDBClosed = true;
+		this.isDBC = true;
+		return v;
 	}
-	getObjectStore(db, tableName, tables, mode) {
-		const transaction = db.transaction(tables, mode);
-		const func = (event) => {
-			console.log(event);
-			this.closeDB();
-		};
-		transaction.oncomplete = func;
-		transaction.onerror = func;
-		return transaction.objectStore(tableName);
+	gOS(db, tn, m, ts = IdbU.getTs(tn)) {
+		const t = db.transaction(ts, m);
+		const f = (e) => this.cDB(io(e));
+		t.oncomplete = f;
+		t.onerror = f;
+		return t.objectStore(tn);
 	}
-	getKeyPathByMap(tableName) {
-		return this.keyPathMap[tableName];
+	getKPbyM(tn) {
+		return this.kpM[tn];
 	}
-	async getKeyPath(tableName) {
-		const keyPathName = this.getKeyPathByMap();
-		if (keyPathName !== undefined && keyPathName !== null) {
-			return keyPathName;
-		}
-		const db = await this.getOpenDB().catch(throwNewError('getKeyPath->getOpenDB'));
-		const objectStore = this.getObjectStore(db, tableName, [tableName], MODE_R);
-		this.closeDB();
-		const keyPathNameCurrent = objectStore.keyPath;
-		this.keyPathMap[tableName] = keyPathNameCurrent;
-		return keyPathNameCurrent;
+	async getKP(tn) {
+		const kpn = this.getKPbyM(tn);
+		if (kpn) return kpn;
+		const os = this.gOS(await this.oDB().catch(tE('getKP->oDB')), tn, M_R, [tn]);
+		const k = os.keyPath;
+		this.kpM[tn] = k;
+		return this.cDB(k);
 	}
-	async getCurrentVersion() {
-		const db = await this.getOpenDB().catch(throwNewError('getCurrentVersion->getOpenDB'));
-		const version = db.version;
-		this.closeDB();
-		return version;
+	async getV() {
+		return this.cDB(await this.oDB().catch(tE('getV->oDB')).version);
 	}
-	//public
-	async selectAll(payload) {
-		const { tableName, range, condetions } = payload;
-		return await this._selectAll(tableName, range, condetions);
+	async sAll(p, cbc = cb) {
+		const ob = this.gOS(await this.oDB().catch(tE(`sAll->oDB tn:${p.tn}`)), p.tn, [p.tn], M_R);
+		return await this.sAllE(ob, p.rng, false, p.ofst, p.cnt, cbc);
 	}
-	//Select In-line-Keyで返す。
-	async _selectAll(tableName, range, direction, offset, count, callback) {
-		const db = await this.getOpenDB().catch(throwNewError(`_selectAll->getOpenDB tableName:${tableName}`));
-		const objectStore = this.getObjectStore(db, tableName, [tableName], MODE_R);
-		return await this._selectAllExecute(objectStore, range, false, offset, count, callback);
-	}
-	_selectAllExecute(objectStore, range, isGetFirstOne, offset, count, callback) {
-		return new Promise((resolve, reject) => {
-			const isValidCallBack = typeof offset === 'function';
-			const isOnLimit = typeof offset === 'number' && typeof count === 'number' && offset > 0 && count > 0;
-			const endCount = offset + count;
-			const list = [];
-			let rowCount = 0;
-			const req = range ? objectStore.openCursor() : objectStore.openCursor(range);
-			req.onsuccess = (event) => {
-				const cursor = event.target.result;
-				if (cursor) {
-					const value = cursor.value;
-					if (isValidCallBack && !callback(value)) {
-						cursor.continue();
-						return;
-					}
-					if (isOnLimit) {
-						if (offset > rowCount) {
-							rowCount++;
-							cursor.continue();
-							return;
-						} else if (endCount < rowCount) {
-							resolve(list);
-							return;
-						}
-					}
-					// console.log(cursor.value)
-					list.push(value);
-					if (isGetFirstOne) {
-						resolve(list[0]);
-						return;
-					}
-					rowCount++;
-					cursor.continue();
-				} else {
-					resolve(list);
-				}
+	sAllE(ob, d, isGetF1, ofst, cnt, cb) {
+		return pr((rv, rj) => {
+			const isValidCB = typeof ofst === 'function';
+			const isOnLimit = typeof ofst === 'number' && typeof cnt === 'number' && ofst > 0 && cnt > 0;
+			const endC = isValidCB ? cnt : ofst + cnt;
+			const l = [];
+			let rC = 0;
+			const r = ob.openCursor(d ? d : undefined);
+			r.onsuccess = (e) => {
+				const c = e.target.result;
+				if (c) {
+					const v = c.value;
+					if (isValidCB && !cb(v)) return c.continue();
+					if (isOnLimit)
+						if (ofst > rC) return c.continue(undefined, rC++);
+						else if (endC < rC) return rv(l);
+					l.push(v);
+					if (isGetF1) return rv(l[0]);
+					rC++;
+					c.continue();
+				} else rv(l);
 			};
-			req.onerror = (e) => {
-				ef(e, reject);
-			};
+			r.onerror = (e) => ef(e, rj);
 		});
 	}
-	async selectByKey(payload) {
-		return await this._selectByKey(payload.tableName, payload.key);
-	}
-	async _selectByKey(tableName, key) {
-		const db = await this.getOpenDB().catch(throwNewError(`_selectByKey->getOpenDB tableName:${tableName}`)); //Select In-line-return promise;Keyで返す。
-		return await this._selectByKeyOnTran(db, tableName, key).catch(throwNewError(`_selectByKey->_selectByKeyOnTran tableName:${tableName}/mode:${MODE_R}`));
-	}
-	async _selectByKeyOnTran(db, tableName, key, tables, mode = MODE_R) {
-		const objectStore = this.getObjectStore(db, tableName, [tableName], mode);
-		return await this.getOnOS(objectStore, key);
-	}
-	async getOnOS(objectStore, key) {
-		return new Promise((resolve, reject) => {
-			if (!key) {
-				resolve(null);
-			}
-			const request = objectStore.get(key); //keyはsonomama
-			onRequest(request, resolve, reject);
-		});
-	}
-	async selectByKeys(payload) {
-		return await this._selectByKeys(payload.tableName, payload.keys);
-	}
-	async _selectByKeys(tableName, keys) {
-		const db = await this.getOpenDB().catch(throwNewError(`_selectByKeys->getOpenDB tableName:${tableName}`)); //Select In-line-return promise;Keyで返す。
-		return await this._selectByKeysOnTran(db, tableName, keys).catch(throwNewError(`_selectByKeys->_selectByKeyOnTran tableName:${tableName}`));
-	}
-	async _selectByKeysOnTran(db, tableName, keys) {
-		const objectStore = this.getObjectStore(db, tableName, [tableName], MODE_R);
-		return await this._selectByKeysOnTranExec(objectStore, keys, tableName);
-	}
-	async _selectByKeysOnTranExec(objectStore, keys) {
-		const retMap = {};
-		for (const key of keys) {
-			retMap[key] = await this.getOnOS(objectStore, key);
-		}
-		return retMap;
-	}
-	async selectFirstOne(payload) {
-		return await this._selectFirstOne(payload.tableName, payload.range, payload.direction);
-	}
-	async _selectFirstOne(tableName, range, direction) {
-		const db = await this.getOpenDB().catch(throwNewError(`_selectFirstOne->getOpenDB tableName:${tableName}/direction:${direction}`));
-		const objectStore = this.getObjectStore(db, tableName, [tableName], MODE_R);
-		return await this._selectAllExecute(objectStore, range, true);
-	}
-	async insertUpdate(payload) {
-		const keyPathName = this.getKeyPathByMap();
-		return await this._insertUpdate(payload.tableName, keyPathName, payload.data, payload.callback).catch(throwNewError(`insertUpdate->_insertUpdate tableName:${payload.tableName}`));
-	}
-	async bulkInsertUpdate(tableName, keyPathName, data, callback) {
-		for (const record of data) {
-			await this._insertUpdate(tableName, keyPathName, record, callback);
-		}
-	}
-	async _bulkInsertUpdate(tableName, keyPathName, data, callback = cb) {
-		const dataList = [];
-		const keys = [];
-		for (const record of data) {
-			const key = record[keyPathName];
-			dataList.push({ key, data: record });
-			keys.push(key);
-		}
-		const db = await this.getOpenDB().catch(throwNewError(`_insertUpdate->getOpenDB tableName:${tableName}`));
-		const tables = IdbUtil.currentTables(tableName);
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		const dataMap = await this._selectByKeysOnTranExec(objectStore, keys, tableName);
-		await this._bulkUpdateExecute(objectStore, dataList, dataMap);
-		await this._bulkInsertExecute(objectStore, dataList, dataMap);
-		callback();
-	}
-	_bulkInsertExecute(objectStore, dataList, dataMap) {
-		const promises = [];
-		for (const { key, data } of dataList) {
-			if (dataMap[key]) {
-				continue;
-			}
-			const promise = this.addToOS(objectStore, key, data);
-			promises.push(promise);
-		}
-		return Promise.all(promises);
-	}
-	_bulkUpdateExecute(objectStore, dataList, dataMap) {
-		const promises = [];
-		for (const { key, data } of dataList) {
-			if (!dataMap[key]) {
-				continue;
-			}
-			const promise = this.putToOS(objectStore, key, data);
-			promises.push(promise);
-		}
-		return Promise.all(promises);
-	}
-	addToOS(objectStore, key, data) {
-		return new Promise((resolve, reject) => {
-			const request = objectStore.add(data); //,keyPath
-			onRequest(request, resolve, reject, { data, key });
-		});
-	}
-	putToOS(objectStore, key, data) {
-		return new Promise((resolve, reject) => {
-			const request = objectStore.put(data); //,keyPath
-			onRequest(request, resolve, reject, { data, key });
-		});
-	}
-	async _insertUpdate(tableName, keyPathName, data, callback = cb) {
-		const key = data[keyPathName];
-		const db = await this.getOpenDB().catch(throwNewError(`_insertUpdate->getOpenDB tableName:${tableName}`));
-		const tables = IdbUtil.currentTables(tableName);
-		const value = await this._selectByKeyOnTran(db, tableName, key, tables, MODE_RW).catch(throwNewError(`_insertUpdate->_selectByKeyOnTran tableName:${tableName}/MODE_RW`));
-		callback(value, data);
-		const result = await (value === undefined ? this._insertExecute(db, tableName, key, data, tables) : this._updateExecute(db, tableName, key, data, tables)).catch(
-			throwNewError(`_insertUpdate->_insertExecute tableName:${tableName}`)
+	async sByK(p) {
+		return await this.sByKoT(await this.oDB().catch(tE(`sByK->oDB tn:${p.tn}`)), p.tn, p.key).catch(
+			tE(`sByK->sByKoT tn:${p.tn}/mode:${M_R}`)
 		);
-		return result;
 	}
-	async _insertExecute(db, tableName, key, data, tables) {
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		return await this.addToOS(objectStore, key, data);
+	sByKoT(db, tn, k, m = M_R) {
+		return this.getR(this.gOS(db, tn, m, [tn]), k);
 	}
-	async _updateExecute(db, tableName, key, data, tables) {
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		return await this.putToOS(objectStore, key, data);
+	getR(ob, k) {
+		return pr((rv, rj) => cb(!k ? rv(null) : k, oR(ob.get(k), rv, rj)));
 	}
-	async deleteWithRange(payload) {
-		return await this._deleteWithRange(payload.tableName, payload.range, payload.condetions);
+	async slctByKs(p) {
+		return await this.sByKsoT(await this.oDB().catch(tE(`sByKs->oDB tn:${p.tn}`)), p.tn, p.keys).catch(
+			tE(`sByKs->sByKsoT tn:${p.tn}`)
+		);
 	}
-	async _deleteWithRange(tableName, range, condetions) {
-		const db = await this.getOpenDB().catch(throwNewError(`_deleteWithRange->getOpenDB tableName:${tableName}`));
-		const tables = IdbUtil.currentTables(tableName);
-		return await this._deleteWithRangeExecute(db, tableName, range, condetions, tables);
+	sByKsoT(db, tn, ks) {
+		return this.sByKsoTE(this.gOS(db, tn, M_R, [tn]), ks, tn);
 	}
-	_deleteWithRangeExecute(db, tableName, range, condetions, tables) {
-		return new Promise((resolve, reject) => {
-			const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-			const request = objectStore.openCursor(range);
-			request.onsuccess = (event) => {
-				const cursor = event.target.result;
-				const list = [];
-				if (cursor) {
-					const value = cursor.value;
-					if (IdbUtil.isMutch(value, condetions)) {
-						const key = cursor.key;
-						const or = objectStore.delete(key);
-						or.onsuccess = (event) => {
-							console.log(event);
-							list.push(value);
-						};
-						or.onerror = (e) => {
-							ef(e);
-						};
+	async sByKsoTE(os, ks) {
+		const m = {};
+		for (const k of ks) m[k] = await this.getR(os, k);
+		return m;
+	}
+	async sF1(p) {
+		return await this.sAllE(
+			this.gOS(await this.oDB().catch(tE(`sF1->oDB tn:${p.tn}/drct:${p.drct}`)), p.tn, M_R, [p.tn]),
+			p.rng,
+			true
+		);
+	}
+	async bulkIU(tn, kpn, d, cbc = cb) {
+		const dl = [];
+		const ks = [];
+		for (const r of d) {
+			const k = r[kpn];
+			cb(dl.push({ k, r }), ks.push(k));
+		}
+		const o = this.gOS(await this.oDB().catch(tE(`bulkIU->oDB tn:${tn}`)), tn, M_RW);
+		const dM = await this.sByKsoTE(o, ks, tn);
+		const p = [];
+		const q = [];
+		let a;
+		for (const { k, r } of dl) a = dM[k] ? p.push(this.put(o, k, r)) : q.push(this.add(o, k, r));
+		await Promise.all(p);
+		await Promise.all(q);
+		cbc(a);
+	}
+	add(ob, k, r) {
+		return pr((rv, rj) => oR(ob.add(r), rv, rj, { r, k }));
+	}
+	put(ob, k, r) {
+		return pr((rv, rj) => oR(ob.put(r), rv, rj, { r, k }));
+	}
+	async IU(tn, kpn, d, cbc = cb) {
+		const k = d[kpn];
+		const db = await this.oDB().catch(tE(`IU->oDB tn:${tn}`));
+		const v = await this.sByKoT(db, tn, k, M_RW).catch(tE(`IU->sByKoT tn:${tn}/MODE_RW`));
+		cbc(v, d);
+		const s = await (v === undefined
+			? this.add(this.gOS(db, tn, M_RW), k, d)
+			: this.put(this.gOS(db, tn, M_RW), k, d)
+		).catch(tE(`IU->add/put tn:${tn}`));
+		return s;
+	}
+	async delWithRng(p) {
+		return await this.delWRExe(await this.oDB().catch(tE(`delWithRng->oDB tn:${p.tn}`)), p.tn, p.rng, p.cos);
+	}
+	delWRExe(db, tn, r, cos) {
+		return pr((rv, rj) => {
+			const s = this.gOS(db, tn, M_RW);
+			const q = s.openCursor(r);
+			q.onsuccess = (e) => {
+				const c = e.target.result;
+				const l = [];
+				if (c) {
+					const v = c.value;
+					if (IdbU.isMutch(v, cos)) {
+						const o = s.delete(c.key);
+						o.onsuccess = (e) => io(e, l.push(v));
+						o.onerror = (e) => ef(e);
 					}
-					cursor.continue();
-				} else {
-					resolve(list);
-				}
+					c.continue();
+				} else rv(l);
 			};
-			request.onerror = (e) => {
-				ef(e, reject);
-			};
+			q.onerror = (e) => ef(e, rj);
 		});
 	}
-	async delete(payload) {
-		return await this._delete(payload.tableName, payload.key);
+	async del(p) {
+		return await this.delOT(await this.oDB().catch(tE(`del->oDB tn:${p.tn}`)), p.tn, p.key);
 	}
-	async _delete(tableName, keyPathValue) {
-		const db = await this.getOpenDB().catch(throwNewError(`_delete->getOpenDB tableName:${tableName}`));
-		const tables = IdbUtil.currentTables(tableName);
-		return await this._deleteOnTran(db, tableName, keyPathValue, tables);
+	delOT(db, tn, k) {
+		return pr((rv, rj) => oR(this.gOS(db, tn, M_RW).delete(`${k}`), rv, rj, { tn, key: k }));
 	}
-	_deleteOnTran(db, tableName, key, tables) {
-		return new Promise((resolve, reject) => {
-			const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-			const request = objectStore.delete(`${key}`);
-			onRequest(request, resolve, reject, { tableName, key });
-		});
+	async truncate(p) {
+		return await this.truncExc(await this.oDB().catch(tE(`trunc->oDB tn:${p.tn}`)), p.tn);
 	}
-	async truncate(payload) {
-		return await this._truncate(payload.tableName);
+	truncExc(db, tn) {
+		return pr((rv, rj) => oR(this.gOS(db, tn, M_RW).clear(), rv, rj));
 	}
-	async _truncate(tableName) {
-		const db = await this.getOpenDB().catch(throwNewError(`_truncate->getOpenDB tableName:${tableName}`));
-		const tables = IdbUtil.currentTables(tableName);
-		return await this._truncateExecute(db, tableName, tables);
+	async getOBN() {
+		return this.cDB(await this.oDB().catch(tE('getOBN->oDB')).objectStoreNames);
 	}
-	_truncateExecute(db, tableName, tables) {
-		return new Promise((resolve, reject) => {
-			const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-			const request = objectStore.clear();
-			onRequest(request, resolve, reject);
-		});
+	async isExOb(tn) {
+		return (await this.getOBN()).includes(tn);
 	}
-	async getObjectStoreNames() {
-		const db = await this.getOpenDB().catch(throwNewError('getObjectStoreNames->getOpenDB'));
-		const names = db.objectStoreNames;
-		this.closeDB();
-		return names;
+	mkI(tn, kp) {
+		return `${tn}-${kp}`;
 	}
-	async isExistsObjectStore(tableName) {
-		return (await this.getObjectStoreNames()).includes(tableName);
+	async cIdx(tn, kp, isME) {
+		const db = await this.oDB().catch(tE('creatIdx->oDB'));
+		const o = this.gOS(db, tn, M_RW);
+		o.createIndex(this.mkI(tn, kp), kp, { multiEntry: !!isME });
+		return this.cDB(db.objectStoreNames);
 	}
-	async createIndex(tableName, keyPath, isMultiEntry) {
-		const db = await this.getOpenDB().catch(throwNewError('getObjectStoreNames->getOpenDB'));
-		const names = db.objectStoreNames;
-		this._createIndex(db, tableName, keyPath, isMultiEntry);
-		this.closeDB();
-		return names;
+	async gIdxN(tn) {
+		return this.cDB(this.gOS(await this.oDB().catch(tE('getIdxN->oDB')), tn, M_RW).indexNames);
 	}
-	_createIndex(db, tableName, keyPath, isMultiEntry) {
-		const tables = IdbUtil.currentTables(tableName);
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		const indexName = `${tableName}-${keyPath}`;
-		return objectStore.createIndex(indexName, keyPath, { multiEntry: !!isMultiEntry });
+	async dIdx(tn, kp) {
+		this.cDB(await this.di(await this.oDB().catch(tE(`delIndex->oDB tn:${tn}`)), tn, kp));
 	}
-	async getIndexNames(tableName) {
-		const tables = IdbUtil.currentTables(tableName);
-		const db = await this.getOpenDB().catch(throwNewError('getObjectStoreNames->getOpenDB'));
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		const names = objectStore.indexNames;
-		this.closeDB();
-		return names;
+	di(db, tn, kp) {
+		const o = this.gOS(db, tn, M_RW);
+		return o.indexNames.includes(this.mkI(tn, kp)) ? o.deleteIndex(this.mkI(tn, kp)) : null;
 	}
-	async deleteIndex(tableName, keyPath) {
-		const db = await this.getOpenDB().catch(throwNewError(`getObjectStoreNames->getOpenDB tableName:${tableName}`));
-		await this._deleteIndex(db, tableName, keyPath);
-		this.closeDB();
-	}
-	_deleteIndex(db, tableName, keyPath) {
-		const tables = IdbUtil.currentTables(tableName);
-		const objectStore = this.getObjectStore(db, tableName, tables, MODE_RW);
-		const indexName = `${tableName}-${keyPath}`;
-		const names = objectStore.indexNames;
-		return names.includes(indexName) ? objectStore.deleteIndex(indexName) : null;
-	}
-	async createStore(payload) {
-		return await this._createStore(payload.tableName, payload.keyPathName, payload.isAutoIncrement);
-	}
-	async _createStore(tableName, keyPathName, isAutoIncrement) {
-		if ((await this.isExistsObjectStore(tableName)) === false) {
-			const newVersion = (await this.getCurrentVersion()) + 1;
-			const db = await this.getOpenDB(newVersion).catch(throwNewError(`_createStore->getOpenDB tableName:${tableName}/isAutoIncrement:${isAutoIncrement}`));
-			if (db.objectStoreName.includes(tableName) === false) {
-				db.createObjectStore(tableName, { keyPath: keyPathName });
-			}
-			this.closeDB();
+	async cs(p) {
+		if ((await this.isExOb(p.tn)) === false) {
+			const db = await this.oDB((await this.getV()) + 1).catch(tE(`cs->oDB tn:${p.tn}/isAI:${p.isAI}`));
+			if (db.objectStoreName.includes(p.tn) === false) db.createObjectStore(p.tn, { keyPath: p.pkn });
+			this.cDB();
 		}
 	}
-	async dropStore(payload) {
-		return await this._dropStore(payload.tableName);
-	}
-	async _dropStore(tableName) {
-		const newVersion = (await this.getCurrentVersion()) + 1;
-		const db = await this.getOpenDB(newVersion).catch(throwNewError(`_dropStore->getOpenDB tableName:${tableName}`));
-		db.deleteObjectStore(tableName);
-		this.closeDB();
+	async ds(tn) {
+		this.cDB((await this.oDB((await this.getV()) + 1).catch(tE(`ds->oDB tn:${tn}`))).deleteObjectStore(tn));
 	}
 }
-class IdbUtil {
-	static currentTables(table, tabels) {
-		return tabels ? tabels : [table];
+class IdbU {
+	static getTs(t, ts) {
+		return ts ? ts : [t];
 	}
-	static isMutch(value, condetions) {
-		if (condetions === undefined || condetions === null) {
-			return false;
-		}
-		if (Array.isArray(condetions)) {
-			for (const condition of condetions) {
-				if (IdbUtil.isMutch(value, condition)) {
-					return true;
-				}
-			}
+	static isMutch(v, cos) {
+		if (cos === undefined || cos === null) return false;
+		if (isArr(cos)) {
+			for (const c of cos) if (IdbU.isMutch(v, c)) return true;
 			return false;
 		} else {
-			for (const key in condetions) {
-				const condition = condetions[key];
-				if (typeof condition === 'object') {
-					if (IdbUtil.isMutch(value, condition)) {
-						return true;
-					}
-				} else if (value[key] !== condition) {
-					return false;
-				}
+			for (const k in cos) {
+				const c = cos[k];
+				if (typeof c === 'object' && IdbU.isMutch(v, c)) return true;
+				else if (v[k] !== c) return false;
 			}
 			return true;
 		}
 	}
-	static makeKeyRange(start, end, isNotEqualStart, isNotEqualEnd) {
-		return isNotEqualStart === undefined && isNotEqualEnd === undefined ? IDBKeyRange.bound(start, end, false, false) : IDBKeyRange.bound(start, end, isNotEqualStart, isNotEqualEnd);
+	static mkKR(s, e, isNotEqS = false, isNotEqE = false) {
+		return IDBKeyRange.bound(s, e, isNotEqS, isNotEqE);
 	}
-	static makeKeyRangeUpper(start, isNotEqualStart) {
-		return isNotEqualStart !== true ? IDBKeyRange.upperBound(start) : IDBKeyRange.upperBound(start, isNotEqualStart);
+	static mkKRUpper(s, isNotEqS = false) {
+		return IDBKeyRange.upperBound(s, isNotEqS);
 	}
-	static makeKeyRangeLower(end, isNotEqualEnd) {
-		return isNotEqualEnd !== true ? IDBKeyRange.lowerBound(end) : IDBKeyRange.lowerBound(end, isNotEqualEnd);
+	static mkKRLower(e, isNotEqE = false) {
+		return IDBKeyRange.lowerBound(e, isNotEqE);
 	}
-	static makeKeyRangeOnly(only) {
+	static mkKROnly(only) {
 		return IDBKeyRange.only(only);
 	}
 	//IDを生成
-	static buildKeyPath(key1, key2, key3, key4, key5) {
-		const array = [];
-		if (key1 !== undefined) {
-			array.push(`${key1}`.split('&').join('&amp;').split('.').join('&#046;'));
-		}
-		if (key2 !== undefined) {
-			array.push(`${key2}`.split('&').join('&amp;').split('.').join('&#046;'));
-		}
-		if (key3 !== undefined) {
-			array.push(`${key3}`.split('&').join('&amp;').split('.').join('&#046;'));
-		}
-		if (key4 !== undefined) {
-			array.push(`${key4}`.split('&').join('&amp;').split('.').join('&#046;'));
-		}
-		if (key5 !== undefined) {
-			array.push(`${key5}`.split('&').join('&amp;').split('.').join('&#046;'));
-		}
-		return array.join('');
+	static buildKeyPath(...ks) {
+		const a = [];
+		for (const k of ks) if (k !== undefined) a.push(`${k}`.split('&').join('&amp;').split('.').join('&#046;'));
+		return a.join('');
 	}
 }
