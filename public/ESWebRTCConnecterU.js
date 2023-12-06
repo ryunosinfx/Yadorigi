@@ -1,42 +1,41 @@
-const te = new TextEncoder('utf-8');
-const td = new TextDecoder('utf-8');
-const OF = '_OFFER';
-const AN = '_ANSWER';
-const SlpMs = 100;
-const WAIT = 'wait';
-const rnd = (a = 1) => Math.random() * a;
-const WaitAutoInterval = 1000 * 20;
-const WaitAutoInterval2 = 1000 * 10 + rnd(15000);
-const HshScrtchCnt = 12201;
-const NullArr = [null];
-const cType = 'application/x-www-form-urlencoded';
-const J = JSON;
-const Jp = (a) => J.parse(a);
-const Js = (a) => J.stringify(a);
-const SALT =
-	'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
-const w = (...a) => console.warn(a);
-const io = (...a) => console.info(a);
-const err = (...a) => console.error(a);
-const now = () => Date.now();
-const crv = (t) => crypto.getRandomValues(t);
-const isStr = (s) => typeof s === 'string';
-const isArr = (a) => Array.isArray(a);
-const isFn = (s) => typeof s === 'function';
-const pr = (f) => new Promise(f);
-const ct = (t) => clearTimeout(t);
-const st = (f, w) => setTimeout(f, w);
-const gBl = (b) => b.byteLength;
-const pv = (a) => (a && isStr(a) ? Jp(a) : a);
-const ov = (a) => (typeof a === 'object' ? Jp(a) : a);
-const cb = (a) => a;
-const rsm = () => Math.floor(rnd(SlpMs)) + SlpMs;
-
-const ef = (e, id = '', l = null) => {
-	cb(w(`${id} ${e.message}`), w(e.stack));
-	if (l && isFn(l)) cb(l(`${id} ${e.message}`), l(e.stack));
-	return null;
-};
+const te = new TextEncoder('utf-8'),
+	td = new TextDecoder('utf-8'),
+	OF = '_OFFER',
+	AN = '_ANSWER',
+	SlpMs = 100,
+	WAIT = 'wait',
+	rnd = (a = 1) => Math.random() * a,
+	WAI = 1000 * 20,
+	WAI2 = 1000 * 10 + rnd(15000),
+	HSC = 12201,
+	NullArr = [null],
+	cType = 'application/x-www-form-urlencoded',
+	J = JSON,
+	Jp = (a) => J.parse(a),
+	Js = (a) => J.stringify(a),
+	SALT =
+		'メロスは激怒した。必ず、かの邪智暴虐じゃちぼうぎゃくの王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。',
+	w = (...a) => console.warn(a),
+	io = (...a) => console.info(a),
+	err = (...a) => console.error(a),
+	now = () => Date.now(),
+	crv = (t) => crypto.getRandomValues(t),
+	isStr = (s) => typeof s === 'string',
+	isArr = (a) => Array.isArray(a),
+	isFn = (s) => typeof s === 'function',
+	pr = (f) => new Promise(f),
+	ct = (t) => clearTimeout(t),
+	st = (f, w) => setTimeout(f, w),
+	gBl = (b) => b.byteLength,
+	pv = (a) => (a && isStr(a) ? Jp(a) : a),
+	ov = (a) => (typeof a === 'object' ? Jp(a) : a),
+	cb = (a) => a,
+	rsm = () => Math.floor(rnd(SlpMs)) + SlpMs,
+	ef = (e, id = '', l = null) => {
+		cb(w(`${id} ${e.message}`), w(e.stack));
+		if (l && isFn(l)) cb(l(`${id} ${e.message}`), l(e.stack));
+		return null;
+	};
 function getEF(i, l) {
 	return (e) => ef(e, i, l);
 }
@@ -120,10 +119,10 @@ class M {
 		z.grp = g;
 		z.pwd = p;
 		z.dn = dn;
-		z.hash = await mkH([u, g, p, dn], HshScrtchCnt);
-		z.sHash = await mkH([u, g, p, salt], HshScrtchCnt);
-		z.gHash = await mkH([u, g, p, salt], HshScrtchCnt);
-		z.nHash = await mkH([now(), u, g, p, dn, salt], HshScrtchCnt);
+		z.hash = await mkH([u, g, p, dn], HSC);
+		z.sHash = await mkH([u, g, p, salt], HSC);
+		z.gHash = await mkH([u, g, p, salt], HSC);
+		z.nHash = await mkH([now(), u, g, p, dn, salt], HSC);
 		z.sgnlH = await z.enc({ hash: z.nHash, group: g, devName: dn });
 		z.l(`M INIT z.hash:${z.hash} devName:${dn}`);
 		z.reqM = new Map();
@@ -146,7 +145,7 @@ class M {
 			isF = true;
 		while (z.isStopAuto === false) {
 			const gh = z.gHash;
-			await slp(WaitAutoInterval / 5);
+			await slp(WAI / 5);
 			if (!gh) continue;
 			if (c === 0 || isF) {
 				await z.sndW(gh);
@@ -169,18 +168,18 @@ class M {
 		}
 	}
 	async onCatchAnother(gh, now, h, g) {
-		const z = this;
-		const hs = h.split('/');
-		const tsh = h.indexOf(z.sgnlH) < 0 ? h : hs[1] !== z.sgnlH ? hs[1] : hs[2];
-		const c = await z.getCf(gh, tsh, g);
+		const z = this,
+			hs = h.split('/'),
+			tsh = h.indexOf(z.sgnlH) < 0 ? h : hs[1] !== z.sgnlH ? hs[1] : hs[2],
+			c = await z.getCf(gh, tsh, g);
 		if (!c || z.isOpd(c)) return;
 		await z.sndWN(gh, tsh);
 		const l = await z.getWL(gh);
 		if (!isArr(l) || l.length < 1) return;
-		const y = [];
-		const w = z.sgnlH.length;
-		const q = tsh.length;
-		const a = w + q;
+		const y = [],
+			w = z.sgnlH.length,
+			q = tsh.length,
+			a = w + q;
 		for (const r of l) {
 			const v = pv(r.value);
 			if (r.exp < now || v.hash.length < a) continue;
@@ -211,13 +210,13 @@ class M {
 		st(() => {
 			isHotS = false;
 			z.isStop = true;
-		}, WaitAutoInterval);
+		}, WAI);
 		isHotS = true;
 		while (isHotS) await slp();
 		z.isStop = false;
 	}
 	sndW(gh) {
-		return this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5 }, WAIT);
+		return this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WAI2 + WAI / 5 }, WAIT);
 	}
 	sndWN(gh, tsh) {
 		return this.p(
@@ -225,7 +224,7 @@ class M {
 			{
 				msg: WAIT,
 				hash: `/${this.sgnlH}/${tsh}`,
-				exp: now() + WaitAutoInterval2 + WaitAutoInterval / 5,
+				exp: now() + WAI2 + WAI / 5,
 			},
 			WAIT
 		);
@@ -243,7 +242,7 @@ class M {
 	async nego(c) {
 		const z = this;
 		c.isStop = false;
-		st(U.getStopFn(c), WaitAutoInterval);
+		st(U.getStopFn(c), WAI);
 		while (c.isStop === false && z.isStopAuto === false) {
 			st(() => {
 				if (c.isA) return;
@@ -280,12 +279,12 @@ class M {
 		await z.rsCf(c);
 	}
 	async stopWaitAutoConn() {
-		const z = this;
+		const z = this,
+			p = [];
 		for (const k in z.cfs) z.cfs[k].isStop = true;
 		z.isStopAuto = true;
 		for (const k in z.cfs) z.cfs[k].isStop = true;
 		await slp(Math.floor(rnd(1000)) + 2500);
-		const p = [];
 		for (const k in z.cfs) p.push(z.rsCf(z.cfs[k]));
 		await Promise.all(p);
 	}
@@ -296,17 +295,17 @@ class M {
 		await this.p(c.pxAt, await this.enc(o, c.nowHK));
 	}
 	async p(g, o, c = 'g') {
-		const n = now();
-		const d = await GA.post2GAS(this.url, {
-			group: g,
-			cmd: c,
-			data: isStr(o) ? o : Js(o),
-		});
+		const n = now(),
+			d = await GA.post2GAS(this.url, {
+				group: g,
+				cmd: c,
+				data: isStr(o) ? o : Js(o),
+			});
 		this.l(`M==post==${g}/${c} d:${now() - n} data:`, d);
 	}
 	async g(g, c = 'g') {
-		const n = now();
-		const d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
+		const n = now(),
+			d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
 		return cb(d, this.l(`M==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
 	}
 	async getCfK(gh, sh) {
@@ -314,12 +313,12 @@ class M {
 		return [Js([gh, o ? o.devName : null]), o];
 	}
 	async getCf(gh, tsh, g) {
-		const z = this;
-		const [k, oT] = await z.getCfK(gh, tsh);
+		const z = this,
+			[k, oT] = await z.getCfK(gh, tsh);
 		if (!oT) return null;
-		const [s] = await z.getCfK(gh, z.sgnlH);
+		const [s] = await z.getCfK(gh, z.sgnlH),
+			tdn = oT.devName;
 		let c = z.cfs[k];
-		const tdn = oT.devName;
 		if (!c) {
 			c = {
 				trgtDevNm: tdn,
@@ -352,9 +351,9 @@ class M {
 		return c;
 	}
 	async onMsgByCf(c, tdn, tsh, m) {
-		const z = this;
-		const a = m instanceof Blob ? await Y.L2a(m) : m.buffer && gBl(m.buffer) ? m.buffer : gBl(m) ? m : null;
-		const dU8A = z.A.getBigSndDResFormat(tdn, a);
+		const z = this,
+			a = m instanceof Blob ? await Y.L2a(m) : m.buffer && gBl(m.buffer) ? m.buffer : gBl(m) ? m : null,
+			dU8A = z.A.getBigSndDResFormat(tdn, a);
 		return dU8A
 			? io('☆onMsgByConf A', dU8A, m, await z.onRcvBigDRes(c, tdn, dU8A))
 			: (await z.A.isBSD(a, tdn))
@@ -368,12 +367,12 @@ class M {
 		c.isGF = c.isEx = c.isStop = false;
 		const s = Object.keys(c.cache);
 		for (const k of s) delete c.cache[k];
-		await slp(WaitAutoInterval);
+		await slp(WAI);
 		return null;
 	}
 	async lsnr(c, px, ve) {
-		const z = this;
-		const v = await z.dec(ve, z.nHash);
+		const z = this,
+			v = await z.dec(ve, z.nHash);
 		z.l(
 			`M==LISTENER==RECEIVE=A==px:${px}/${px === AN}//value:${v}/conf.isA:${
 				c.isA
@@ -421,20 +420,23 @@ class M {
 		for (const k in this.cfs) this.cc(k);
 	}
 	async cc(k) {
-		const c = this.cfs[k];
-		this.l(`M==CLOSE==c:${c}/k:${k}`);
-		delete this.cfs[k];
-		if (c && c.w) return c.w.close() === (await this.rsCf(c));
+		const z = this,
+			c = z.cfs[k];
+		z.l(`M==CLOSE==c:${c}/k:${k}`);
+		delete z.cfs[k];
+		return c && c.w ? c.w.close() === (await z.rsCf(c)) : null;
 	}
 	async close(h) {
 		await this.cc((await this.getCfK(this.gHash, h))[0]);
 	}
 	async sndBigMsg(h, n, t, b) {
-		return await this.A.sBD(await this.getCf(this.gHash, h, this.grp), n, t, b, this.l);
+		const z = this;
+		return await z.A.sBD(await z.getCf(z.gHash, h, z.grp), n, t, b, z.l);
 	}
 	async bcBigMsg(n, t, b) {
-		const ps = [];
-		for (const k in this.cfs) ps.push(this.A.sBD(this.cfs[k], n, t, b, this.l));
+		const z = this,
+			ps = [];
+		for (const k in z.cfs) ps.push(z.A.sBD(z.cfs[k], n, t, b, z.l));
 		return Promise.all(ps);
 	}
 	async sendMsg(h, m) {
@@ -444,8 +446,8 @@ class M {
 		for (const k in this.cfs) U.sndOnDC(this.cfs[k], m, this.l);
 	}
 	async onRcvBigD(c, d, m, h) {
-		const z = this;
-		const { files, isCmpl, res } = await z.A.rcvBSD(c, m);
+		const z = this,
+			{ files, isCmpl, res } = await z.A.rcvBSD(c, m);
 		io(`☆ M onRcvBigD A isArr(files):${isArr(files)}/isCmpl:${isCmpl}`, res);
 		if (isCmpl && isArr(files)) {
 			io(`☆ M onRcvBigD B files.byteLength:${gBl(files)}/isCmpl:${isCmpl}`);
@@ -466,11 +468,11 @@ class M {
 		return [];
 	}
 	async onReqD(n, f, h) {
-		const ts = f.type.split('/');
-		const PQ = ts.shift();
-		const s = ts.pop();
-		const { key, type, result, status } = await this.onReq(n, f.name, ts.join('/'), f.data);
-		const nt = [PQ, status, type, s].join('/');
+		const ts = f.type.split('/'),
+			PQ = ts.shift(),
+			s = ts.pop(),
+			{ key, type, result, status } = await this.onReq(n, f.name, ts.join('/'), f.data),
+			nt = [PQ, status, type, s].join('/');
 		return await this.sndBigMsg(h, key, this.A.cnvtType2Res(nt), result);
 	}
 	async onRcvBigDRes(c, n, u) {
@@ -483,19 +485,19 @@ class M {
 	req(h, kp, t, m) {
 		const z = this;
 		return pr(async (r) => {
-			const a = isStr(m) ? Y.s2u(m) : gBl(m) ? m : m.buffer ? m.buffer : Y.s2u(Js(m));
-			const h = await H.d(now() + rnd() + h + kp + SALT + t);
-			const th = gBl(m) ? 'arraybuffer' : m.buffer ? 'typedarray' : typeof m;
-			const n = `${S.RqH}${th}/${h}`; // PorQ/type/hash
+			const a = isStr(m) ? Y.s2u(m) : gBl(m) ? m : m.buffer ? m.buffer : Y.s2u(Js(m)),
+				h = await H.d(now() + rnd() + h + kp + SALT + t),
+				th = gBl(m) ? 'arraybuffer' : m.buffer ? 'typedarray' : typeof m,
+				n = `${S.RqH}${th}/${h}`; // PorQ/type/hash
 			z.reqM.set(h, r);
 			st(() => cb(z.reqM.delete(h), r(S.T_OUT)), S.MaxWaitMs);
 			return await z.A.sBD(await z.getCf(z.gHash, h, z.grp), kp, n, a, z.l);
 		});
 	}
 	onRes(n, f) {
-		const t = f.type.split('/');
-		const s = t.shift();
-		const r = this.reqM.get(t.pop());
+		const t = f.type.split('/'),
+			s = t.shift(),
+			r = this.reqM.get(t.pop());
 		return r ? r(n, f.name, t.join('/'), f.data, s) : io('onRespons resolve:', r);
 	}
 	setOnReq(c = (k, t, d) => cb({ key: k, type: t, result: d, status: 404 }, io(`key:${k}/type:${t}`, d))) {
@@ -529,33 +531,33 @@ class A {
 			return false; // 1,256/8=32byte,data
 		const b = Y.s2u(n);
 		io(`☆☆A isBSD B devName:${n}`, b);
-		const f1 = b[0] * 1;
-		const d = gBl(a) && gBl(a) > 0 ? B.u8(a) : a.buffer ? B.u8(a.buffer) : NullArr;
+		const f1 = b[0] * 1,
+			d = gBl(a) && gBl(a) > 0 ? B.u8(a) : a.buffer ? B.u8(a.buffer) : NullArr;
 		io(`☆☆A isBSD C data.byteLength:${gBl(a)}/f1:${f1}/dU8A[0]:${d[0]}`, d);
 		if (f1 !== d[0] * 1) {
 			io(`☆☆A isBSD C1 data.byteLength:${gBl(a)}/f1:${f1}/dU8A[0]:${d[0]}/type:${typeof f1}`);
 			return false;
 		}
-		const u = d.subarray(1, 33);
-		const z = d.subarray(33);
-		const h = Y.a2B(await H.d(z, 1, undefined, true));
-		const j = Y.u2B(u);
-		const r = j === h;
+		const u = d.subarray(1, 33),
+			z = d.subarray(33),
+			h = Y.a2B(await H.d(z, 1, undefined, true)),
+			j = Y.u2B(u),
+			r = j === h;
 		io(`☆☆A isBSD D data.byteLength:${gBl(a)}/hU8A:${u}/result:${r}/hB64:${j}/hash:${h}/dhU8A:`, z);
 		return r;
 	}
 	async sBD(c, n, t, a, l) {
 		l(`★★A sBD A sndMsg msg:${a}/${c.w}/${c.w.isOpend}`);
 		if (!c || !c.w || !c.w.isOpd) return;
-		const w = c.w;
-		const dn = c.trgtDevNm;
-		const u = B.u8(a);
-		const { dasendDataAb, signatureU8A, count, f1 } = await S.mkBSDM(u, dn, t, n);
+		const w = c.w,
+			dn = c.trgtDevNm,
+			u = B.u8(a),
+			{ dasendDataAb, signatureU8A, count, f1 } = await S.mkBSDM(u, dn, t, n);
 		io(`★★A sBD B dasendDataAb:${dasendDataAb}`, dasendDataAb);
-		const s = Y.a2B(signatureU8A.buffer);
-		const q = new Map();
-		const i = B.i32(1).fill(-1);
-		const h = Y.a2B(await S.mkResAb(f1, B.u8(dasendDataAb).subarray(69), i.buffer, signatureU8A));
+		const s = Y.a2B(signatureU8A.buffer),
+			q = new Map(),
+			i = B.i32(1).fill(-1),
+			h = Y.a2B(await S.mkResAb(f1, B.u8(dasendDataAb).subarray(69), i.buffer, signatureU8A));
 		this.sM.set(s, {
 			sq: q,
 			t,
@@ -571,20 +573,22 @@ class A {
 		const b = [];
 		for (let i = 0, f = 0; i < count; i++) {
 			io(`★★A sBD D count:${count}/i:${i}/offset:`, f);
-			const e = i === count - 1 ? gBl(a) : f + S.SZ;
-			const p = u.subarray(f, e);
+			const e = i === count - 1 ? gBl(a) : f + S.SZ,
+				p = u.subarray(f, e);
 			b.push(this.sTA(w, p, f1, signatureU8A, q, i));
 			f = f += S.SZ;
 		}
-		await Promise.all(b);
+		const g = await Promise.all(b);
 		io(`★★A sBD E result:${r}`, r);
+		for (const r of g) if (!r) return false;
+		return true;
 	}
 	async sTA(w, p, f1, s, sq, i) {
 		const a = B.i32(1);
 		a.fill(i);
 		io(`★★★A sTranA A idx:${i}`, a);
-		const rh = Y.u2B(await S.mkResAb(f1, p, a.buffer, s));
-		const b = await S.mkBSD(p, f1, s, i);
+		const rh = Y.u2B(await S.mkResAb(f1, p, a.buffer, s)),
+			b = await S.mkBSD(p, f1, s, i);
 		io(`★★★A sTranA B resHashB64:${rh}`, rh);
 		io(`★★★A sTranA C partU8A:${p}`, p);
 		io(`★★★A sTranA D signatureU8A:${s}`, s);
@@ -618,44 +622,44 @@ class A {
 		)
 			return false;
 		io(`☆☆A B getBigSndDResFormat devName:${n}/data:`, d);
-		const a = Y.s2u(n);
-		const f1 = a[0];
-		const b = !isArr(d) && gBl(d) && gBl(d) > 0 ? B.u8(d) : B.u8(d.buffer);
+		const a = Y.s2u(n),
+			f1 = a[0],
+			b = !isArr(d) && gBl(d) && gBl(d) > 0 ? B.u8(d) : B.u8(d.buffer);
 		io(`☆☆A C getBigSndDResFormat f1:${f1}/data:`, d);
 		if (f1 !== b[0]) return false;
 		const ix = Y.u2I(b.subarray(33, 37))[0];
 		io(`☆☆A D getBigSndDResFormat idx:${ix}/f1:`, f1);
-		const s = Y.u2B(b.subarray(37, 69));
-		const m = this.sM.get(s);
+		const s = Y.u2B(b.subarray(37, 69)),
+			m = this.sM.get(s);
 		io(`☆☆A E getBigSndDResFormat signatureB64:${s}/m:`, m);
 		return m && m.sq && gBl(m) >= ix * S.SZ && ix >= -1 ? b : null;
 	}
 	isBSDRs(d) {
-		const h = Y.u2B(d);
-		const i = Y.u2I(d.subarray(33, 37))[0];
-		const s = Y.u2B(d.subarray(37, 69));
-		const m = this.sM.get(s);
-		const q = m && m.sq ? m.sq : null;
+		const h = Y.u2B(d),
+			i = Y.u2I(d.subarray(33, 37))[0],
+			s = Y.u2B(d.subarray(37, 69)),
+			m = this.sM.get(s),
+			q = m && m.sq ? m.sq : null,
+			t = q && q.get(h) ? q.get(h) : { idx: null };
 		io(`☆☆☆☆A isBSDRs  A idx:${i}/signatureB64:${s} /hashB64:${h} sq.get(hashB64):/m:`, q.get(h), m);
-		const t = q && q.get(h) ? q.get(h) : { idx: null };
 		return t.idx === i
 			? cb(true, io(`☆☆☆☆A isBSDRs B idx:${i}`), ct(t.timer))
 			: cb(false, io(`☆☆☆☆A isBSDRs C idx:${i} task:`, t));
 	}
 	isCBSDRs(d) {
-		const i = Y.u2I(d.subarray(33, 37))[0];
-		const s = d[d.length - 1];
-		const m = this.sM.get(Y.u2B(d.subarray(37, 69)));
+		const i = Y.u2I(d.subarray(33, 37))[0],
+			s = d[d.length - 1],
+			m = this.sM.get(Y.u2B(d.subarray(37, 69)));
 		io(`☆☆☆☆A isCBSDRs idx:${i}/ESBSU.STATUS[status] :${S.ST[s]}/m:`, m);
 		return Math.ceil(gBl(m) / S.SZ) === i && S.ST[s] === S.COMPLE;
 	}
 	async rcvBSD(c, b) {
 		if (!c || !c.w || !c.w.isOpd) return;
-		const w = c.w;
-		const a = B.u8(b).subarray(33); //idx,signAll,data
-		const i = Y.u2I(a.subarray(0, 4))[0]; //idx,signAll,data
-		const s = Y.u2B(a.subarray(4, 36)); //idx,signAll,data
-		const d = a.subarray(36); //idx,signAll,data
+		const w = c.w,
+			a = B.u8(b).subarray(33), //idx,signAll,data
+			i = Y.u2I(a.subarray(0, 4))[0], //idx,signAll,data
+			s = Y.u2B(a.subarray(4, 36)), //idx,signAll,data
+			d = a.subarray(36); //idx,signAll,data
 		let o = this.rM.get(s);
 		io(`☆☆☆A rcvBSD A idx:${i}/signatureB64:`, s);
 		if (!o) {
@@ -686,11 +690,11 @@ class A {
 				o.signature = t.signature;
 				o.byteLength = gBl(t);
 				o.count = t.count;
-				const l = Math.ceil(t.count / 8);
-				const cc = B.u8(l);
+				const l = Math.ceil(t.count / 8),
+					cc = B.u8(l),
+					cpc = B.u8(l);
 				cc.fill(0);
 				o.cntr = cc;
-				const cpc = B.u8(l);
 				cpc.fill(255);
 				cpc[cc.length - 1] = t.count % 8 ? Math.pow(2, t.count % 8) - 1 : 255;
 				o.cmpU64 = Y.u2B(cpc);
@@ -709,8 +713,8 @@ class A {
 		w.send(r0.buffer, 'arraybuffer');
 		if (isC) {
 			io(`☆☆☆A rcvBSD H idx:${i}/isCmpl:`, isC);
-			const { united, isV } = await S.unitD(o);
-			const r1 = await S.mkBSDRs(b, o.count + 1, isV ? S.COMPLE : S.NG);
+			const { united, isV } = await S.unitD(o),
+				r1 = await S.mkBSDRs(b, o.count + 1, isV ? S.COMPLE : S.NG);
 			w.send(r1.buffer, 'arraybuffer');
 			io(`☆☆☆A rcvBSD I idx:${i}/isCmpl:${isC}/isV:${isV}/united:`, united);
 			if (isV) {
@@ -730,10 +734,10 @@ class A {
 		io(`☆☆☆☆A rcvBSDRs A lastIndex:${li}`);
 		const s = S.ST[d[li]];
 		d[li] = S.ST.indexOf(S.OK);
-		const h = Y.u2B(d);
-		const m = this.sM.get(Y.u2B(d.subarray(37, 69)));
-		const t = m && m.sq && m.sq.get(h) ? m.sq.get(h) : { idx: null };
-		const r = t.resolve;
+		const h = Y.u2B(d),
+			m = this.sM.get(Y.u2B(d.subarray(37, 69))),
+			t = m && m.sq && m.sq.get(h) ? m.sq.get(h) : { idx: null },
+			r = t.resolve;
 		return isFn(r) ? r(s) !== true : false;
 	}
 	async rcvBigSndDCompl(d) {
@@ -759,28 +763,27 @@ class S {
 	static T_OUT = 'TIME_OUT';
 	static ST = [S.T_OUT, S.OK, S.NG, S.COMPLE, S.SENDING];
 	static async mkBSDM(d, o, t, n) {
-		const f1 = B.u8(1).fill(Y.s2u(o)[0]);
-		const b = gBl(d.buffer);
-		const c = Math.ceil(b / S.SZ);
-		const s = await H.d(d); //BASE64
-		const a = B.u8(Y.U2a(s));
-		const j = Js({ type: t, name: n, signature: s, byteLength: b, count: c });
-		const u = Y.jus([B.u8(B.i32(1).fill(-1).buffer), a, Y.s2u(j)]); // 4+32=36
-		const h = await H.d(u, 1, undefined, true);
-		const r = {
+		const f1 = B.u8(1).fill(Y.s2u(o)[0]),
+			b = gBl(d.buffer),
+			c = Math.ceil(b / S.SZ),
+			s = await H.d(d), //BASE64
+			a = B.u8(Y.U2a(s)),
+			j = Js({ type: t, name: n, signature: s, byteLength: b, count: c }),
+			u = Y.jus([B.u8(B.i32(1).fill(-1).buffer), a, Y.s2u(j)]), // 4+32=36
+			h = await H.d(u, 1, undefined, true);
+		return {
 			dasendDataAb: Y.jus([f1, B.u8(h), u]).buffer, // 1+32=33 33+36 = 69
 			signatureU8A: a,
 			count: c,
 			f1,
 		};
-		return r;
 	}
 	static async mkBSD(u, f1, s, i) {
-		const a = B.i32(1).fill(i);
-		const b = Y.jus([B.u8(a.buffer), s, u]);
-		const c = await H.d(b, 1, undefined, true);
-		const d = Y.jus([f1, B.u8(c), b]);
-		const r = d.buffer;
+		const a = B.i32(1).fill(i),
+			b = Y.jus([B.u8(a.buffer), s, u]),
+			c = await H.d(b, 1, undefined, true),
+			d = Y.jus([f1, B.u8(c), b]),
+			r = d.buffer;
 		io('□□ESBigSndUtil mkBSD A result', r);
 		return r;
 	}
@@ -790,10 +793,10 @@ class S {
 		io(`☆☆☆☆ ESBSU mkBSDRs B isArr(d):${isArr(d)}/dU8A.length:${u.length}/dU8A:`, u);
 		const f1 = B.u8(1);
 		f1[0] = u[0];
-		const a = Y.u2I(i > 0 ? B.u8(B.i32(1).fill(i).buffer) : u.subarray(33, 37));
-		const s = u.subarray(37, 69);
-		const b = u.subarray(69);
-		const _f = S.bOK(f);
+		const a = Y.u2I(i > 0 ? B.u8(B.i32(1).fill(i).buffer) : u.subarray(33, 37)),
+			s = u.subarray(37, 69),
+			b = u.subarray(69),
+			_f = S.bOK(f);
 		io(`☆☆☆☆ ESBSU mkBSDRs C idxI32A:${a}/signatureU8A.length:${s.length}/signatureU8A:`, s);
 		return await S.mkResAb(f1, b, a.buffer, s, _f);
 	}
@@ -809,11 +812,11 @@ class S {
 	static async unitD(o) {
 		io('☆☆☆☆☆ ESBSU unitD A map:', o);
 		if (o.full) return { united: o.full, isV: true };
-		const d = o.data;
-		const s = Object.keys(d);
+		const d = o.data,
+			s = Object.keys(d),
+			a = [];
 		s.sort();
 		io('☆☆☆☆☆ ESBSU unitD B keys:', s);
-		const a = [];
 		for (const k of s) a.push(d[k]);
 		const b = Y.jus(a);
 		io(`☆☆☆☆☆ ESBSU unitD C dU8A.length:${b.length}`, b);
@@ -834,12 +837,9 @@ class S {
 	}
 }
 class U {
-	static getStopFn(c) {
-		return () => (c.isStop = true);
-	}
-	static sndOnDC(c, m, l, bt = 'blob') {
-		return cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l(`Mtil sndMsg msg:${m}`));
-	}
+	static getStopFn = (c) => () => (c.isStop = true);
+	static sndOnDC = (c, m, l, bt = 'blob') =>
+		cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l(`Mtil sndMsg msg:${m}`));
 	static pSdp(i, l) {
 		const s = pv(i);
 		l(`U parseSdp ${typeof i}/sdpInput:${i}`);
@@ -960,7 +960,7 @@ class WebRTCConn {
 		let c = 1;
 		while (c < 100 && !this.isOpd) {
 			await slp(Math.floor(rnd(20 * c)) + 100);
-			c += 1;
+			c++;
 			if (!this.p) continue;
 			const cs = this.p.gCs();
 			io(`WebRTCConn setOnCandidates count:${c}/candidates:${cs}`);
@@ -995,7 +995,7 @@ class Peer {
 		this.isOD = false;
 		this.isCo = false;
 	}
-	pNC(isWithDataChannel) {
+	pNC(isWDC = 1) {
 		return new Promise((rv, rj) => {
 			w('-Peer-prepareNewConn--0--');
 			const p = new RTCPeerConnection(this.cf, opt);
@@ -1027,7 +1027,7 @@ class Peer {
 				}
 			};
 			p.oniceconnectionstatechange = (e) => {
-				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}/name:${this.n}`);
+				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}/name:${this.n}`, e);
 				switch (p.iceConnectionState) {
 					case 'connected':
 						st(() => {
@@ -1054,8 +1054,8 @@ class Peer {
 				w(`-Peer-ondatachannel--1--evt:${e}`);
 				this.dS(e.channel);
 			};
-			w(`-Peer-prepareNewConn--2--isWithDataChannel:${isWithDataChannel}`);
-			if (isWithDataChannel) this.dS(p.createDataChannel(`chat${now()}`));
+			w(`-Peer-prepareNewConn--2--isWithDataChannel:${isWDC}`);
+			if (isWDC) this.dS(p.createDataChannel(`chat${now()}`));
 		});
 	}
 	oO(e) {
@@ -1095,7 +1095,7 @@ class Peer {
 		this.dc = c;
 	}
 	async mkO() {
-		this.p = await this.pNC(true);
+		this.p = await this.pNC();
 		return this.p.localDescription;
 	}
 	async mkA() {
@@ -1122,7 +1122,7 @@ class Peer {
 					sdp: s,
 				});
 				if (this.p) err('Peer setOfferAndAns peerConnection alreay exist!');
-				this.p = await this.pNC(true);
+				this.p = await this.pNC();
 				w(`Peer setOfferAndAns this.p${this.p} offer:`, o);
 				await this.p.setRemoteDescription(o);
 				io(`Peer setOfferAndAns setRemoteDescription(ans) ok in promise name:${this.n}`);
@@ -1230,40 +1230,22 @@ export class H {
 	}
 }
 class B {
-	static u8(a) {
-		return new Uint8Array(a);
-	}
-	static u32(a) {
-		return new Uint32Array(a);
-	}
-	static i32(a) {
-		return new Int32Array(a);
-	}
+	static u8 = (a) => new Uint8Array(a);
+	static u32 = (a) => new Uint32Array(a);
+	static i32 = (a) => new Int32Array(a);
 }
 class Y {
-	static isSameAb(abA, abB) {
-		return Y.a2B(abA) === Y.a2B(abB);
-	}
-	static isB64(s = '') {
-		return s % 4 === 0 && /[+/=0-9a-zA-Z]+/.test(s);
-	}
-	static s2u(s) {
-		return te.encode(s);
-	}
-	static u2s(u) {
-		return td.decode(u);
-	}
-	static a2B(i) {
-		return window.btoa(Y.u2b(B.u8(i.buffer ? i.buffer : i)));
-	}
-	static u2B(u) {
-		return window.btoa(Y.u2b(u));
-	}
+	static isSameAb = (abA, abB) => Y.a2B(abA) === Y.a2B(abB);
+	static isB64 = (s = '') => s % 4 === 0 && /[+/=0-9a-zA-Z]+/.test(s);
+	static s2u = (s) => te.encode(s);
+	static u2s = (u) => td.decode(u);
+	static a2B = (i) => window.btoa(Y.u2b(B.u8(i.buffer ? i.buffer : i)));
+	static u2B = (u) => window.btoa(Y.u2b(u));
 	static u2I(u) {
-		const f = B.u8(4);
-		const l = u.length;
-		const n = Math.ceil(l / 4);
-		const i32a = B.i32(n);
+		const f = B.u8(4),
+			l = u.length,
+			n = Math.ceil(l / 4),
+			i32a = B.i32(n);
 		for (let i = 0; i < n; i++) {
 			f[0] = u[i + 0];
 			f[1] = l < i + 1 ? 0 : u[i + 1];
@@ -1274,10 +1256,10 @@ class Y {
 		return i32a;
 	}
 	static u8a2u32a(u) {
-		const f = B.u8(4);
-		const l = u.length;
-		const n = Math.ceil(l / 4);
-		const u32a = B.u32(n);
+		const f = B.u8(4),
+			l = u.length,
+			n = Math.ceil(l / 4),
+			u32a = B.u32(n);
 		for (let i = 0; i < n; i++) {
 			f[0] = u[i + 0];
 			f[1] = l < i + 1 ? 0 : u[i + 1];
@@ -1287,21 +1269,13 @@ class Y {
 		}
 		return u32a;
 	}
-	static a2U(a) {
-		return Y.B2U(Y.a2B(a));
-	}
-	static B2a(B) {
-		return Y.b2u(window.atob(B));
-	}
-	static U2a(U) {
-		return Y.B2a(Y.U2B(U));
-	}
-	static B2U(B) {
-		return B ? B.split('+').join('-').split('/').join('_').split('=').join('') : B;
-	}
+	static a2U = (a) => Y.B2U(Y.a2B(a));
+	static B2a = (B) => Y.b2u(window.atob(B));
+	static U2a = (U) => Y.B2a(Y.U2B(U));
+	static B2U = (B) => (B ? B.split('+').join('-').split('/').join('_').split('=').join('') : B);
 	static U2B(U) {
-		const l = U.length;
-		const c = l % 4 > 0 ? 4 - (l % 4) : 0;
+		const l = U.length,
+			c = l % 4 > 0 ? 4 - (l % 4) : 0;
 		let B = U.split('-').join('+').split('_').join('/');
 		for (let i = 0; i < c; i++) B += '=';
 		return B;
@@ -1325,13 +1299,13 @@ class Y {
 		return r.join('');
 	}
 	static b2u(bs) {
-		const l = bs.length;
-		const a = B.u8(new ArrayBuffer(l));
+		const l = bs.length,
+			a = B.u8(new ArrayBuffer(l));
 		for (let i = 0; i < l; i++) a[i] = bs.charCodeAt(i);
 		return a;
 	}
 	static L2a(b) {
-		return new Promise((r) => {
+		return pr((r) => {
 			const fr = new FileReader();
 			fr.onload = () => r(fr.result);
 			fr.onerror = () => cb(r(fr.error), err(fr.error));
@@ -1339,10 +1313,22 @@ class Y {
 		});
 	}
 	static dpU(u) {
-		const l = u.length;
-		const n = B.u8(l);
+		const l = u.length,
+			n = B.u8(l);
 		for (let i = 0; i < l; i++) n[i] = u[i];
 		return n;
+	}
+	static N2u(n) {
+		let a = n;
+		const p = [];
+		while (Math.abs(a) > 0) {
+			p.unshift(a % 256);
+			a = a >> 8;
+		}
+		const l = p.length;
+		const u = B.u8(l);
+		for (let i = 0; i < l; i++) u[i] = p[i];
+		return u;
 	}
 }
 class Cy {
@@ -1363,36 +1349,21 @@ class Cy {
 		);
 		return [k, s];
 	}
-	static gS(saltI, isAB) {
-		return saltI ? (isAB ? B.u8(saltI) : Y.s2u(saltI)) : crv(B.u8(16));
-	}
-	static async importKeyAESGCM(kAb, usages = ['encrypt', 'decrypt']) {
-		return await cy.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
-	}
-	static gFF() {
-		return crv(B.u8(12));
-	}
-	static gIF() {
-		return crv(B.u32(1));
-	}
-	static srand() {
-		return crv(B.u32(1))[0] / 4294967295;
-	}
-	static async enc(s, pk) {
-		return await Cy.encAES256GCM(Y.s2u(s), pk);
-	}
+	static gS = (saltI, isAB) => (saltI ? (isAB ? B.u8(saltI) : Y.s2u(saltI)) : crv(B.u8(16)));
+	static importKeyAESGCM = async (kAb, usages = ['encrypt', 'decrypt']) =>
+		await cy.importKey('raw', kAb, { name: 'AES-GCM' }, true, usages);
+	static gFF = () => crv(B.u8(12));
+	static gIF = () => crv(B.u32(1));
+	static srand = () => crv(B.u32(1))[0] / 4294967295;
+	static enc = async (s, pk) => await Cy.encAES256GCM(Y.s2u(s), pk);
 	static async encAES256GCM(u, pk, saltI = null, isAB) {
 		const s = Cy.gS(saltI, isAB);
 		const iv = Uint8Array.from([...Cy.gFF(), ...B.u8(Cy.gIF().buffer)]);
 		const edAb = await cy.encrypt({ name: 'AES-GCM', iv }, await Cy.lk(pk, s), u.buffer);
 		return [Y.a2U(edAb), Y.a2U(iv.buffer), Y.a2U(s.buffer)].join(',');
 	}
-	static async dec(ers, pk) {
-		return Y.u2s(await Cy.decAES256GCM(ers, pk));
-	}
-	static async lk(pk, s) {
-		return (isStr(pk) ? await Cy.gK(pk, isStr(s) ? B.u8(Y.U2a(s)) : s) : [pk])[0];
-	}
+	static dec = async (ers, pk) => Y.u2s(await Cy.decAES256GCM(ers, pk));
+	static lk = async (pk, s) => (isStr(pk) ? await Cy.gK(pk, isStr(s) ? B.u8(Y.U2a(s)) : s) : [pk])[0];
 	static async decAES256GCM(ers, p) {
 		const [U, ip, s] = ers.split(',');
 		try {
@@ -1402,8 +1373,236 @@ class Cy {
 		}
 	}
 }
+
+const b12 = 16 * 256;
+const b30 = Math.pow(2, 30);
+const b32 = Math.pow(2, 32);
+const mc = { cnt: 0 };
+const tc = navigator.hardwareConcurrency;
+const bt = now();
+class BC {
+	static i = null;
+	static q = {};
+	static w = {};
+	static f = {};
+	static b(l = console, onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
+		BC.i = new M(l, onR);
+		BC.i.onO = (e) => {
+			BC.onO(e);
+		};
+		BC.i.onC = (e) => {
+			BC.onC(e);
+		};
+	}
+	i(u, g, p, dn) {
+		BC.s.inf = { u, g, p, dn };
+		BC.i.init(u, g, p, dn);
+	}
+	static oO(e) {
+		//OnOpen From MainTab
+		BC.p(Js({ t: 'OP', id: BC.s.id, s: now(), c: e }));
+	}
+	static oC(e) {
+		//OnClose From MainTab
+		BC.p(Js({ t: 'CL', id: BC.s.id, s: now(), c: e }));
+	}
+	sOOF(fn = dcb) {
+		BC.f.onO = fn;
+	}
+	sOCF(fn = dcb) {
+		BC.f.onC = fn;
+	}
+	sNego() {
+		BC.p(Js({ t: 'sN', id: BC.s.id, s: now() }));
+	}
+	eNego() {
+		BC.p(Js({ t: 'eN', id: BC.s.id, s: now() }));
+	}
+	closeAll() {
+		BC.i.closeAll();
+	}
+	close(tsh) {
+		BC.i.close(tsh);
+	}
+	async sendBigMessage(tsh, n, t, ab) {
+		await BC.o(Js({ t: 'SM', id: BC.s.id, s: now(), c: { tsh, n, t, ab: Y.a2U(ab) } }));
+	}
+	broadcastBigMessage(m) {
+		BC.i.bcBigMsg(m);
+	}
+	async sndMsg(tsh, m) {
+		await BC.o(Js({ t: 'SM', id: BC.s.id, s: now(), c: { tsh, m } }));
+	}
+	broadcastMessage(m) {
+		BC.i.bcMsg(m);
+	}
+	request(tsh, kp = '/', t = 'GET', m) {
+		return BC.i.req(tsh, kp, t, m);
+	}
+	setOnRequest(c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) {
+		BC.i.setOnReq(c);
+	}
+
+	static s = { h: {}, w: false };
+	static uuidv7() {
+		const v7 = 7 * b12;
+		mc.cnt++;
+		const b = v7 + mc.cnt;
+		const c = 2 * b30 + Math.floor(rnd(b30));
+		const d = Math.floor(rnd(b32));
+		return B.u2B(B.jus([B.N2u(now()), B.N2u(b), B.N2u(c), B.N2u(d)]));
+	}
+	static async mi(c = '') {
+		return await H.d(`${BC.s.id}${c}${BC.uuidv7}`);
+	}
+	static async cTH() {
+		return await H.d(`${location.origin}/${SALT}`);
+	}
+	static async startHartBeat() {
+		BC.s.id = BC.uuidv7(); //selfid
+		BC.s.s = 1;
+		BC.s.cTH = await BC.cTH(); //channelhash
+		BC.s.c = new BroadcastChannel(BC.HBs.cTH);
+		while (BC.s.s) {
+			BC.p(Js({ t: 'HB', id: BC.s.id, s: now() }));
+			await slp(100);
+			if (!BC.w && now() - bt > 1000) {
+				BC.w = 1;
+			}
+			const fid = BC.s.id;
+			if (BC.w) {
+				const ids = Object.keys(BC.h); // hasConnect
+				ids.sort();
+				let c = 0;
+				const n = now();
+				for (const sid of ids) {
+					if (c >= tc) {
+						break; //all connected
+					}
+					c++;
+					//find targets
+					const s = BC.h[sid];
+					if (sid > BC.s.id && n - s < 1000) {
+						//h is A
+						const w = BC.w[sid];
+						if (!w) {
+							const w = new Peer('Mesh', sS);
+							BC.w[sid] = w;
+							w.t = now();
+							BC.p({ t: 'O', sid, fid, c: await w.mkO() });
+						} else if (!w.isO() && n - w.t > 10000) {
+							w.t = now();
+							BC.p({ t: 'O', sid, fid, c: await w.mkO() });
+						}
+					}
+				}
+				//Connect WebRTC
+			}
+		}
+	}
+	static async oMM() {
+		return async (m) => {
+			try {
+				const f = d.fid; //formId
+				const d = Jp(m);
+				const t = d.t;
+				const c = d.c;
+				if (t === 'HB') BC.s.h[d.id] = d.s;
+				else if (d.sid === BC.s.id) {
+					//forMe
+					if (t === 'sN') {
+						BC.i.startWaitAutoConn(); //StartNego To MainTab
+					} else if (t === 'eN') {
+						BC.i.stopWaitAutoConn(); //StopNego To MainTab
+					} else if (t === 'CA') {
+						BC.i.closeAll(); //closeAll To MainTab
+					} else if (t === 'CL') {
+						BC.i.close(); //close To MainTab
+					} else if (t === 'SM' && c) {
+						BC.i.sendMsg(c.tsh, c.m); //sendData To MainTab
+						BC.p(Js({ t: 'RC', fid: d.sid, sid: f, c: { r: 'OK' }, r: d.r }));
+					} else if (t === 'RC' && d.r && BC.q[d.r]) {
+						const { v, j } = BC.q[d.r]; // recieve
+						io(c && c.r === 'OK' ? v(c) : j(c));
+						delete BC.q[d.r];
+					} else if (t === 'BS' && c) {
+						const r = await BC.i.sndBigMsg(c.tsh, c.n, tc.t, Y.U2a(c.ab)); //BigSendData To MainTab
+						BC.p(Js({ t: 'RC', fid: d.sid, sid: f, c: { r: r ? 'OK' : '' }, r: d.r }));
+					} else if (t === 'O') {
+						const p = BC.w[f] ? BC.w[f] : new Peer(f, sS); //A Tab recieveOffer
+						BC.w[f] = p;
+						await BC.o('A', f, await p.sOA(c));
+					} else if (t === 'A') {
+						const p = BC.w[f]; //A Tab recieveAnswer
+						const r = await p.sA(U.pSdp(c)).catch(getEF(now()));
+						const c = await pr(async (r) => await BC.cnn(p, (c) => r(c)));
+						if (r) await BC.o('C', f, c);
+					} else if (t === 'C') {
+						const p = BC.w[f];
+						p.sCs(pv(c));
+					}
+				} else {
+					if (t === 'RS') {
+						//RceiveSendMsg
+					} else if (t === 'OP') {
+						BC.f.onO(c); //open From MainTab()
+					} else if (t === 'CL') {
+						BC.f.onC(c); //close From MainTab
+					}
+				}
+			} catch (e) {
+				ef(e);
+			}
+		};
+	}
+	static async cnn(p, f) {
+		let c = 1;
+		while (c < 100 && !p.isOpd) {
+			await slp(Math.floor(rnd(20 * c)) + 100);
+			c++;
+			const cs = p.gCs();
+			io(`WebRTCConn setOnCandidates count:${c}/candidates:${cs}`);
+			if (isArr(cs) && cs.length > 0) {
+				f(cs);
+				break;
+			}
+		}
+	}
+
+	static m() {
+		const l = Object.keys(BC.s.h);
+		l.sort();
+		return l.shift();
+	}
+	static o(t, s, c) {
+		return pr((v, j) => {
+			const r = BC.mi(Js([t, s, c])); //reqid
+			BC.p(Js({ t, sid: s, fid: BC.s.id, c, r }));
+			BC.q[r] = { v, j };
+			st(() => {
+				v(null);
+			}, 30000);
+		});
+	}
+	static async cP(t, c) {
+		return await BC.o(t, BC.m(), c);
+	}
+	static async oM(f) {
+		BC.s.c.onmessage = f;
+	}
+	static async p(m) {
+		// Raw Post
+		BC.s.c.postMessage(m);
+	}
+	static h() {}
+	static c() {
+		BC.s.s = false;
+		BC.s.c.close();
+	}
+}
 const PX = '_A_';
 const cache = {};
+//locastrage mamager
 class LSM {
 	static send(cp, i, l = console) {
 		this.i = i;
