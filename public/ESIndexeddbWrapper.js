@@ -41,9 +41,9 @@ const M_R = 'readonly',
 	},
 	gD = (d) => (d === N || d === void 0 ? N : d.data),
 	cb = async () => {},
-	mkR = (d, kpn, k) => {
+	mkR = (data, kpn, k) => {
 		const r = {
-			data: d,
+			data,
 		};
 		r[kpn] = k;
 		return r;
