@@ -838,7 +838,7 @@ class S {
 }
 class U {
 	static getStopFn = (c) => () => (c.isStop = true);
-	static sndOnDC = (c, m, l, bt = 'blob') =>
+	static sndOnDC = (c, m, l, bt = 'arraybuffer') =>
 		cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l(`Mtil sndMsg msg:${m}`));
 	static pSdp(i, l) {
 		const s = pv(i);
@@ -931,7 +931,7 @@ class WebRTCConn {
 	setEf(f) {
 		this.oEf = (e) => w(`-WebRTCConn-onErrorCB--1--error:${e}`, f(e));
 	}
-	send(m, t = 'blob') {
+	send(m, t = 'arraybuffer') {
 		io(`WebRTCConn send msg:${m}/binaryType:${t}`);
 		return this.isTestMode
 			? this.oMf(!isStr(m) && m instanceof Blob ? (m.buffer ? new Blob(m) : gBl(m) ? B.u8(m) : m) : m)
@@ -942,9 +942,10 @@ class WebRTCConn {
 	}
 	async conn(sdp, f) {
 		if (!sdp) return null;
-		const r = await this.pO.sA(sdp).catch(getEF(now(), this.l));
-		this.p = this.pO;
-		if (r && f) this.setOnCandidates(f);
+		const z = this,
+			r = await z.pO.sA(sdp).catch(getEF(now(), z.l));
+		z.p = z.pO;
+		if (r && f) z.setOnCandidates(f);
 		return r;
 	}
 	connAns() {
@@ -985,15 +986,16 @@ class WebRTCConn {
 const opt = { optional: [{ DtlsSrtpKeyAgreement: true }, { RtpDataChannels: true }] };
 class Peer {
 	constructor(n, stunSrvs, l = null) {
-		this.n = n;
-		this.p = null;
-		this.cs = [];
-		this.cf = { iceServers: stunSrvs };
-		this.l = l;
-		this.id = `${now()} ${this.n}`;
-		this.q = [];
-		this.isOD = false;
-		this.isCo = false;
+		const z = this;
+		z.n = n;
+		z.p = null;
+		z.cs = [];
+		z.cf = { iceServers: stunSrvs };
+		z.l = l;
+		z.id = `${now()} ${z.n}`;
+		z.q = [];
+		z.isOD = false;
+		z.isCo = false;
 	}
 	pNC(isWDC = 1) {
 		return new Promise((rv, rj) => {
@@ -1027,26 +1029,23 @@ class Peer {
 				}
 			};
 			p.oniceconnectionstatechange = (e) => {
-				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}/name:${this.n}`, e);
+				const z = this;
+				io(`Peer ICE conn Status has changed to ${p.iceConnectionState}/name:${z.n}`, e);
 				switch (p.iceConnectionState) {
 					case 'connected':
-						st(() => {
-							if (this.dc.readyState !== 'open') this.c();
-						}, 100);
-						this.isCo = true;
+						st(() => (z.dc.readyState !== 'open' ? z.c() : null), 100);
+						z.isCo = true;
 						break;
 					case 'checking':
-						this.isCo = true;
+						z.isCo = true;
 						break;
 					case 'closed':
 					case 'failed':
-						if (this.p && this.isO) {
-							this.c();
-						}
-						this.isCo = false;
+						if (z.p && z.isO) z.c();
+						z.isCo = false;
 						break;
 					case 'disconnected':
-						this.isCo = false;
+						z.isCo = false;
 						break;
 				}
 			};
@@ -1071,28 +1070,29 @@ class Peer {
 		io(`Peer.onC is no setting name:${this.n}`, 'close');
 	}
 	dS(c) {
+		const z = this;
 		io(`Peer The DataChannel SetupStart. readyState:${c.id} !== ${c.id}`);
-		if (this.dc && c.id !== this.dc.id && this.isOD)
-			io(`Peer The DataChannel be Closed. readyState:${this.dc.readyState} /${c.id} !== ${this.dc.id}`);
-		c.onerror = (e) => cb(err('Peer D C Error:', e), this.oE(e));
+		if (z.dc && c.id !== z.dc.id && z.isOD)
+			io(`Peer The DataChannel be Closed. readyState:${z.dc.readyState} /${c.id} !== ${z.dc.id}`);
+		c.onerror = (e) => cb(err('Peer D C Error:', e), z.oE(e));
 		c.onmessage = (e) =>
-			cb(io(`Peer Got D C Msg:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data), this.oM(e.data));
+			cb(io(`Peer Got D C Msg:${typeof e.data}/isBlob:${e.data instanceof Blob}`, e.data), z.oM(e.data));
 		c.onopen = (e) => {
-			w('dc onopen', e, this.dc.readyState);
-			if (!this.isOD) {
+			w('dc onopen', e, z.dc.readyState);
+			if (!z.isOD) {
 				c.send(
 					`Peer dataChannel Hello World! OPEN OK! dc.id:${c.id} label:${c.label} ordered:${c.ordered} protocol:${c.protocol} binaryType:${c.binaryType} maxPacketLifeTime:${c.maxPacketLifeTime} maxRetransmits:${c.maxRetransmits} negotiated:${c.negotiated}`
 				);
-				this.oO(e);
-				this.isOD = true;
+				z.oO(e);
+				z.isOD = true;
 			}
 		};
 		c.onclose = () => {
 			io('Peer The DataChannel is Closed');
-			this.oC();
+			z.oC();
 			c.isOpen = false;
 		};
-		this.dc = c;
+		z.dc = c;
 	}
 	async mkO() {
 		this.p = await this.pNC();
@@ -1115,24 +1115,25 @@ class Peer {
 	async sOA(s) {
 		w(`Peer setOfferAndAns sdp ${s}`);
 		w(s);
+		const z = this;
 		try {
-			while (this.cs.length < 1) {
+			while (z.cs.length < 1) {
 				const o = new RTCSessionDescription({
 					type: 'offer',
 					sdp: s,
 				});
-				if (this.p) err('Peer setOfferAndAns peerConnection alreay exist!');
-				this.p = await this.pNC();
-				w(`Peer setOfferAndAns this.p${this.p} offer:`, o);
-				await this.p.setRemoteDescription(o);
-				io(`Peer setOfferAndAns setRemoteDescription(ans) ok in promise name:${this.n}`);
-				const a = await this.mkA();
+				if (z.p) err('Peer setOfferAndAns peerConnection alreay exist!');
+				z.p = await z.pNC();
+				w(`Peer setOfferAndAns z.p${z.p} offer:`, o);
+				await z.p.setRemoteDescription(o);
+				io(`Peer setOfferAndAns setRemoteDescription(ans) ok in promise name:${z.n}`);
+				const a = await z.mkA();
 				w(`Peer setOfferAndAns ans ${a}`);
-				if (this.cs.length < 1 || a) return a;
+				if (z.cs.length < 1 || a) return a;
 				await slp(Math.floor(rnd(1000)) + 1000);
 			}
 		} catch (e) {
-			return ef(e, this.id, this.l);
+			return ef(e, z.id, z.l);
 		}
 	}
 	async sA(s) {
@@ -1163,9 +1164,9 @@ class Peer {
 		}
 		return isO;
 	}
-	s(m, t = 'blob') {
-		const z = this;
-		const d = z.dc;
+	s(m, t = 'arraybuffer') {
+		const z = this,
+			d = z.dc;
 		if (!d) return false;
 		d.binaryType = t;
 		io(`Conn SEND!; dc.binaryType : ${d.binaryType}`);
