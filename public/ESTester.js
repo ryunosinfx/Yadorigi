@@ -1,4 +1,4 @@
-import { ESWebRTCConnecterU, Hasher } from './ESWebRTCConnecterU.js';
+import { ESWebRTCConnecterU, H } from './ESWebRTCConnecterU.js';
 export class ESTester {
 	constructor(logElm, urlInputElm, groupInputElm, passwordInputElm, deviceNameInputElm, statusConnElm) {
 		this.logElm = logElm;
@@ -20,7 +20,7 @@ export class ESTester {
 		passwordInputElm.addEventListener('input', this.cb);
 		deviceNameInputElm.addEventListener('input', this.cb);
 		if (!deviceNameInputElm.value) {
-			Hasher.digest([location.origin, navigator.userAgent, Date.now()]).then((hash) => {
+			H.d([location.origin, navigator.userAgent, Date.now()]).then((hash) => {
 				deviceNameInputElm.value = hash;
 				this.cb();
 			});
@@ -50,7 +50,9 @@ export class ESTester {
 		this.statusConnElm.textContent = statuss.join(',');
 	}
 	log(text, value) {
-		this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${typeof text !== 'string' ? JSON.stringify(text) : text} ${value}`;
+		this.logElm.textContent = `${this.logElm.textContent}\n${Date.now()} ${
+			typeof text !== 'string' ? JSON.stringify(text) : text
+		} ${value}`;
 		console.log(`${Date.now()} ${text}`, value);
 	}
 	async openNewWindow() {
@@ -58,7 +60,13 @@ export class ESTester {
 		await this.sleep(1000);
 	}
 	async getHash(obj) {
-		return (await Hasher.digest(`${Date.now()},${JSON.stringify(obj)}`)).split('+').join('-').split('/').join('_').split('=').join('');
+		return (await H.d(`${Date.now()},${JSON.stringify(obj)}`))
+			.split('+')
+			.join('-')
+			.split('/')
+			.join('_')
+			.split('=')
+			.join('');
 	}
 	start() {
 		this.u.startWaitAutoConnect();

@@ -11,7 +11,9 @@ import { TestClass6 } from './test/TestClass6.js';
 import { MultiBrowsersConnectionTestView } from './MultiBrowsersConnectionTestView.js';
 import { SERVER_URL } from './test/TEST_SETTING.js';
 const testAPI = SERVER_URL;
-const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+// const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+const testAPIc =
+	'http://localhost:8087/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
 export class MainView {
 	constructor(service) {
 		this.hash = location.hash;
@@ -45,10 +47,30 @@ export class MainView {
 		ViewUtil.add(rowC, 'h4', { text: 'start' });
 		const colC1 = ViewUtil.add(rowC, 'div', {}, { margin: '10px' });
 		const buttonICEWithSameBrowserTabsD = ViewUtil.add(colC1, 'button', { text: 'testAPI' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(colC1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(colC1, 'button', { text: 'testAutoSTART' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'openNewWindow' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testAutoSTART' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testSTOP' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testCLEAR' },
+			{ margin: '1px' }
+		);
 		const colC2 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const tc6 = new TestClass6(colC2, inputC0, inputC);
 		const colC3 = ViewUtil.add(rowC, 'div', {}, { margin: '12px', fontSize: '60%' });
@@ -93,11 +115,36 @@ export class MainView {
 		ViewUtil.add(rowB, 'h4', { text: 'start' });
 		const colB1 = ViewUtil.add(rowB, 'div', {}, { margin: '10px' });
 		const buttonICEWithSameBrowserTabsC = ViewUtil.add(colB1, 'button', { text: 'testAPI' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsCNewWindows = ViewUtil.add(colB1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsCSTART = ViewUtil.add(colB1, 'button', { text: 'testSTART' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(colB1, 'button', { text: 'testSTOP' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(colB1, 'button', { text: 'testOFFER' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsCCLEAR = ViewUtil.add(colB1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsCNewWindows = ViewUtil.add(
+			colB1,
+			'button',
+			{ text: 'openNewWindow' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsCSTART = ViewUtil.add(
+			colB1,
+			'button',
+			{ text: 'testSTART' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsCSTOP = ViewUtil.add(
+			colB1,
+			'button',
+			{ text: 'testSTOP' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsCOFFER = ViewUtil.add(
+			colB1,
+			'button',
+			{ text: 'testOFFER' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsCCLEAR = ViewUtil.add(
+			colB1,
+			'button',
+			{ text: 'testCLEAR' },
+			{ margin: '1px' }
+		);
 		const colB2 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', whiteSpace: 'pre', fontSize: '60%' });
 		const tc5 = new TestClass5(colB2, inputB0, inputB);
 		const colB3 = ViewUtil.add(rowB, 'div', {}, { margin: '12px', fontSize: '60%' });

@@ -57,12 +57,15 @@ function dcb(e, g, t) {
 	return e + g + t;
 }
 export class ESWebRTCConnecterU {
-	#i = null;
+	#i = null; //Private
 	constructor(l = console, onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
 		this.#i = new M(l, onR);
 	}
 	init(u, g, p, dn) {
 		this.#i.init(u, g, p, dn);
+	}
+	initAsServer(apis = { 200: [], 500: [] }) {
+		this.#i.initAsSrv(apis);
 	}
 	setOnOpenFunc(fn = dcb) {
 		this.#i.onO = fn;
@@ -127,6 +130,9 @@ class M {
 		z.l(`M INIT z.hash:${z.hash} devName:${dn}`);
 		z.reqM = new Map();
 	}
+	initAsSvr(apis) {
+		this.apis = apis;
+	}
 	enc(o, k = this.sHash) {
 		return Cy.enc(Js(o), k);
 	}
@@ -137,6 +143,7 @@ class M {
 			return ef(e, es, this.l);
 		}
 	}
+	//コネクション
 	async startWaitAutoConn() {
 		const z = this;
 		await z.inited;
@@ -167,6 +174,7 @@ class M {
 			}
 		}
 	}
+	//別の何かをキャッチしたとき
 	async onCatchAnother(gh, now, h, g) {
 		const z = this,
 			hs = h.split('/'),
@@ -185,14 +193,14 @@ class M {
 			if (r.exp < now || v.hash.length < a) continue;
 			y.push(Js([r.exp, v.hash]));
 		}
-		if (y.length < 1) return;
+		if (y.length < 1) return; //何もないなら離脱
 		y.sort();
 		y.reverse();
 		let isO = false,
 			rc = 0,
 			isHotS = false;
 		for (const t of y) {
-			const h = Jp(t)[1];
+			const h = Jp(t)[1]; //hashを取得
 			if (h.indexOf(z.sgnlH) === 1 && h.indexOf(tsh) >= q) {
 				isO = true;
 				rc++;
@@ -201,7 +209,7 @@ class M {
 				isO = false;
 				rc++;
 			}
-			if (rc >= 2) break;
+			if (rc >= 2) break; //2回以上は離脱
 		}
 		z.nego(c).catch(getEF(now, z.l));
 		await slp();
@@ -229,9 +237,10 @@ class M {
 			WAIT
 		);
 	}
+	//待機リスト取得
 	async getWL(gh) {
-		const d = await this.g(gh, WAIT);
-		const o = d ? Jp(d) : null;
+		const d = await this.g(gh, WAIT),
+			o = d ? Jp(d) : null;
 		return o ? o.message : null;
 	}
 	isOpd(c) {
@@ -239,6 +248,7 @@ class M {
 		this.l(`◆◆M isOpd conf.w.isOpd:${i}:${c.target}`);
 		return i;
 	}
+	//シグナリングネゴシエーション
 	async nego(c) {
 		const z = this;
 		c.isStop = false;
@@ -524,6 +534,7 @@ class A {
 	cnvtType2Res(t) {
 		return t ? (t.indexOf(S.RqH) === 0 ? t.replace(S.RqH, S.RsH) : t) : t;
 	}
+	//大容量データ送信。※データ分割して送信する
 	async isBSD(a, n) {
 		const M = S.MIN;
 		io(`☆☆A isBSD A devName:${n}/MIN:${M}`, a);
@@ -749,9 +760,10 @@ class A {
 			}
 	}
 }
+//各種定数分
 class S {
-	static SZ = 8000;
-	static MIN = 1 + 32 + 4 + 32 + 1;
+	static SZ = 8000; //分割サイズByte
+	static MIN = 1 + 32 + 4 + 32 + 1; //最小サイズ
 	static WaitMs = 30000;
 	static MaxWaitMs = 60000;
 	static RqH = 'Q/';
@@ -762,13 +774,14 @@ class S {
 	static SENDING = 'SENDING';
 	static T_OUT = 'TIME_OUT';
 	static ST = [S.T_OUT, S.OK, S.NG, S.COMPLE, S.SENDING];
-	static async mkBSDM(d, o, t, n) {
+	static async mkBSDM(d, o, t, n, p, r) {
+		//大規模データ
 		const f1 = B.u8(1).fill(Y.s2u(o)[0]),
 			b = gBl(d.buffer),
 			c = Math.ceil(b / S.SZ),
 			s = await H.d(d), //BASE64
 			a = B.u8(Y.U2a(s)),
-			j = Js({ type: t, name: n, signature: s, byteLength: b, count: c }),
+			j = Js({ type: t, name: n, signature: s, byteLength: b, count: c, path: p, rid: r }),
 			u = Y.jus([B.u8(B.i32(1).fill(-1).buffer), a, Y.s2u(j)]), // 4+32=36
 			h = await H.d(u, 1, undefined, true);
 		return {
@@ -791,18 +804,16 @@ class S {
 		io(`☆☆☆☆ ESBSU mkBSDRs A idx:${i}/flg:${f}/data:`, d);
 		const u = !isArr(d) && gBl(d) && gBl(d) > 0 ? B.u8(d) : B.u8(d.buffer);
 		io(`☆☆☆☆ ESBSU mkBSDRs B isArr(d):${isArr(d)}/dU8A.length:${u.length}/dU8A:`, u);
-		const f1 = B.u8(1);
-		f1[0] = u[0];
-		const a = Y.u2I(i > 0 ? B.u8(B.i32(1).fill(i).buffer) : u.subarray(33, 37)),
+		const f1 = B.u8(1), //ヘッダー
+			a = Y.u2I(i > 0 ? B.u8(B.i32(1).fill(i).buffer) : u.subarray(33, 37)),
 			s = u.subarray(37, 69),
 			b = u.subarray(69),
-			_f = S.bOK(f);
+			_f = S.bOK(f); //flag
+		f1[0] = u[0];
 		io(`☆☆☆☆ ESBSU mkBSDRs C idxI32A:${a}/signatureU8A.length:${s.length}/signatureU8A:`, s);
-		return await S.mkResAb(f1, b, a.buffer, s, _f);
+		return await S.mkResAb(f1, b, a.buffer, s, _f); //ArrayBufferに変換
 	}
-	static bOK(f = S.OK) {
-		return B.u8(1).fill(S.ST.indexOf(f));
-	}
+	static bOK = (f = S.OK) => B.u8(1).fill(S.ST.indexOf(f));
 	static async mkResAb(f1, u, iA, s, f = S.bOK()) {
 		io(`☆☆☆☆☆ ESBSU mkResAb A f1:${f1}/idxAb:${B.i32(iA)[0]}/signatureU8A:${s.length}/signatureU8A:`, s);
 		const h = B.u8(await H.d(u, 1, undefined, true)); //ab
@@ -837,7 +848,7 @@ class S {
 	}
 }
 class U {
-	static getStopFn = (c) => () => (c.isStop = true);
+	static getStopFn = (c) => () => (c.isStop = true); //停止関数取得
 	static sndOnDC = (c, m, l, bt = 'arraybuffer') =>
 		cb(c && c.w && c.w.isOpd ? c.w.send(m, bt) : null, l(`Mtil sndMsg msg:${m}`));
 	static pSdp(i, l) {
@@ -849,26 +860,35 @@ class U {
 		return s.sdp;
 	}
 }
-const GAB = `{"method": "POST","redirect": "follow","Accept": "application/json","Content-Type": "${cType}","headers": {"Content-Type": "${cType}"}}`;
+//GAS用APIコール
+const GAB = `{"method": "POST","redirect": "follow","Accept": "application/json","Content-Type": "${cType}","RequestMode":"no-cors","headers": {"Content-Type": "${cType}"}}`;
 class GA {
-	static c(d) {
-		return d && typeof d === 'object'
+	static m = (u) => (u && u.indexOf(location.origin) > 0 ? 'no-cors' : 'cors');
+	static c = (d) =>
+		d && typeof d === 'object'
 			? Object.keys(d)
 					.map((k) => `${k}=${encodeURIComponent(d[k])}`)
 					.join('&')
 			: d;
-	}
+
 	static async getTxtGAS(p, d = {}) {
 		io('GA--getTxtGAS--A--');
 		const a = Jp(GAB);
 		a.method = 'GET';
+		a.mode = GA.m(p);
 		return await (await fetch(`${p}?${GA.c(d)}`, a)).text();
 	}
 	static async post2GAS(p, d) {
-		w('GA--post2GAS--A--', d);
+		w('GA--post2GAS--A--', d, p);
 		const a = Jp(GAB);
 		a.body = `${GA.c(d)}`;
-		return await (await fetch(`${p}`, a)).text();
+		a.mode = GA.m(p);
+		try {
+			const b = await fetch(`${p}`, a);
+			return await b.text();
+		} catch (e) {
+			w('GA--post2GAS--B--', e);
+		}
 	}
 }
 const sS = [
@@ -1332,6 +1352,7 @@ class Y {
 		return u;
 	}
 }
+//AES-GCM暗号化
 class Cy {
 	static async gK(p, s) {
 		const k = await cy.deriveKey(

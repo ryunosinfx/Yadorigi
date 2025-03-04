@@ -1,5 +1,7 @@
 import { ESTester } from './ESTester.js';
-const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+// const testAPIc = 'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+const testAPIc =
+	'http://localhost:8087/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
 export class ESMainView {
 	constructor() {
 		this.hash = location.hash;
@@ -24,33 +26,68 @@ export class ESMainView {
 		const colCgroup01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCgroup01, 'h4', { text: 'Group' }, { margin: '5px 0px 2px 0px' });
 		const colCgroup02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCgroup = ViewUtil.add(colCgroup02, 'input', { name: 'inputGroup' }, { margin: '5px', width: '80vw' });
+		const inputCgroup = ViewUtil.add(
+			colCgroup02,
+			'input',
+			{ name: 'inputGroup' },
+			{ margin: '5px', width: '80vw' }
+		);
 		inputCgroup.value = Math.floor(Date.now() / 1000); //Group
 		////DEVICENAME
 		const colCdevice01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCdevice01, 'h4', { text: 'DeviceName' }, { margin: '5px 0px 2px 0px' });
 		const colCdevice02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCdevice = ViewUtil.add(colCdevice02, 'input', { name: 'inputDeviceName' }, { margin: '5px', width: '80vw' });
+		const inputCdevice = ViewUtil.add(
+			colCdevice02,
+			'input',
+			{ name: 'inputDeviceName' },
+			{ margin: '5px', width: '80vw' }
+		);
 		// inputCdevice.value = Math.floor(Date.now() / 1000); //Group
 		////Passwd
 		const colCpasswd01 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
 		ViewUtil.add(colCpasswd01, 'h4', { text: 'Passwd' }, { margin: '5px 0px 2px 0px' });
 		const colCpasswd02 = ViewUtil.add(rowCurl, 'div', {}, { margin: '1px' });
-		const inputCpasswd = ViewUtil.add(colCpasswd02, 'input', { type: 'password', name: 'inputCpasswd' }, { margin: '5px', width: '80vw' });
+		const inputCpasswd = ViewUtil.add(
+			colCpasswd02,
+			'input',
+			{ type: 'password', name: 'inputCpasswd' },
+			{ margin: '5px', width: '80vw' }
+		);
 		// inputCgroup.value = Math.floor(Date.now() / 1000); //Group
 		const rowC = ViewUtil.add(form, 'div', {}, { margin: '10px' });
 		ViewUtil.add(rowC, 'h4', { text: 'start' }, { margin: '5px 0px 2px 0px' });
 		const colC1 = ViewUtil.add(rowC, 'div', {}, { margin: '10px' });
-		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(colC1, 'button', { text: 'openNewWindow' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDNewWindows = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'openNewWindow' },
+			{ margin: '1px' }
+		);
 		const buttonICEWithSameBrowserTabsDSTART = ViewUtil.add(
 			colC1,
 			'button',
 			{ text: 'testAutoSTART' },
 			{ margin: '1px', padding: '2px', border: '#000 solid 1px', 'border-radius': '3px', cursor: 'pointer' }
 		);
-		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(colC1, 'button', { text: 'testSTOP' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(colC1, 'button', { text: 'testCLEAR' }, { margin: '1px' });
-		const buttonICEWithSameBrowserTabsDCLOSE = ViewUtil.add(colC1, 'button', { text: 'testClose' }, { margin: '1px' });
+		const buttonICEWithSameBrowserTabsDSTOP = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testSTOP' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsDCLEAR = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testCLEAR' },
+			{ margin: '1px' }
+		);
+		const buttonICEWithSameBrowserTabsDCLOSE = ViewUtil.add(
+			colC1,
+			'button',
+			{ text: 'testClose' },
+			{ margin: '1px' }
+		);
 		const statusSTART = ViewUtil.add(colC1, 'span', { text: '-stop-' }, { margin: '1px', fontSize: '120%' });
 		const statusConn = ViewUtil.add(colC1, 'span', { text: '-close-' }, { margin: '1px', fontSize: '60%' });
 		const rowD = ViewUtil.add(frame, 'div', {}, { margin: '10px' });
