@@ -5,8 +5,8 @@ const te = new TextEncoder('utf-8'),
 	SlpMs = 100,
 	WAIT = 'wait',
 	rnd = (a = 1) => Math.random() * a,
-	WAI = 1000 * 20,
-	WAI2 = 1000 * 10 + rnd(15000),
+	WAI = 1000 * 20, //待ち時間20秒
+	WAI2 = 1000 * 10 + rnd(15000), //待ち時間10秒＋ランダム15秒
 	HSC = 12201,
 	NullArr = [null],
 	cType = 'application/x-www-form-urlencoded',
@@ -44,8 +44,8 @@ function slp(s = rsm()) {
 }
 function dcd(d, i, l) {
 	try {
-		const o = pv(d);
-		return o && o.message ? o.message : null;
+		const o = pv(d); //parseValue
+		return o && o.message ? o.message : null; //メッセージだけ取り出す
 	} catch (e) {
 		return ef(e, i, l);
 	}
@@ -59,7 +59,7 @@ function dcb(e, g, t) {
 export class ESWebRTCConnecterU {
 	#i = null; //Private
 	constructor(l = console, onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
-		this.#i = new M(l, onR);
+		this.#i = new M(l, onR); //ここで実処理モジュールをNew
 	}
 	init(u, g, p, dn) {
 		this.#i.init(u, g, p, dn);
@@ -104,10 +104,11 @@ export class ESWebRTCConnecterU {
 		this.#i.setOnReq(c);
 	}
 }
+//WebRTCモジュール
 class M {
 	constructor(l = console, onR = (tdn, m) => io(`M trgtDevNm:${tdn},msg:${m}`)) {
 		const z = this;
-		z.l = (a) => l.log(a);
+		z.l = (a, b, c) => l.log(a, b, c);
 		z.l('M');
 		z.c = {};
 		z.thrds = [];
@@ -118,15 +119,15 @@ class M {
 	}
 	async init(u, g, p, dn, salt = SALT) {
 		const z = this;
-		z.url = u;
-		z.grp = g;
-		z.pwd = p;
-		z.dn = dn;
+		z.url = u; //url
+		z.grp = g; //group
+		z.pwd = p; //password
+		z.dn = dn; //デバイス名
 		z.hash = await mkH([u, g, p, dn], HSC);
 		z.sHash = await mkH([u, g, p, salt], HSC);
-		z.gHash = await mkH([u, g, p, salt], HSC);
-		z.nHash = await mkH([now(), u, g, p, dn, salt], HSC);
-		z.sgnlH = await z.enc({ hash: z.nHash, group: g, devName: dn });
+		z.gHash = await mkH([u, g, p, salt], HSC); //グループハッシュ
+		z.nHash = await mkH([now(), u, g, p, dn, salt], HSC); //デバイス名ハッシュ
+		z.sgnlH = await z.enc({ hash: z.nHash, group: g, devName: dn }); //自身のシグナルヘッダー
 		z.l(`M INIT z.hash:${z.hash} devName:${dn}`);
 		z.reqM = new Map();
 	}
@@ -146,7 +147,7 @@ class M {
 	//コネクション
 	async startWaitAutoConn() {
 		const z = this;
-		await z.inited;
+		await z.inited; //初期化Promiseを待つ
 		z.isStopAuto = z.isWaiting = false;
 		let c = 3,
 			isF = true;
@@ -155,48 +156,47 @@ class M {
 			await slp(WAI / 5);
 			if (!gh) continue;
 			if (c === 0 || isF) {
-				await z.sndW(gh);
+				await z.sndW(gh); //待機情報を送信
 				isF = false;
 				c = 3;
 			} else c--;
-			const l = await z.getWL(gh);
+			const l = await z.getWL(gh); //待機リストを取得
 			if (!isArr(l)) continue;
-			z.l(l);
-			const n = now();
+			z.l('M--getWL--l', l);
+			const n = now(); //ループ突入時刻
 			for (const r of l) {
 				const d = n - r.exp;
 				if (d > 10000) continue;
-				const v = pv(r.value);
+				const v = pv(r.value); //parseValue
 				if (v.hash !== z.sgnlH && v.hash.indexOf(z.sgnlH) !== 0) {
-					await z.onCatchAnother(gh, n, v.hash, z.grp);
+					await z.onCatchAnother(gh, n, v.hash, z.grp); //別の何かをキャッチしたとき
 					break;
 				}
 			}
 		}
 	}
-	//別の何かをキャッチしたとき
 	async onCatchAnother(gh, now, h, g) {
 		const z = this,
-			hs = h.split('/'),
-			tsh = h.indexOf(z.sgnlH) < 0 ? h : hs[1] !== z.sgnlH ? hs[1] : hs[2],
-			c = await z.getCf(gh, tsh, g);
-		if (!c || z.isOpd(c)) return;
+			hs = h.split('/'), //hashList
+			tsh = h.indexOf(z.sgnlH) < 0 ? h : hs[1] !== z.sgnlH ? hs[1] : hs[2], //targetSignalingHash
+			c = await z.getCf(gh, tsh, g); //接続設定取得
+		if (!c || z.isOpd(c)) return; //接続設定がないか、既に接続中なら離脱
 		await z.sndWN(gh, tsh);
-		const l = await z.getWL(gh);
-		if (!isArr(l) || l.length < 1) return;
+		const l = await z.getWL(gh); //待機配列取得
+		if (!isArr(l) || l.length < 1) return; //何もないなら離脱
 		const y = [],
-			w = z.sgnlH.length,
-			q = tsh.length,
-			a = w + q;
+			w = z.sgnlH.length, //SignalingHashの長さ
+			q = tsh.length, //targetSignalingHashの長さ
+			a = w + q; //全体の長さ
 		for (const r of l) {
-			const v = pv(r.value);
-			if (r.exp < now || v.hash.length < a) continue;
+			const v = pv(r.value); //parseValue
+			if (r.exp < now || v.hash.length < a) continue; //期限切れやおかしい長さは排除
 			y.push(Js([r.exp, v.hash]));
 		}
 		if (y.length < 1) return; //何もないなら離脱
 		y.sort();
 		y.reverse();
-		let isO = false,
+		let isO = false, //isOffer
 			rc = 0,
 			isHotS = false;
 		for (const t of y) {
@@ -210,10 +210,12 @@ class M {
 				rc++;
 			}
 			if (rc >= 2) break; //2回以上は離脱
+			// z.l(`M===onCatchAnother=1=hash:${h}`);
 		}
+		// z.l(`M===onCatchAnother=1=isOffer:${isO}`);
 		z.nego(c).catch(getEF(now, z.l));
 		await slp();
-		z.l(`M=====isO:${isO}`);
+		z.l(`M===onCatchAnother=2=isOffer:${isO}`);
 		if (isO) cb(await slp(Math.floor(rnd(500)) + 750), z.offer(c).catch(getEF(now, z.l)));
 		st(() => {
 			isHotS = false;
@@ -237,52 +239,49 @@ class M {
 			WAIT
 		);
 	}
-	//待機リスト取得
 	async getWL(gh) {
-		const d = await this.g(gh, WAIT),
+		const d = await this.g(gh, WAIT), //待機リスト取得
 			o = d ? Jp(d) : null;
 		return o ? o.message : null;
 	}
 	isOpd(c) {
 		const i = c.w.isOp();
-		this.l(`◆◆M isOpd conf.w.isOpd:${i}:${c.target}`);
+		this.l(`◆◆M isOpd conf.w.isOpd:${i}:${c.trgtDevNm}`);
 		return i;
 	}
 	//シグナリングネゴシエーション
 	async nego(c) {
 		const z = this;
-		c.isStop = false;
+		c.isStop = false; //停止フラグ
 		st(U.getStopFn(c), WAI);
 		while (c.isStop === false && z.isStopAuto === false) {
-			st(() => {
-				if (c.isA) return;
+			st(async () => {
+				if (c.isA) return; //Answerの場合はスキップ
 				else if (z.thrds.length < 4) z.thrds.push(1);
-				else return;
-				z.g(c.pxOs).then(async (d1) => {
-					const k = await H.d(c.pxOs + d1);
-					z.thrds.pop();
-					const d = dcd(d1, c.id, z.l);
-					z.l(`nego offer d:${d}/c.cache[k]:${c.cache[k]}`);
-					if (d && !c.cache[k]) {
-						c.cache[k] = 1;
-						z.lsnr(c, OF, d);
-					}
-				});
+				else return; //スレッドが4以上ならスキップ
+				const d1 = await z.g(c.pxOs),
+					k = await H.d(c.pxOs + d1);
+				z.thrds.pop();
+				const d = dcd(d1, c.id, z.l);
+				z.l(`M--nego offer d:${d}/c.cache[k]:${c.cache[k]}`);
+				if (d && !c.cache[k]) {
+					c.cache[k] = 1;
+					z.lsnr(c, OF, d);
+				}
 			}, rsm());
-			st(() => {
-				if (!c.isA) return;
+			st(async () => {
+				if (!c.isA) return; //Offerの場合はスキップ
 				else if (z.thrds.length < 4) z.thrds.push(1);
-				else return;
-				z.g(c.pxAs).then(async (data) => {
-					const k = await H.d(c.pxAs + data);
-					z.thrds.pop();
-					const d = dcd(data, c.id, z.l);
-					z.l(`nego ans d:${d}/c.cache[k]:${c.cache[k]}`);
-					if (d && !c.cache[k]) {
-						c.cache[k] = 1;
-						z.lsnr(c, AN, d);
-					}
-				});
+				else return; //スレッドが4以上ならスキップ
+				const d2 = await z.g(c.pxAs),
+					k = await H.d(c.pxAs + d2); //ハッシュ化
+				z.thrds.pop();
+				const d = dcd(d2, c.id, z.l);
+				z.l(`M--nego ans d:${d}/c.cache[k]:${c.cache[k]}`);
+				if (d && !c.cache[k]) {
+					c.cache[k] = 1;
+					z.lsnr(c, AN, d);
+				}
 			}, rsm());
 			await slp();
 		}
@@ -299,51 +298,53 @@ class M {
 		await Promise.all(p);
 	}
 	async offer(c) {
-		c.isA = false;
-		const o = await c.w.getOfferSdp();
-		this.l('M setOnRcv OFFER post offer:', o);
+		c.isA = false; //Answerではない
+		const o = await c.w.getOfferSdp(); //初回Offer作成
+		this.l('M-- OFFER post! offer:', o);
 		await this.p(c.pxAt, await this.enc(o, c.nowHK));
 	}
 	async p(g, o, c = 'g') {
-		const n = now(),
-			d = await GA.post2GAS(this.url, {
+		const n = now(), //POST to GAS
+			f = {
 				group: g,
 				cmd: c,
 				data: isStr(o) ? o : Js(o),
-			});
-		this.l(`M==post==${g}/${c} d:${now() - n} data:`, d);
+			},
+			d = await GA.p(this.url, f);
+		this.l(`M==post==${g}/${c} d:${now() - n} data:`, d, f);
 	}
 	async g(g, c = 'g') {
-		const n = now(),
-			d = await GA.getTxtGAS(this.url, { group: g, cmd: c });
-		return cb(d, this.l(`M==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
+		const n = now(), //GET form GAS
+			d = await GA.g(this.url, { group: g, cmd: c });
+		return cb(d, this.l(`M==get==${n}_${Math.floor(rnd(1000))}==load==${g}/${c} ==${now() - n} data:`, d));
 	}
 	async getCfK(gh, sh) {
-		const o = sh === 'test' ? { devName: 'test' } : await this.dec(sh);
+		const o = sh === 'test' ? { devName: 'test' } : await this.dec(sh); //signalingHash
 		return [Js([gh, o ? o.devName : null]), o];
 	}
 	async getCf(gh, tsh, g) {
-		const z = this,
-			[k, oT] = await z.getCfK(gh, tsh);
+		const z = this, //getConf ネゴシエーション設定
+			[k, oT] = await z.getCfK(gh, tsh); //getConKey
 		if (!oT) return null;
-		const [s] = await z.getCfK(gh, z.sgnlH),
+		const [s] = await z.getCfK(gh, z.sgnlH), //getConKey
 			tdn = oT.devName;
 		let c = z.cfs[k];
 		if (!c) {
 			c = {
 				trgtDevNm: tdn,
-				isA: true,
-				isGF: false,
-				isEx: false,
-				pxAt: k + AN,
-				pxOt: k + OF,
-				pxAs: s + AN,
-				pxOs: s + OF,
+				isA: true, //isAnaswer
+				isGF: false, //isGetFirst
+				isEx: false, //isExcangedCandidates
+				pxAt: k + AN, // Answer Prefix target
+				pxOt: k + OF, // Offer Prefix target
+				pxAs: s + AN, //Answer Prefix self
+				pxOs: s + OF, //Offer Prefix self
 				isStop: false,
 				cache: {},
 				id: `${now()} ${z.dn}`,
 			};
-			z.l(`Create New Conf! tsh:${tsh}/gh:${gh}/`, g);
+			z.l(`M--1--Create New Conf! tsh:${tsh} # gh:${gh} #`, g);
+			z.l(`M--2--Create New Conf! tdn:${tdn} # k:${k} #`, c);
 			c.w = new WebRTCConn(z.l, tsh === 'test');
 			c.w.setMf(async (m) => io('conf.w.setMf((msg):', m, await z.onMsgByCf(c, tdn, tsh, m)));
 			c.w.setOf((e) => {
@@ -603,8 +604,8 @@ class A {
 		io(`★★★A sTranA B resHashB64:${rh}`, rh);
 		io(`★★★A sTranA C partU8A:${p}`, p);
 		io(`★★★A sTranA D signatureU8A:${s}`, s);
-		let isS = false,
-			isC = false;
+		let isS = false, //送信成功フラグ
+			isC = false; //完了フラグ
 		while (isS === false) {
 			const r = await this.sT(w, b, rh, sq, i);
 			io(`★★★A sTranA E idx:${i}/result:${r}`, p);
@@ -614,7 +615,7 @@ class A {
 		return isC;
 	}
 	sT(w, a, h = '', q = new Map(), i) {
-		ct(q.has(h) ? q.get(h).tm : null);
+		ct(q.has(h) ? q.get(h).tm : null); //タイマーをクリア
 		return pr((r) => {
 			q.set(h, { idx: i, timer: st(() => r(S.T_OUT), S.WaitMs), resolve: r });
 			io(`★★★★A snedTran idx:${i}/resHashB64:${h}/ ${a}`, a);
@@ -646,7 +647,7 @@ class A {
 		return m && m.sq && gBl(m) >= ix * S.SZ && ix >= -1 ? b : null;
 	}
 	isBSDRs(d) {
-		const h = Y.u2B(d),
+		const h = Y.u2B(d), //isBigSendDataResponse,大量データ応答なのかチェック
 			i = Y.u2I(d.subarray(33, 37))[0],
 			s = Y.u2B(d.subarray(37, 69)),
 			m = this.sM.get(s),
@@ -658,14 +659,14 @@ class A {
 			: cb(false, io(`☆☆☆☆A isBSDRs C idx:${i} task:`, t));
 	}
 	isCBSDRs(d) {
-		const i = Y.u2I(d.subarray(33, 37))[0],
+		const i = Y.u2I(d.subarray(33, 37))[0], //isComplBigSendDataRes,大量データ完了応答なのかチェック
 			s = d[d.length - 1],
 			m = this.sM.get(Y.u2B(d.subarray(37, 69)));
 		io(`☆☆☆☆A isCBSDRs idx:${i}/ESBSU.STATUS[status] :${S.ST[s]}/m:`, m);
 		return Math.ceil(gBl(m) / S.SZ) === i && S.ST[s] === S.COMPLE;
 	}
 	async rcvBSD(c, b) {
-		if (!c || !c.w || !c.w.isOpd) return;
+		if (!c || !c.w || !c.w.isOpd) return; //recieveBigSendData,大容量データ受信
 		const w = c.w,
 			a = B.u8(b).subarray(33), //idx,signAll,data
 			i = Y.u2I(a.subarray(0, 4))[0], //idx,signAll,data
@@ -766,8 +767,8 @@ class S {
 	static MIN = 1 + 32 + 4 + 32 + 1; //最小サイズ
 	static WaitMs = 30000;
 	static MaxWaitMs = 60000;
-	static RqH = 'Q/';
-	static RsH = 'P/';
+	static RqH = 'Q/'; //REQUEST_HEADER
+	static RsH = 'P/'; //RESPONSE_HEADER
 	static OK = 'OK';
 	static NG = 'NG';
 	static COMPLE = 'COMPLE';
@@ -871,14 +872,14 @@ class GA {
 					.join('&')
 			: d;
 
-	static async getTxtGAS(p, d = {}) {
+	static async g(p, d = {}) {
 		io('GA--getTxtGAS--A--');
 		const a = Jp(GAB);
 		a.method = 'GET';
 		a.mode = GA.m(p);
 		return await (await fetch(`${p}?${GA.c(d)}`, a)).text();
 	}
-	static async post2GAS(p, d) {
+	static async p(p, d) {
 		w('GA--post2GAS--A--', d, p);
 		const a = Jp(GAB);
 		a.body = `${GA.c(d)}`;
@@ -1115,11 +1116,11 @@ class Peer {
 		z.dc = c;
 	}
 	async mkO() {
-		this.p = await this.pNC();
+		this.p = await this.pNC(); //Offer作るよ
 		return this.p.localDescription;
 	}
 	async mkA() {
-		const z = this;
+		const z = this; //Answer作るよ
 		io('Peer mkAns sending Ans. Creating remote session description...');
 		if (!z.p) return err('Peer mkAns peerConnection NOT exist!');
 		try {
@@ -1129,7 +1130,7 @@ class Peer {
 			io(`Peer mkAns setLocalDescription() ok in promise${z.p.localDescription}`);
 			return z.p.localDescription;
 		} catch (e) {
-			return ef(e, z.id, z.l);
+			return ef(e, z.id, z.l); //エラーレポート
 		}
 	}
 	async sOA(s) {
