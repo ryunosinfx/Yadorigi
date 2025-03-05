@@ -1,6 +1,8 @@
 import { ESFileSender } from './ESFileSender.js';
+// const testAPIc =
+// 	'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
 const testAPIc =
-	'https://script.google.com/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
+	'http://localhost:8087/macros/s/AKfycbywvRIWYhDkchpE7DFY0BsBolI5x-wsxXxGpe2RpQ1qbiOQczZggGnTNrpc9wVSbSHN/exec';
 const names = [
 	'PONTA',
 	'PONKICHI',
