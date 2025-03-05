@@ -59,6 +59,10 @@ const names = [
 	'PONGAHAMA',
 	'PONDO',
 	'PONNOGI',
+	'PONGUCHI',
+	'PONWAKA',
+	'PONMACHI',
+	'PONJOUJI',
 ];
 export class ESMainView {
 	constructor() {
