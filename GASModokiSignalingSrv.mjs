@@ -18,14 +18,12 @@ const decodeFrom = (querystring) => {
 	const o = {};
 	for (const e of d) {
 		const f = e.split('=');
-		if (f.length === 2) {
-			o[f[0]] = decodeURI(f[1]);
-		}
+		if (f.length === 2) o[f[0]] = decodeURIComponent(f[1]);
 	}
 	d.splice(0, d.length);
 	return o;
 };
-const getForm = (req) => {
+const getForm = (req) =>
 	new Promise((resolve) => {
 		const a = [];
 		//POSTデータを受けとる
@@ -37,16 +35,23 @@ const getForm = (req) => {
 			resolve(decodeFrom(d));
 		});
 	});
-};
 class Cache {
 	constructor() {
-		this.a = {};
+		this.a = new Map();
+	}
+	filter(k) {
+		const y = '\\';
+		return k.split(`${y}`).join('');
 	}
 	put(k, v, e) {
-		this.a[k] = { value: v, expire: e };
+		const f = this.filter(k),
+			n = Date.now(),
+			expire = e ? e * 1000 + n : 900000 + n; //デフォルトは900秒
+		this.a.set(f, { message: v, expire });
 		const list = [];
-		for (const [key, value] of Object.entries(this.a)) {
-			if (value.expire < Date.now()) delete this.a[key];
+		if (f.indexOf('c%[') < 0) console.log(`PPPP Cache put:${f}/${v}/${e}/${n}/${expire}/${typeof v}`, this.a);
+		for (const [key, value] of this.a.entries()) {
+			if (value.expire < Date.now()) this.a.delete(key);
 			else {
 				const i = `${value.expire}-${key}`;
 				list.push(i);
@@ -55,18 +60,20 @@ class Cache {
 		if (list.length > maxSize) {
 			list.sort();
 			const l = list.length - maxSize;
-			for (let i = 0; i < l; i++) {
-				delete this.a[list[i].split('-')[1]];
-			}
+			for (let i = 0; i < l; i++) this.a.delete(list[i].split('-')[1]);
 		}
 		list.splice(0, list.length);
+		// if (f.indexOf('c%[') < 0) console.log(`PPPP Cache put:${f}/${v}/${e}`, this.a);
 	}
 	get(k) {
-		const c = this.a[k];
-		return c && c.expire > Date.now() ? c.value : null;
+		const f = this.filter(k),
+			c = this.a.get(f);
+		if (f.indexOf('c%[') < 0)
+			console.log(`GGGG Cache get:${f}/${c}/${c && c.expire > Date.now()}/${Date.now()}`, c, this.a);
+		return c && c.expire > Date.now() ? c.message : null;
 	}
 	remove(k) {
-		delete this.a[k];
+		this.a.delete(this.filter(k));
 	}
 }
 const CacheService = { getUserCache: () => new Cache() };
@@ -83,6 +90,9 @@ class TextOutput {
 	getContent() {
 		return this.a.join('');
 	}
+	clear() {
+		this.a.splice(0, this.a.length);
+	}
 }
 const ContentService = {
 	MimeType: { JSON: 'application/json' },
@@ -90,37 +100,40 @@ const ContentService = {
 };
 /////////ここより上はGAS上では取り除く/////////////////////////////////////////////////
 const cache = CacheService.getUserCache();
-const EXPIRE_DURATION = 1000 * 2;
+const EXPIRE_DURATION = 1000 * 40;
 const WAIT_EXPIRE_DURATION = 1000 * 20;
 const parse = (event) =>
 	!event || !event.parameter
 		? { cmd: null, group: null, data: null }
 		: { group: event.parameter.group, cmd: event.parameter.cmd, data: event.parameter.data };
-function sleep(sec = Math.floor(Math.random() * 800) + 200) {
+let sleep = function (sec = Math.floor(Math.random() * 800) + 200) {
 	const expire = Date.now() + sec;
 	const func = (ms) => ms > expire;
 	return new Promise((resolve) => {
-		while (!func(Date.now())) {
-			console.log(`sleep: sec:${sec}/expire:${expire}/now:${Date.now()}`);
-		}
+		while (!func(Date.now())) console.log(`sleep: sec:${sec}/expire:${expire}/now:${Date.now()}`);
 		resolve();
 	});
-}
+};
+//違う値が来るまで待つ
 async function wait(key, value) {
 	const ckey = `c%${key}`;
 	const challeng = value + Date.now() + Math.floor(Math.random() * 1000000);
 	let c = null;
 	while (c !== challeng) {
 		await sleep();
-		cache.put(ckey, challeng);
+		cache.put(ckey, challeng, 900);
 		c = cache.get(ckey);
 		cache.remove(ckey);
 	}
 }
 async function add(key, value, now = Date.now()) {
-	await wait(key, value);
 	let c = cache.get(key);
-	c = c ? JSON.parse(c) : { message: [], expire: now + 40000 };
+	if (c) await wait(key, value);
+	try {
+		c = c ? JSON.parse(c) : { message: [], expire: now + 40000 };
+	} catch (e) {
+		console.error(`add:error:${e}`);
+	}
 	const n = [];
 	for (const v of c.message) if (v.expire > now) n.push(v);
 	n.push({ value, expire: now + WAIT_EXPIRE_DURATION });
@@ -131,10 +144,10 @@ function put(key, value, now = Date.now()) {
 	cache.remove(key);
 	cache.put(key, JSON.stringify({ message: value, expire: now + EXPIRE_DURATION }));
 }
-function doWait(state, expire) {
+let doWait = function (state, expire) {
 	console.log(`doWait:expire;${expire}`);
 	if (expire < Date.now()) state.isOver = true;
-}
+};
 // eslint-disable-next-line no-unused-vars
 function doPostTest() {
 	doPost({ parameter: { group: 1122333, cmd: 'wait', data: 'wait!' } });
@@ -169,42 +182,54 @@ function doGet(event) {
 	try {
 		const { group, cmd } = parse(event);
 		const key = cmd && group ? JSON.stringify([group, cmd]) : null;
-		let value = key ? cache.get(key) : null;
-		value = value ? (typeof value === 'string' ? JSON.parse(value) : value) : null;
-		if (key && value && (!value.expire || value.expire < Date.now())) {
+		let v = key ? cache.get(key) : null;
+		// console.log(`doGet A:key:${key}/v:${v}`);
+		v = v ? (typeof v === 'string' ? JSON.parse(v) : v) : null;
+		if (key && v && (!v.expire || v.expire < Date.now())) {
 			cache.remove(key);
 		}
-		out.setContent(JSON.stringify({ message: key ? (value ? value.message : value) : 'GET OK' }));
+		console.log(`doGet B:key:${key}/v:${v}`);
+		out.setContent(JSON.stringify({ message: key ? (v ? v.message : v) : 'GET OK' }));
 	} catch (e) {
 		out.setContent(JSON.stringify({ message: 'ERROR', e: e.message, stack: e.stack }));
 	}
 	return out;
 }
 /////////ここより下はGAS上では取り除く/////////////////////////////////////////////////
+//GAS上で欠落している機能を組み込んだ処理を追記
+sleep = function (sec = Math.floor(Math.random() * 800) + 200) {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve();
+		}, sec);
+	});
+};
+doWait = function (state, expire) {
+	if (expire < Date.now()) state.isOver = true;
+};
 const signaling = async (req, res) => {
 	const method = req.method;
-	console.log('signaling method:', method);
 	if (method === 'POST' || method === 'GET') {
-		const parameter = method === 'POST' ? getForm(req) : decodeFrom(req.url.split('?')[1]);
+		const parameter = method === 'POST' ? await getForm(req) : decodeFrom(req.url.split('?')[1]);
 		const out = method === 'POST' ? doPost({ parameter }) : doGet({ parameter });
 		res.writeHead(200, {
 			'Content-Type': out.mimeType,
 		});
-		res.end(out.getContent());
+		const t = out.getContent();
+		out.clear();
+		res.end(t);
+		console.log('!!!!!!!!!!!!!!signaling method:', method, t, parameter);
 	}
 };
-
 //
 http.createServer(function (req, res) {
 	const url = req.url.replace('../', '/');
 	const urls = url.split('.');
 	const ext = urls[urls.length - 1];
-	console.log(`req url:${url}`);
+	// console.log(`req url:${url}`);
 	const contentType = exts[ext] ? exts[ext] : 'text/plain';
 	try {
-		console.log('A req:');
 		if (isSignaling(req)) {
-			console.log('B req:');
 			return signaling(req, res);
 		}
 		res.writeHead(200, {
