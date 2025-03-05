@@ -57,8 +57,10 @@ export class ESFileSender {
 		this.u.init(url, group, passwd, deviceName);
 		this.u.startWaitAutoConnect();
 	}
-	log(text, value) {
+	log(text, v1 = '', v2 = '') {
 		if (this.logElm) {
+			const v1_ = typeof v1 !== 'string' ? JSON.stringify(v1) : '';
+			const v2_ = typeof v2 !== 'string' ? JSON.stringify(v2) : '';
 			const m = 100;
 			const lf = '\n';
 			const t = this.logElm.textContent;
@@ -66,9 +68,9 @@ export class ESFileSender {
 			const n = r.length > m ? r.slice(r.length - m, r.length) : r;
 			this.logElm.textContent = `${n.join(lf)}${lf}${Date.now()} ${
 				typeof text !== 'string' ? JSON.stringify(text) : text
-			} ${value}`;
+			} ${v1} ${v1_}  # ${v2} ${v2_}`;
 		}
-		console.log(`${Date.now()} ${text}`, value);
+		console.log(`${Date.now()} ${text}`, v1);
 	}
 	async test(name, type) {
 		const fileKey = JSON.stringify([name, type]);
