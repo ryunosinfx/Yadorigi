@@ -122,7 +122,7 @@ class M {
 	}
 	async init(u, g, p, dn, salt = SALT) {
 		const z = this;
-		z.url = u; //url
+		z.url = u.indexOf('http') < 0 ? location.origin + (u.indexOf('/') === 0 ? '' : '/') + u : u; //url
 		z.grp = g; //group
 		z.pwd = p; //password
 		z.dn = dn; //デバイス名
@@ -229,7 +229,7 @@ class M {
 		z.isStop = F;
 	}
 	sndW(gh) {
-		return this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WAI2 + WAI / 5 }, WAIT);
+		return this.p(gh, { msg: WAIT, hash: this.sgnlH, exp: now() + WAI2 + WAI / 5 }, WAIT); //sendWaitingData
 	}
 	sndWN(gh, tsh) {
 		return this.p(
@@ -240,7 +240,7 @@ class M {
 				exp: now() + WAI2 + WAI / 5,
 			},
 			WAIT
-		);
+		); //別ノード指定待機情報送信
 	}
 	async getWL(gh) {
 		const d = await this.g(gh, WAIT), //待機リスト取得
@@ -467,10 +467,10 @@ class M {
 			io(`☆ M onRcvBigD B files.byteLength:${gBl(files)}/isCmpl:${isCmpl}`);
 			for (const f of files) {
 				io(`☆ M onRcvBigD C file${f}/isCmpl:${isCmpl}`, f);
-				if (z.A.isRq(f)) {
+				if (A.isRq(f)) {
 					io(`☆ M onRcvBigD D file${f}/isCmpl:${isCmpl}`);
 					return await z.onReqD(d, f, h);
-				} else if (z.A.isRs(f)) {
+				} else if (A.isRs(f)) {
 					io(`☆ M onRcvBigD E file${f}/isCmpl:${isCmpl}`);
 					return await z.onRes(d, f);
 				}
@@ -487,7 +487,7 @@ class M {
 			s = ts.pop(),
 			{ key, type, result, status } = await this.onReq(n, f.name, ts.join('/'), f.data),
 			nt = [PQ, status, type, s].join('/');
-		return await this.sndBigMsg(h, key, this.A.cnvtType2Res(nt), result);
+		return await this.sndBigMsg(h, key, A.cnvtType2Res(nt), result);
 	}
 	async onRcvBigDRes(c, n, u) {
 		return this.A.isCBSDRs(u) ? await this.A.rcvBigSndDCompl(u) : this.A.isBSDRs(u) ? await this.A.rcvBSDRs(u) : N;
@@ -520,23 +520,13 @@ class A {
 		this.rM = new Map();
 		this.onCmpCB = onCmpCB;
 	}
-	isRq(f) {
-		return this.isR(f, S.RqH);
-	}
-	isRs(f) {
-		return this.isR(f, S.RsH);
-	}
-	isR(f, h) {
-		return (
-			f && f.type && f.type.indexOf(h) === 0 && f.type.split('/').length >= 3 && Y.isB64(f.type.split('/').pop())
-		);
-	}
-	cnvtType2Res(t) {
-		return t ? (t.indexOf(S.RqH) === 0 ? t.replace(S.RqH, S.RsH) : t) : t;
-	}
-	//大容量データ送信。※データ分割して送信する
+	static isRq = (f) => A.isR(f, S.RqH); //リクエストかどうか
+	static isRs = (f) => A.isR(f, S.RsH); //レスポンスかどうか
+	static isR = (f, h) =>
+		f && f.type && f.type.indexOf(h) === 0 && f.type.split('/').length >= 3 && Y.isB64(f.type.split('/').pop());
+	static cnvtType2Res = (t) => (t ? (t.indexOf(S.RqH) === 0 ? t.replace(S.RqH, S.RsH) : t) : t);
 	async isBSD(a, n) {
-		const M = S.MIN;
+		const M = S.MIN; //大容量データ送信。※データ分割して送信する
 		io(`☆☆A isBSD A devName:${n}/MIN:${M}`, a);
 		if (!a || isStr(a) || (!gBl(a) && !a.buffer) || (!a.buffer && gBl(a) < M) || (a.buffer && gBl(a.buffer) < M))
 			return F; // 1,256/8=32byte,data
