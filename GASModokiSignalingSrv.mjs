@@ -239,10 +239,14 @@ http.createServer(function (req, res) {
 		const responseMessage = file;
 		res.end(responseMessage);
 	} catch (e) {
-		res.writeHead(404, {
-			'Content-Type': contentType,
-		});
-		console.log(`req e:${e}`);
-		res.end('NOT FOUND');
+		try {
+			res.writeHead(404, {
+				'Content-Type': contentType,
+			});
+			console.log(`req e:${e}`);
+			res.end('NOT FOUND');
+		} catch (e2) {
+			console.log(`req e2:${e2}`);
+		}
 	}
 }).listen(PORT, '127.0.0.1');
