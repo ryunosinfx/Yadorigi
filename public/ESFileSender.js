@@ -5,12 +5,12 @@ const onRecieveFileCB = (name, type, dataAb) => {
 };
 const cb = () => {};
 export class ESFileSender {
-	constructor(logElm, fileElm) {
+	constructor(logElm, fileElm, settingElms) {
 		this.logElm = logElm;
 		this.fileElm = fileElm;
 		this.cacheUL = new Map();
 		this.cacheDL = new Map();
-		this.u = new ESWebRTCConnecterU(this, this.getOnMessage());
+		this.u = new ESWebRTCConnecterU('EAFileSender', this, this.getOnMessage(), this.getOnSettingInfo(settingElms));
 		this.connectedList = {};
 		this.u.setOnOpenFunc((event, group, targetSignalingHash, targetDeviceName) => {
 			console.log(`☆☆setOnOpenFunc☆☆ targetDeviceName:${targetDeviceName}`);
@@ -51,6 +51,16 @@ export class ESFileSender {
 				return;
 			}
 			this.log(`☆ESFileSender setOnMessage E targetDeviceName:${targetDeviceName} msg:${msg}`);
+		};
+	}
+	getOnSettingInfo(settingElms) {
+		return (AppName, setting) => {
+			if (!setting) return;
+			//  { g: inputCgroup, p: inputCpasswd, d: inputCdevice })
+			settingElms.u.value = setting.u;
+			settingElms.g.value = setting.g;
+			settingElms.p.value = setting.p;
+			settingElms.d.value = setting.dn; //url,group,password,deviceName
 		};
 	}
 	startConnect(url, group, deviceName, passwd) {

@@ -284,7 +284,12 @@ class ViewCommander {
 		this.inputCdevice = inputCdevice;
 		this.statusConn = statusConn;
 		this.inputCfile = inputCfile;
-		this.est = new ESFileSender(logElm, inputCfile);
+		this.est = new ESFileSender(logElm, inputCfile, {
+			u: inputCurl,
+			g: inputCgroup,
+			p: inputCpasswd,
+			d: inputCdevice,
+		});
 		if (!this.inputCpasswd.value) {
 			this.inputCpasswd.value = '1234';
 		}

@@ -28,6 +28,7 @@ const te = new TextEncoder('utf-8'),
 	isStr = (s) => typeof s === 'string',
 	isArr = (a) => Array.isArray(a),
 	isFn = (s) => typeof s === 'function',
+	Jpa = (a) => (a && isStr(a) ? Jp(a) : N),
 	pr = (f) => new Promise(f),
 	ct = (t) => clearTimeout(t),
 	st = (f, w) => setTimeout(f, w),
@@ -80,21 +81,29 @@ function dcb(e, g, t) {
 export class ESWebRTCConnecterU {
 	#i = N; //Private
 	#n = N;
-	constructor(n = SALT, l = console, onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`)) {
+	constructor(
+		n = SALT, //AppName
+		l = console,
+		onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`), //onRecieve Function
+		onS = (n, settingInfo) => io(`ESWebRTCConnU appName:${n},settingInfo:${Js(settingInfo)}`) //onSetSettingInfo
+	) {
 		this.#n = n;
-		BC.b(n, l, onR); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
-		this.#i = new M(n, l, onR); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
+		BC.b(n, l, onR, onS); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
+		// this.#i = new M(n, l, onR); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
 	}
 	init(u, g, p, dn) {
 		// this.#i.init(u, g, p, dn); //初期化、url,group,password,deviceName
-		BC.it(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
+		BC.rCI(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
 	}
 	initAsServer(apis = { 200: [], 500: [] }) {
 		this.#i.initAsSrv(apis);
 	}
+	async registerConnInfo(u, g, p, dn) {
+		return await BC.rCI(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
+	}
 	setOnOpenFunc(fn = dcb) {
 		// this.#i.onO = fn;
-		BC.sOOF(this.#n, fn);
+		BC.sOOF(this.#n, fn); //wcの情報
 	}
 	setOnCloseFunc(fn = dcb) {
 		// this.#i.onC = fn;
@@ -391,7 +400,7 @@ class M {
 			});
 			c.w.setCf((e) => {
 				cb(z.l(`###☆###CLOSE###☆###trgtDevNm:${tdn}`), z.onC(e, g, tsh, tdn));
-				z.close(tsh);
+				z.cc(tsh);
 				c.isStop = F;
 			});
 			z.cfs[k] = c;
@@ -1231,7 +1240,7 @@ class Peer {
 		return this.cs;
 	}
 	sCs(s) {
-		if (this.isCo) return;
+		if (this.isCo || !this.p) return;
 		for (const c of s) {
 			io(`Peer setCandidates candidate${Js(c)}`, c);
 			this.p.addIceCandidate(c).catch((e) => ef(e, this.id, this.l));
@@ -1392,12 +1401,6 @@ class Cy {
 	}
 	static uuid = () => self.crypto.randomUUID();
 }
-// const b12 = 16 * 256;
-// const b30 = Math.pow(2, 30);
-// const b32 = Math.pow(2, 32);
-// const mc = { cnt: 0 };
-// const tc = navigator.hardwareConcurrency;
-// const bt = now();
 class BC {
 	static i = {}; //初期値はNull ブロードキャストAPI経由で複数タブ間でWebRTCコネクションを制御するためのクラス
 	static q = new Map(); //処理キュー
@@ -1422,6 +1425,8 @@ class BC {
 	static el = async (evt) => {
 		BC.io('el evt:', evt);
 		const d = evt.data; //EventListener
+		BC.io('el d:', d);
+		BC.io(`el BC.sn:${BC.sn}/sn:${d.sn} /BC.iM:`, BC.iM);
 		const sn = d.sn; //スレッド名
 		if (sn === BC.sn) return; //自分自身は弾く
 		else if (d.t === 'H' || d.t === 'B' || d.t === 'I') BC.oH(d);
@@ -1439,10 +1444,9 @@ class BC {
 		else if (d.t === 'rV') BC.rV(d);
 	};
 	static oH = (d) => {
-		if (BC.tm) ct(BC.tm); //タイマークリア
-		BC.tm = st(BC.eH, 1000); //onHello
-		BC.md = 'a'; //モードを追加へ変更
-		BC.aL(d); //初回を記録
+		BC.hi(); //返事を返す
+		if (d.sn === BC.sn) return; //自分自身は弾く
+		BC.hE(d);
 		BC.io('oH d', d);
 	};
 	static eH = () => {
@@ -1463,8 +1467,21 @@ class BC {
 		if (!BC.mx) {
 			return;
 		}
+		BC.io('eH BC.mx', BC.mx);
 		BC.iM = BC.mx.sn === BC.sn;
+		BC.io(`eH BC.sn:${BC.sn} /BC.iM:`, BC.iM);
 		BC.iH();
+	};
+	static hD = (d) => {
+		if (!BC.hL(d)) BC.sp(d);
+		BC.hE(d);
+	};
+	static hE = (d) => {
+		if (BC.tm) ct(BC.tm); //タイマークリア
+		BC.io('hE BC.mx', BC.mx);
+		BC.tm = st(BC.eH, 1000); //onHello
+		BC.md = 'a'; //モードを追加へ変更
+		BC.aL(d); //初回を記録
 	};
 	static iH = () => {
 		if (BC.iM)
@@ -1477,28 +1494,54 @@ class BC {
 				m.onO = (e, g, tsh, tdn) => BC.oO(n, e, g, tsh, tdn); //WebRTCコネクションオープン時
 				m.onC = (e, g, tsh, tdn) => BC.oC(n, e, g, tsh, tdn); //WebRTCコネクションクローズ時
 			}
-		else for (const n in BC.iD) st(() => BC.i[n].cA() & delete BC.i[n]); //時間差でクローズ
+		else for (const n in BC.iD) st(() => BC.i[n] && BC.i[n].cA() & delete BC.i[n]); //時間差でクローズ
 	};
-	static b = async (n, l = console, onR = (tdn, m, t) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}/isBD:${t}`)) => {
+	static b = async (
+		n,
+		l = console,
+		onR = (tdn, m, t) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}/isBD:${t}`),
+		onS = dcb //認証情報設定時挙動を収録
+	) => {
 		if (!BC.fL) BC.fL = l;
-		BC.iD[n] = { n, l, onR };
-		BC.f[n] = {};
+		BC.iD[n] = { n, l, onR, k: N }; //nはAppName、lはlogger、onRはonRecieve
+		BC.f[n] = {
+			l: (c, e) => {
+				if (!e.key) return BC.cA(n); //クリアの場合は全部コネクション解除
+				if (n !== c || e.newValue === e.oldValue) return; //違うAppName、同じ値の場合は放置
+				BC.iD[n].k = e.key;
+				onS(n, Jp(e.newValue)); //設定変更時の処理をロード
+			},
+		}; //設定
 		BC.i[n] = N;
 		BC.sn = Cy.uuid();
-		BC.u = Y.B2U(await H.d(n + SALT, 10)); //シート作成
-		BC.bc = new BroadcastChannel(BC.u); //初期セットアップ
+		BC.u = Y.B2U(await H.d(n + SALT, 10)); //シード作成※スレッド固有
 		await OPFS.i(BC.u); //OPFSを初期化。
+		await LS.i('BC');
+		onS(n, Jpa(LS.l(LS.P(n)))); //初回ロード実行
+		BC.bc = new BroadcastChannel(BC.u); //初期セットアップ
 		BC.bc.onmessage = BC.el; //イベントリスナー設定
+		BC.io('b hello:', n, BC.bc);
 		BC.hello();
 		onC(BC.bay); //Windowスコープのみグレイスフルデッドを実装※WorkerはTerminate前に実施が必要
 		BC.io('b n:', n, BC.bc);
+		LS.sOR(n, BC.f[n].l);
 	};
-	static it(n, u, g, p, dn) {
-		const j = { u, g, p, dn }; //初期化時の保持データ
-		BC.iD[n].i = j; //setInfoいらないかも？
+	static async rCI(n, u, g, p, dn) {
+		const j = { u, g, p, dn }, //初期化時の保持データ
+			s = Js(j);
+		const l = LS.l(LS.P(n));
+		if (!l || l !== s) LS.s(n, s);
+		BC.iD[n].i = s; //setInfoいらないかも？
+		while (!BC.i[n]) {
+			await slp(1000);
+		}
 		BC.i[n].init(j.u, j.g, j.p, j.dn); //ここで初期化
 	}
 	static oh = (m) => BC.oH(m) & BC.sp(m); //自分自身には飛ばない
+	static st = (m) => {
+		BC.io(`st BC.md:${BC.md}`, BC.cl, BC.mx);
+		return BC.md && BC.md !== 'a' ? BC.sp(m) : N;
+	}; //send一回JSONに変換して送る
 	static sp = (m) => BC.bc.postMessage(Jp(Js(m))); //send一回JSONに変換して送る
 	static sh = (m) => {
 		m.t = 'SH'; //シェアコマンド
@@ -1515,7 +1558,7 @@ class BC {
 	};
 	static sm = async (m) => {
 		if (m.ab && m.name && m.type) {
-			m.h = await OPFS.x(m.name, m.ab, T);
+			m.h = await OPFS.x(m.name, m.ab, T); //send message
 			delete m['ab'];
 			BC.sp(m);
 		} else BC.sp(m);
@@ -1527,13 +1570,14 @@ class BC {
 			BC.q.delete(m.u);
 		}
 	};
-	static hello = () => BC.oh({ t: 'H', sn: BC.sn, s: now(), bt: BC.bt });
-	static hi = () => BC.oh({ t: 'I', sn: BC.sn, s: now(), bt: BC.bt });
-	static bay = () => BC.oh({ t: 'B', sn: BC.sn, s: now(), bt: BC.bt });
+	static hello = () => BC.hD({ t: 'H', sn: BC.sn, s: now(), bt: BC.bt });
+	static hi = () => BC.hD({ t: 'I', sn: BC.sn, s: now(), bt: BC.bt });
+	static bay = () => BC.hD({ t: 'B', sn: BC.sn, s: now(), bt: BC.bt });
 	static aL = (m) => {
 		if (BC.md !== 'a' || !m || !m.sn || !m.bt) return; //addList受信処理
 		BC.cl[`${m.bt}%${m.sn}`] = m;
 	};
+	static hL = (m) => !!BC.cl[`${m.bt}%${m.sn}`];
 	static l = (f) => BC.lb(f.name, f.h); //load by hash
 	static lb = async (n, h) => (isStr(h) ? await OPFS.y(n, h) : h); //OPFSに置いてhashにしたものの再ロード
 	static oR = async (n, tdn, m, t) => {
@@ -1543,11 +1587,11 @@ class BC {
 	};
 	static oO = (n, e, g, tsh, tdn) => {
 		BC.f[n].oO(e, g, tsh, tdn); //onOpen
-		if (BC.iM) BC.sp({ t: 'OP', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
+		if (BC.iM) BC.st({ t: 'OP', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
 	}; //OnOpen From MainTab
 	static oC = (n, e, g, tsh, tdn) => {
 		BC.f[n].oC(e, g, tsh, tdn); //onClose//group, targetSignalingHash, targetDeviceName
-		if (BC.iM) BC.sp({ t: 'CL', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
+		if (BC.iM) BC.st({ t: 'CL', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
 	}; //OnClose From MainTab
 	static sOOF(n, fn = dcb) {
 		BC.f[n].oO = fn; //set OnOpen Function
@@ -1555,10 +1599,10 @@ class BC {
 	static sOCF(n, fn = dcb) {
 		BC.f[n].oC = fn; //set OnClose Function
 	}
-	static sWAC = (n) => (BC.iM ? BC.i[n].startWaitAutoConn() : BC.sp({ t: 'sWAC', sn: BC.sn, n })); //startWaitAutoConnect
-	static hWAC = (n) => (BC.iM ? BC.i[n].stopWaitAutoConn() : BC.sp({ t: 'hWAC', sn: BC.sn, n })); //haltWaitAutoConnect
-	static cA = (n) => (BC.iM ? BC.i[n].cA() : BC.sp({ t: 'cA', sn: BC.sn, n })); //closeAll
-	static cC = (n, tsh) => (BC.iM ? BC.i[n].c(tsh) : BC.sp({ t: 'cC', sn: BC.sn, tsh, n })); //close
+	static sWAC = (n) => (BC.iM ? BC.i[n].startWaitAutoConn() : BC.st({ t: 'sWAC', sn: BC.sn, n })); //startWaitAutoConnect
+	static hWAC = (n) => (BC.iM ? BC.i[n].stopWaitAutoConn() : BC.st({ t: 'hWAC', sn: BC.sn, n })); //haltWaitAutoConnect
+	static cA = (n) => (BC.iM ? BC.i[n].cA() : BC.st({ t: 'cA', sn: BC.sn, n })); //closeAll
+	static cC = (n, tsh) => (BC.iM ? BC.i[n].c(tsh) : BC.st({ t: 'cC', sn: BC.sn, tsh, n })); //close
 	static sBM = async (n, tsh, name, type, ab, r = F) => {
 		const o = BC.gCb(r)({ t: 'sBM', tsh, name, type, ab, n }); //まずは他のタブへシェア
 		return BC.iM ? BC.i[n].sndBigMsg(tsh, name, type, await BC.lb(name, ab)) : o;
@@ -1578,179 +1622,23 @@ class BC {
 	static req = (n, tsh, kp = P, t = 'GET', m) => BC.i[n].req(tsh, kp, t, m);
 	static setOnReq = (n, c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) => BC.i[n].setOnReq(c);
 	static gCb = (r) => (r ? dcb : BC.iM ? BC.sh : BC.sq); //振り分け
-	// //ここから下はいらないかも。
-	// static sNego = () => BC.p(Js({ t: 'sN', id: BC.s.id, s: now() })); //Start Connection Negotiation
-	// static eNego = () => BC.p(Js({ t: 'eN', id: BC.s.id, s: now() })); //end Connection Negotiation
-	// static closeAll = () => BC.i.closeAll();
-	// static close = (tsh) => BC.i.close(tsh);
-	// static sendBigMessage = async (tsh, n, t, ab) =>
-	// 	await BC.o(Js({ t: 'SM', id: BC.s.id, s: now(), c: { tsh, n, t, ab: Y.a2U(ab) } }));
-	// static broadcastBigMsg = (m) => BC.i.bcBigMsg(m);
-	// static sndMsg = async (tsh, m) => await BC.o(Js({ t: 'SM', id: BC.s.id, s: now(), c: { tsh, m } }));
-	// static broadcastMessage = (m) => BC.i.bcMsg(m);
-	// static request = (tsh, kp = P, t = 'GET', m) => BC.i.req(tsh, kp, t, m);
-	// static setOnRequest = (c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) => BC.i.setOnReq(c);
-	// static uuidv7() {
-	// 	const v7 = 7 * b12;
-	// 	mc.cnt++;
-	// 	const b = v7 + mc.cnt;
-	// 	const c = 2 * b30 + Math.floor(rnd(b30));
-	// 	const d = Math.floor(rnd(b32));
-	// 	return B.u2B(B.jus([B.N2u(now()), B.N2u(b), B.N2u(c), B.N2u(d)]));
-	// }
-	// static mi = async (c = E) => await H.d(`${BC.s.id}${c}${BC.uuidv7}`);
-	// static cTH = async () => await H.d(`${location.origin}/${SALT}`);
-	// static async startHartBeat() {
-	// 	BC.s.id = BC.uuidv7(); //selfid
-	// 	BC.s.s = 1;
-	// 	BC.s.cTH = await BC.cTH(); //channelhash
-	// 	BC.s.c = new BroadcastChannel(BC.HBs.cTH);
-	// 	while (BC.s.s) {
-	// 		BC.p(Js({ t: 'HB', id: BC.s.id, s: now() }));
-	// 		await slp(100);
-	// 		if (!BC.w && now() - bt > 1000) BC.w = 1;
-	// 		const fid = BC.s.id;
-	// 		if (BC.w) {
-	// 			const ids = Object.keys(BC.h); // hasConnect
-	// 			ids.sort();
-	// 			let c = 0;
-	// 			const n = now();
-	// 			for (const sid of ids) {
-	// 				if (c >= tc) break; //all connected
-	// 				c++;
-	// 				const s = BC.h[sid]; //find targets
-	// 				if (sid > BC.s.id && n - s < 1000) {
-	// 					const w = BC.w[sid]; //h is A
-	// 					if (!w) {
-	// 						const w = new Peer('Mesh', sS);
-	// 						BC.w[sid] = w;
-	// 						w.t = now();
-	// 						BC.p({ t: 'O', sid, fid, c: await w.mkO() });
-	// 					} else if (!w.isO() && n - w.t > 10000) {
-	// 						w.t = now();
-	// 						BC.p({ t: 'O', sid, fid, c: await w.mkO() });
-	// 					}
-	// 				}
-	// 			}
-	// 			//Connect WebRTC
-	// 		}
-	// 	}
-	// }
-	// static async oMM() {
-	// 	return async (m) => {
-	// 		try {
-	// 			const f = d.fid; //formId
-	// 			const d = Jp(m);
-	// 			const t = d.t;
-	// 			const c = d.c;
-	// 			if (t === 'HB') BC.s.h[d.id] = d.s;
-	// 			else if (d.sid === BC.s.id) {
-	// 				//forMe
-	// 				if (t === 'sN') BC.i.startWaitAutoConn(); //StartNego To MainTab
-	// 				else if (t === 'eN') BC.i.stopWaitAutoConn(); //StopNego To MainTab
-	// 				else if (t === 'CA') BC.i.closeAll(); //closeAll To MainTab
-	// 				else if (t === 'CL') BC.i.close(); //close To MainTab
-	// 				else if (t === 'SM' && c) {
-	// 					BC.i.sendMsg(c.tsh, c.m); //sendData To MainTab
-	// 					BC.p(Js({ t: 'RC', fid: d.sid, sid: f, c: { r: 'OK' }, r: d.r }));
-	// 				} else if (t === 'RC' && d.r && BC.q[d.r]) {
-	// 					const { v, j } = BC.q[d.r]; // recieve
-	// 					io(c && c.r === 'OK' ? v(c) : j(c));
-	// 					delete BC.q[d.r];
-	// 				} else if (t === 'BS' && c) {
-	// 					const r = await BC.i.sndBigMsg(c.tsh, c.n, tc.t, Y.U2a(c.ab)); //BigSendData To MainTab
-	// 					BC.p(Js({ t: 'RC', fid: d.sid, sid: f, c: { r: r ? 'OK' : E }, r: d.r }));
-	// 				} else if (t === 'O') {
-	// 					const p = BC.w[f] ? BC.w[f] : new Peer(f, sS); //A Tab recieveOffer
-	// 					BC.w[f] = p;
-	// 					await BC.o('A', f, await p.sOA(c));
-	// 				} else if (t === 'A') {
-	// 					const p = BC.w[f]; //A Tab recieveAnswer
-	// 					const r = await p.sA(U.pSdp(c)).catch(getEF(now()));
-	// 					const c = await pr(async (r) => await BC.cnn(p, (c) => r(c)));
-	// 					if (r) await BC.o('C', f, c);
-	// 				} else if (t === 'C') {
-	// 					const p = BC.w[f];
-	// 					p.sCs(pv(c));
-	// 				}
-	// 			} else {
-	// 				if (t === 'RS') {
-	// 					//RceiveSendMsg
-	// 				} else if (t === 'OP') BC.f.onO(c); //open From MainTab()
-	// 				else if (t === 'CL') BC.f.onC(c); //close From MainTab
-	// 			}
-	// 		} catch (e) {
-	// 			ef(e);
-	// 		}
-	// 	};
-	// }
-	// static async cnn(p, f) {
-	// 	let c = 1; //コネクションスタート
-	// 	while (c < 100 && !p.isOpd) {
-	// 		await slp(Math.floor(rnd(20 * c)) + 100);
-	// 		c++;
-	// 		const cs = p.gCs();
-	// 		io(`WebRTCConn setOnCandidates count:${c}/candidates:${cs}`);
-	// 		if (isArr(cs) && cs.length > 0) {
-	// 			f(cs);
-	// 			break;
-	// 		}
-	// 	}
-	// }
-	// static m() {
-	// 	const l = Object.keys(BC.s.h); //最古を取り出す。
-	// 	l.sort();
-	// 	return l.shift();
-	// }
-	// static o = (t, s, c) =>
-	// 	pr((v, j) => {
-	// 		const r = BC.mi(Js([t, s, c])); //reqid
-	// 		BC.p(Js({ t, sid: s, fid: BC.s.id, c, r }));
-	// 		BC.q[r] = { v, j };
-	// 		st(() => v(N), 30000);
-	// 	});
-	// static cP = async (t, c) => await BC.o(t, BC.m(), c);
-	// static oM(f) {
-	// 	BC.s.c.onmessage = f;
-	// }
-	// static p = (m) => BC.s.c.postMessage(m); // Raw Post
-	// static c() {
-	// 	BC.s.s = F; //くろーず
-	// 	BC.s.c.close();
-	// }
 }
 //BroadCastChannelがおもすぎる場合のバックアップ
-// const PX = '_A_';
-// const cache = {};
-// class LSM {
-// 	static px = PX + SALT; //locastrage mamager
-// 	static send(cp, i, l = console) {
-// 		this.i = i;
-// 		l.log('===SEND=A=====');
-// 		const m = typeof i === 'string' ? i : Js(i);
-// 		l.log(`send prefix:"${cp}"/message:${m}`);
-// 		const key = `${PX + cp}_${Date.now()}`;
-// 		localStorage.setItem(key, m);
-// 		l.log('===SEND=B=====');
-// 	}
-// 	static setOnRcv(cp, f = (p, e) => io(p, e), l = console) {
-// 		l.log(`setOnRcv prefix:${cp}`);
-// 		cache.listene = (event) => {
-// 			// l.log(`OnRecieve prefix:${prefix} "${JSON.stringify(event)}"`);
-// 			// l.log(event);
-// 			const k = event.key;
-// 			// l.log(`key:${key}`);
-// 			const px = `${PX + cp}_`;
-// 			// l.log(px);
-// 			if (k.indexOf(px) === 0) {
-// 				l.log(`OnRecieve callfunc prefix:${cp}`);
-// 				f(cp, event);
-// 			}
-// 		};
-// 		window.addEventListener('storage', cache.listene);
-// 	}
-// 	static rmOnRcv = () => window.removeEventListener('storage', cache.listene);
-// }
+class LS {
+	static M = localStorage;
+	static f = dcb; //リスナー
+	static x = N; //プレフィックス
+	static P = (c) => `${LS.x}_A_${c}_`; //locastrage mamager
+	static i = async (c) => (LS.x = LS.x ? LS.x : await H.d(LS.P(c) + SALT)); //初期化処理、何度実行しても値は一定
+	static s = (c, i, isN = F) => LS.M.setItem(`${LS.P(c)}${isN ? `_${now()}` : E}`, isStr(i) ? i : Js(i));
+	static sOR(c, f = (p, e) => io(p, e)) {
+		LS.f = (e) => (e.key.indexOf(LS.P(c)) === 0 ? f(c, e) : N);
+		self.addEventListener('storage', LS.f); // setOnReciveFunction
+	}
+	static l = (k) => LS.M.getItem(k);
+	static r = (k) => LS.M.removeItem(k);
+	static rOR = () => self.removeEventListener('storage', LS.f); // removeOnReciveFunction
+}
 class OPFS {
 	static t = N;
 	static p = N;
