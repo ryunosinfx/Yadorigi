@@ -5,12 +5,19 @@ const onRecieveFileCB = (name, type, dataAb) => {
 };
 const cb = () => {};
 export class ESFileSender {
-	constructor(logElm, fileElm, settingElms) {
+	constructor(logElm, fileElm, settingElms, onSWAC, onHWAC) {
 		this.logElm = logElm;
 		this.fileElm = fileElm;
 		this.cacheUL = new Map();
 		this.cacheDL = new Map();
-		this.u = new ESWebRTCConnecterU('EAFileSender', this, this.getOnMessage(), this.getOnSettingInfo(settingElms));
+		this.u = new ESWebRTCConnecterU(
+			'EAFileSender',
+			this,
+			this.getOnMessage(),
+			this.getOnSettingInfo(settingElms),
+			onSWAC,
+			onHWAC
+		);
 		this.connectedList = {};
 		this.u.setOnOpenFunc((event, group, targetSignalingHash, targetDeviceName) => {
 			console.log(`☆☆setOnOpenFunc☆☆ targetDeviceName:${targetDeviceName}`);

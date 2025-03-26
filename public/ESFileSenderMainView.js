@@ -170,6 +170,12 @@ export class ESMainView {
 			{},
 			{ margin: '12px', whiteSpace: 'pre', fontSize: '60%', maxHeight: '60vh', overflow: 'scroll' }
 		);
+		const onSWAC = async (n) => {
+			statusSTART.textContent = `-START-${n}`;
+		};
+		const onhWAC = async (n) => {
+			statusSTART.textContent = `-STOP-${n}`;
+		};
 		const vc = new ViewCommander(
 			colClog,
 			inputCurl,
@@ -177,7 +183,9 @@ export class ESMainView {
 			inputCpasswd,
 			inputCdevice,
 			statusConn,
-			inputCfile
+			inputCfile,
+			onSWAC,
+			onhWAC
 		);
 		const colC3 = ViewUtil.add(rowD, 'div', {}, { margin: '12px', fontSize: '60%' });
 
@@ -185,19 +193,9 @@ export class ESMainView {
 			vc.openNewWindow();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTART, async () => {
-			statusSTART.textContent = '-START-';
-			const formData = new FormData(form);
-			const action = `${form.getAttribute('action')}?h=${await vc.getHash(formData)}`;
-			const options = {
-				method: 'GET',
-			};
-			fetch(action, options).then((e) => {
-				console.log(e);
-			});
 			vc.startConnect();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDSTOP, async () => {
-			statusSTART.textContent = '-STOP-';
 			vc.stop();
 		});
 		ViewUtil.setOnClick(buttonICEWithSameBrowserTabsDCLEAR, async () => {
@@ -276,7 +274,7 @@ export class ESMainView {
 	}
 }
 class ViewCommander {
-	constructor(logElm, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn, inputCfile) {
+	constructor(logElm, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn, inputCfile, onSWAC, onHWAC) {
 		this.logElm = logElm;
 		this.inputCurl = inputCurl;
 		this.inputCgroup = inputCgroup;
@@ -284,12 +282,18 @@ class ViewCommander {
 		this.inputCdevice = inputCdevice;
 		this.statusConn = statusConn;
 		this.inputCfile = inputCfile;
-		this.est = new ESFileSender(logElm, inputCfile, {
-			u: inputCurl,
-			g: inputCgroup,
-			p: inputCpasswd,
-			d: inputCdevice,
-		});
+		this.est = new ESFileSender(
+			logElm,
+			inputCfile,
+			{
+				u: inputCurl,
+				g: inputCgroup,
+				p: inputCpasswd,
+				d: inputCdevice,
+			},
+			onSWAC,
+			onHWAC
+		);
 		if (!this.inputCpasswd.value) {
 			this.inputCpasswd.value = '1234';
 		}

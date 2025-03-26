@@ -85,14 +85,15 @@ export class ESWebRTCConnecterU {
 		n = SALT, //AppName
 		l = console,
 		onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`), //onRecieve Function
-		onS = (n, settingInfo) => io(`ESWebRTCConnU appName:${n},settingInfo:${Js(settingInfo)}`) //onSetSettingInfo
+		onS = (n, settingInfo) => io(`ESWebRTCConnU appName:${n},settingInfo:${Js(settingInfo)}`), //onSetSettingInfo
+		onSWAC = (n) => io(`ESWebRTCConnU appName:${n},onStartWaitingConnection`), //onStartWaitingConnection
+		onHWAC = (n) => io(`ESWebRTCConnU appName:${n},onStartWaitingConnection}`) //onHaltWaitingConnection
 	) {
 		this.#n = n;
-		BC.b(n, l, onR, onS); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
+		BC.b(n, l, onR, onS, onSWAC, onHWAC); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
 		// this.#i = new M(n, l, onR); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
 	}
 	init(u, g, p, dn) {
-		// this.#i.init(u, g, p, dn); //初期化、url,group,password,deviceName
 		BC.rCI(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
 	}
 	initAsServer(apis = { 200: [], 500: [] }) {
@@ -1427,20 +1428,23 @@ class BC {
 		const d = evt.data; //EventListener
 		BC.io('el d:', d);
 		BC.io(`el BC.sn:${BC.sn}/sn:${d.sn} /BC.iM:`, BC.iM);
-		const sn = d.sn; //スレッド名
+		const sn = d.sn, //スレッド名
+			n = d.n;
 		if (sn === BC.sn) return; //自分自身は弾く
 		else if (d.t === 'H' || d.t === 'B' || d.t === 'I') BC.oH(d);
-		else if (d.t === 'OP') BC.oO(d.n, d.e, d.g, d.tsh, d.tdn);
-		else if (d.t === 'CL') BC.oC(d.n, d.e, d.g, d.tsh, d.tdn);
-		else if (d.t === 'sWAC') BC.sWAC(d.n);
-		else if (d.t === 'hWAC') BC.hWAC(d.n);
-		else if (d.t === 'cA') BC.cA(d.n);
-		else if (d.t === 'cC') BC.cC(d.n, d.tsh);
-		else if (d.t === 'SH') BC.oR(d.n, d.tdn, d.m, d.rt);
-		else if (d.t === 'sBM') BC.sr(await BC.sBM(d.n, d.tsh, d.name, d.type, d.h, T), d.u);
-		else if (d.t === 'bBM') BC.sr(await BC.bBM(d.n, d.name, d.type, d.h, T), d.u);
-		else if (d.t === 'sM') BC.sr(await BC.sM(d.n, d.tsh, d.m, T), d.u);
-		else if (d.t === 'bM') BC.sr(await BC.bM(d.n, d.m, T), d.u);
+		else if (d.t === 'OP') BC.oO(n, d.e, d.g, d.tsh, d.tdn);
+		else if (d.t === 'CL') BC.oC(n, d.e, d.g, d.tsh, d.tdn);
+		else if (d.t === 'sWAC') BC.sWAC(n);
+		else if (d.t === 'hWAC') BC.hWAC(n);
+		else if (d.t === 'sWa') BC.f[n].s(n);
+		else if (d.t === 'hWa') BC.f[n].h(n);
+		else if (d.t === 'cA') BC.cA(n);
+		else if (d.t === 'cC') BC.cC(n, d.tsh);
+		else if (d.t === 'SH') BC.oR(n, d.tdn, d.m, d.rt);
+		else if (d.t === 'sBM') BC.sr(await BC.sBM(n, d.tsh, d.name, d.type, d.h, T), d.u);
+		else if (d.t === 'bBM') BC.sr(await BC.bBM(n, d.name, d.type, d.h, T), d.u);
+		else if (d.t === 'sM') BC.sr(await BC.sM(n, d.tsh, d.m, T), d.u);
+		else if (d.t === 'bM') BC.sr(await BC.bM(n, d.m, T), d.u);
 		else if (d.t === 'rV') BC.rV(d);
 	};
 	static oH = (d) => {
@@ -1500,7 +1504,9 @@ class BC {
 		n,
 		l = console,
 		onR = (tdn, m, t) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}/isBD:${t}`),
-		onS = dcb //認証情報設定時挙動を収録
+		onS = dcb, //認証情報設定時挙動を収録
+		onSWAC = dcb, //コネクション待機開始
+		onHWAC = dcb //コネクション待機終了
 	) => {
 		if (!BC.fL) BC.fL = l;
 		BC.iD[n] = { n, l, onR, k: N }; //nはAppName、lはlogger、onRはonRecieve
@@ -1511,6 +1517,8 @@ class BC {
 				BC.iD[n].k = e.key;
 				onS(n, Jp(e.newValue)); //設定変更時の処理をロード
 			},
+			s: (n) => onSWAC(n),
+			h: (n) => onHWAC(n),
 		}; //設定
 		BC.i[n] = N;
 		BC.sn = Cy.uuid();
@@ -1599,8 +1607,12 @@ class BC {
 	static sOCF(n, fn = dcb) {
 		BC.f[n].oC = fn; //set OnClose Function
 	}
-	static sWAC = (n) => (BC.iM ? BC.i[n].startWaitAutoConn() : BC.st({ t: 'sWAC', sn: BC.sn, n })); //startWaitAutoConnect
-	static hWAC = (n) => (BC.iM ? BC.i[n].stopWaitAutoConn() : BC.st({ t: 'hWAC', sn: BC.sn, n })); //haltWaitAutoConnect
+	static sWAC = (n) =>
+		BC.f[n].s(n) &
+		(BC.iM ? BC.i[n].startWaitAutoConn() & BC.st({ t: 'sWa', sn: BC.sn, n }) : BC.st({ t: 'sWAC', sn: BC.sn, n })); //startWaitAutoConnect
+	static hWAC = (n) =>
+		BC.f[n].h(n) &
+		(BC.iM ? BC.i[n].stopWaitAutoConn() & BC.st({ t: 'hWa', sn: BC.sn, n }) : BC.st({ t: 'hWAC', sn: BC.sn, n })); //haltWaitAutoConnect
 	static cA = (n) => (BC.iM ? BC.i[n].cA() : BC.st({ t: 'cA', sn: BC.sn, n })); //closeAll
 	static cC = (n, tsh) => (BC.iM ? BC.i[n].c(tsh) : BC.st({ t: 'cC', sn: BC.sn, tsh, n })); //close
 	static sBM = async (n, tsh, name, type, ab, r = F) => {
