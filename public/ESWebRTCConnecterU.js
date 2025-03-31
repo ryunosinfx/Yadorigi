@@ -80,18 +80,21 @@ function dcb(e, g, t) {
 }
 export class ESWebRTCConnecterU {
 	#i = N; //Private
-	#n = N;
+	#n = N; //Private
 	constructor(
 		n = SALT, //AppName
 		l = console,
-		onR = (tdn, m) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}`), //onRecieve Function
+		onI = dcb,
+		onR = (tdn, m, t) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m},isBigData:${t}`), //onRecieve Function
 		onS = (n, settingInfo) => io(`ESWebRTCConnU appName:${n},settingInfo:${Js(settingInfo)}`), //onSetSettingInfo
 		onSWAC = (n) => io(`ESWebRTCConnU appName:${n},onStartWaitingConnection`), //onStartWaitingConnection
-		onHWAC = (n) => io(`ESWebRTCConnU appName:${n},onStartWaitingConnection}`) //onHaltWaitingConnection
+		onHWAC = (n) => io(`ESWebRTCConnU appName:${n},onStartWaitingConnection}`), //onHaltWaitingConnection
+		onUpload = (n, fn, t, h, s) =>
+			io(`ESWebRTCConnU appName:${n},file:${fn},type:${t},hash:${h},size:${s},onUpload`), //onStartWaitingConnection
+		onDelete = (n, fn, h) => io(`ESWebRTCConnU appName:${n},file:${fn},hash:${h},onDelete}`) //onHaltWaitingConnection
 	) {
 		this.#n = n;
-		BC.b(n, l, onR, onS, onSWAC, onHWAC); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
-		// this.#i = new M(n, l, onR); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
+		BC.b(n, l, onI, onR, onS, onSWAC, onHWAC, onUpload, onDelete); //ここで実処理モジュールをNew nはコネクションの取り扱い名（AppName）,lはコンソール、onRは受信時コールバック
 	}
 	init(u, g, p, dn) {
 		BC.rCI(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
@@ -102,52 +105,52 @@ export class ESWebRTCConnecterU {
 	async registerConnInfo(u, g, p, dn) {
 		return await BC.rCI(this.#n, u, g, p, dn); //初期化、url,group,password,deviceName
 	}
+	async upload(name, type, ab) {
+		return await BC.up(this.#n, name, type, ab); //アップロード returnはhash値※abは自分で消してください
+	}
+	async delete(name, h) {
+		return await BC.del(this.#n, name, h); //nameとhashからファイルを削除
+	}
+	async load(name, h) {
+		return await BC.lb(this.#n, name, h); //nameとhashからabを取得
+	}
+	async ls() {
+		return await BC.ls(this.#n, T); //OPFSに存在するファイルをGet
+	}
 	setOnOpenFunc(fn = dcb) {
-		// this.#i.onO = fn;
 		BC.sOOF(this.#n, fn); //wcの情報
 	}
 	setOnCloseFunc(fn = dcb) {
-		// this.#i.onC = fn;
 		BC.sOCF(this.#n, fn);
 	}
 	startWaitAutoConnect() {
-		// this.#i.startWaitAutoConn();
 		BC.sWAC(this.#n);
 	}
 	stopWaitAutoConnect() {
-		// this.#i.stopWaitAutoConn();
 		BC.hWAC(this.#n);
 	}
 	closeAll() {
-		// this.#i.cA();
 		BC.cA(this.#n);
 	}
 	close(tsh) {
-		// this.#i.c(tsh);
 		BC.cC(this.#n, tsh);
 	}
-	sendBigMessage(tsh, name, type, ab) {
-		// this.#i.sndBigMsg(tsh, name, type, ab);
-		return BC.sBM(this.#n, tsh, name, type, ab); //大量データ送信
+	sendBigMsg(tsh, name, type, h) {
+		return BC.sBM(this.#n, tsh, name, type, h); //大量データ送信
 	}
-	broadcastBigMessage(name, type, ab) {
-		// this.#i.bcBigMsg(name, type, ab);
-		return BC.sBM(this.#n, name, type, ab); //大量データ配布
+	broadcastBigMsg(name, type, h) {
+		return BC.sBM(this.#n, name, type, h); //大量データ配布
 	}
 	sndMsg(tsh, m) {
-		// this.#i.sendMsg(tsh, m);
 		return BC.sM(this.#n, tsh, m); //データ送信
 	}
-	broadcastMessage(m) {
-		// this.#i.bcMsg(m);
+	broadcastMsg(m) {
 		return BC.bM(this.#n, m); //データ送信
 	}
-	request(tsh, kp = P, t = 'GET', m) {
-		// return this.#i.req(tsh, kp, t, m);
+	req(tsh, kp = P, t = 'GET', m) {
 		return BC.req(this.#n, tsh, kp, t, m); //データ送信
 	}
-	setOnRequest(c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) {
-		// this.#i.setOnReq(c);
+	setOnReq(c = async (kp, t, d) => cb(d, io(`keyPath:${kp}/type:${t}`, d))) {
 		BC.setOnReq(this.#n, c); //データ送信
 	}
 }
@@ -1400,6 +1403,17 @@ class Cy {
 			return ef(e);
 		}
 	}
+	static gKP = async () =>
+		cy.generateKey(
+			{
+				name: 'RSA-OAEP',
+				modulusLength: 4096,
+				publicExponent: new Uint8Array([1, 0, 1]),
+				hash: 'SHA-256',
+			},
+			true,
+			['encrypt', 'decrypt']
+		);
 	static uuid = () => self.crypto.randomUUID();
 }
 class BC {
@@ -1422,6 +1436,7 @@ class BC {
 	static s = {}; // state //hasConnect
 	static u = N; //OPFSというか識別ハッシュ
 	static fL = N;
+	static kp = N;
 	static io = (m, n, l) => (BC.fL ? BC.fL.log(m, n, l) : io(m, n, l));
 	static el = async (evt) => {
 		BC.io('el evt:', evt);
@@ -1440,6 +1455,7 @@ class BC {
 		else if (d.t === 'hWa') BC.f[n].h(n);
 		else if (d.t === 'cA') BC.cA(n);
 		else if (d.t === 'cC') BC.cC(n, d.tsh);
+		else if (d.t === 'up') BC.f[n].u(n, d.name, d.type, d.h, d.s);
 		else if (d.t === 'SH') BC.oR(n, d.tdn, d.m, d.rt);
 		else if (d.t === 'sBM') BC.sr(await BC.sBM(n, d.tsh, d.name, d.type, d.h, T), d.u);
 		else if (d.t === 'bBM') BC.sr(await BC.bBM(n, d.name, d.type, d.h, T), d.u);
@@ -1493,7 +1509,7 @@ class BC {
 				if (BC.i[n]) continue; //OnHi init
 				BC.io('iH  BC.iD[n],', BC.iD[n]);
 				const d = BC.iD[n],
-					m = new M(d.n, d.l, d.onR); //WebRTCコネクションモジュールを召喚
+					m = new M(d.n, d.l, d.r); //WebRTCコネクションモジュールを召喚
 				BC.i[n] = m;
 				m.onO = (e, g, tsh, tdn) => BC.oO(n, e, g, tsh, tdn); //WebRTCコネクションオープン時
 				m.onC = (e, g, tsh, tdn) => BC.oC(n, e, g, tsh, tdn); //WebRTCコネクションクローズ時
@@ -1503,14 +1519,17 @@ class BC {
 	static b = async (
 		n,
 		l = console,
+		onI = dcb, //初期化後コールバック
 		onR = (tdn, m, t) => io(`ESWebRTCConnU trgtDevNm:${tdn},msg:${m}/isBD:${t}`),
 		onS = dcb, //認証情報設定時挙動を収録
 		onSWAC = dcb, //コネクション待機開始
-		onHWAC = dcb //コネクション待機終了
+		onHWAC = dcb, //コネクション待機終了
+		onUL = dcb, //ファイルアップロード時の挙動
+		onDE = dcb //ファイル削除時の挙動
 	) => {
 		if (!BC.fL) BC.fL = l;
-		BC.iD[n] = { n, l, onR, k: N }; //nはAppName、lはlogger、onRはonRecieve
 		BC.f[n] = {
+			i: () => onI(),
 			l: (c, e) => {
 				if (!e.key) return BC.cA(n); //クリアの場合は全部コネクション解除
 				if (n !== c || e.newValue === e.oldValue) return; //違うAppName、同じ値の場合は放置
@@ -1519,7 +1538,18 @@ class BC {
 			},
 			s: (n) => onSWAC(n),
 			h: (n) => onHWAC(n),
+			u: (n, fn, t, h, s) => onUL(n, fn, t, h, s), //AppName,name,type,hash,size
+			d: (n, fn, h) => onDE(n, fn, h), //AppName,name,type,hash,size
+			r: async (tdn, m, t) => {
+				if (t)
+					if (isArr(m)) for (const f of m) await BC.oRD(f);
+					else await BC.oRD(m);
+				onR(n, tdn, m, t);
+			},
 		}; //設定
+		BC.pk = await Cy.gKP();
+		console.log('b pk:', n, BC.pk);
+		BC.iD[n] = { n, l, r: BC.f[n].r, k: N }; //nはAppName、lはlogger、onRはonRecieve
 		BC.i[n] = N;
 		BC.sn = Cy.uuid();
 		BC.u = Y.B2U(await H.d(n + SALT, 10)); //シード作成※スレッド固有
@@ -1533,16 +1563,20 @@ class BC {
 		onC(BC.bay); //Windowスコープのみグレイスフルデッドを実装※WorkerはTerminate前に実施が必要
 		BC.io('b n:', n, BC.bc);
 		LS.sOR(n, BC.f[n].l);
+		await BC.f[n].i();
+	};
+	static oRD = async (m) => {
+		m.h = await OPFS.x(m.name, m.ab, T); //OPFSデータ書き込み処理
+		m.s = m.ab.byteLength;
+		m.ab = N;
 	};
 	static async rCI(n, u, g, p, dn) {
 		const j = { u, g, p, dn }, //初期化時の保持データ
 			s = Js(j);
 		const l = LS.l(LS.P(n));
-		if (!l || l !== s) LS.s(n, s);
+		if (!l || l !== s) LS.s(n, s); //変更時は保存
 		BC.iD[n].i = s; //setInfoいらないかも？
-		while (!BC.i[n]) {
-			await slp(1000);
-		}
+		while (!BC.i[n]) await slp(1000);
 		BC.i[n].init(j.u, j.g, j.p, j.dn); //ここで初期化
 	}
 	static oh = (m) => BC.oH(m) & BC.sp(m); //自分自身には飛ばない
@@ -1586,21 +1620,23 @@ class BC {
 		BC.cl[`${m.bt}%${m.sn}`] = m;
 	};
 	static hL = (m) => !!BC.cl[`${m.bt}%${m.sn}`];
-	static l = (f) => BC.lb(f.name, f.h); //load by hash
-	static lb = async (n, h) => (isStr(h) ? await OPFS.y(n, h) : h); //OPFSに置いてhashにしたものの再ロード
+	static lb = async (n, fn, h) => (isStr(h) ? await OPFS.y(`${n}/${fn}`, h) : h); //OPFSに置いてhashにしたものの再ロード
+	static ls = async (n, i) => await OPFS.l(n, i);
 	static oR = async (n, tdn, m, t) => {
 		if (t) for (const f of m) f.h = await OPFS.x(f.name, f.data, T); //WriteFiles
 		await BC.sh({ n, tdn, m, rt: t });
 		BC.iD[n].oR(tdn, m, t);
 	};
-	static oO = (n, e, g, tsh, tdn) => {
-		BC.f[n].oO(e, g, tsh, tdn); //onOpen
-		if (BC.iM) BC.st({ t: 'OP', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
-	}; //OnOpen From MainTab
-	static oC = (n, e, g, tsh, tdn) => {
-		BC.f[n].oC(e, g, tsh, tdn); //onClose//group, targetSignalingHash, targetDeviceName
-		if (BC.iM) BC.st({ t: 'CL', sn: BC.sn, s: now(), e, n, g, tsh, tdn });
-	}; //OnClose From MainTab
+	static oO = (n, e, g, tsh, tdn) =>
+		BC.f[n].oO(e, g, tsh, tdn) & //onOpen
+		BC.iM
+			? BC.st({ t: 'OP', sn: BC.sn, s: now(), e, n, g, tsh, tdn })
+			: N; //OnOpen From MainTab
+	static oC = (n, e, g, tsh, tdn) =>
+		BC.f[n].oC(e, g, tsh, tdn) & //onClose//group, targetSignalingHash, targetDeviceName
+		BC.iM
+			? BC.st({ t: 'CL', sn: BC.sn, s: now(), e, n, g, tsh, tdn })
+			: N; //OnClose From MainTab
 	static sOOF(n, fn = dcb) {
 		BC.f[n].oO = fn; //set OnOpen Function
 	}
@@ -1615,13 +1651,28 @@ class BC {
 		(BC.iM ? BC.i[n].stopWaitAutoConn() & BC.st({ t: 'hWa', sn: BC.sn, n }) : BC.st({ t: 'hWAC', sn: BC.sn, n })); //haltWaitAutoConnect
 	static cA = (n) => (BC.iM ? BC.i[n].cA() : BC.st({ t: 'cA', sn: BC.sn, n })); //closeAll
 	static cC = (n, tsh) => (BC.iM ? BC.i[n].c(tsh) : BC.st({ t: 'cC', sn: BC.sn, tsh, n })); //close
-	static sBM = async (n, tsh, name, type, ab, r = F) => {
-		const o = BC.gCb(r)({ t: 'sBM', tsh, name, type, ab, n }); //まずは他のタブへシェア
-		return BC.iM ? BC.i[n].sndBigMsg(tsh, name, type, await BC.lb(name, ab)) : o;
+	static up = async (n, name, type, ab) => {
+		console.log('BC.up');
+		const h = await OPFS.x(n + P + name, ab, T),
+			s = ab.byteLength;
+		console.log('BC.up h', h);
+		BC.sp({ t: 'up', name, type, h, n, s });
+		BC.f[n].u(n, name, type, h, s);
+		return h;
+	}; //upload
+	static del = async (n, name, h) => {
+		io(`BC.delete BC${name}/${h}`);
+		await OPFS.rmh(`${n}/${name}`, h);
+		BC.sp({ t: 'del', name, h, n });
+		BC.f[n].d(n, name, h);
+	}; //delete
+	static sBM = async (n, tsh, name, type, h, r = F) => {
+		const o = BC.gCb(r)({ t: 'sBM', tsh, name, type, h, n }); //まずは他のタブへシェア
+		return BC.iM ? BC.i[n].sndBigMsg(tsh, name, type, await BC.lb(n, name, h)) : o;
 	}; //sendBigMessage
-	static bBM = async (n, name, type, ab, r = F) => {
-		const o = BC.gCb(r)({ t: 'bBM', tsh: N, name, type, ab, n }); //まずは他のタブへシェア
-		return BC.iM ? BC.i[n].bcBigMsg(name, type, await BC.lb(name, ab)) : o;
+	static bBM = async (n, name, type, h, r = F) => {
+		const o = BC.gCb(r)({ t: 'bBM', tsh: N, name, type, h, n }); //まずは他のタブへシェア
+		return BC.iM ? BC.i[n].bcBigMsg(name, type, await BC.lb(n, name, h)) : o;
 	}; //broadcastBigMessage
 	static sM = (n, tsh, m, r = F) => {
 		const o = BC.gCb(r)({ t: 'sM', tsh, m, n }); //まずは他のタブへシェア
@@ -1661,35 +1712,57 @@ class OPFS {
 	static at0 = { at: 0 };
 	static i = async (n) => {
 		OPFS.p = await navigator.storage.persist(); //永続化呪文
-		OPFS.t = await navigator.storage.getDirectory(); //init
+		OPFS.t = await navigator.storage.getDirectory(); //init root
 		if (n) OPFS.d = OPFS.mkDir(n);
-		OPFS.d = Y.U2B(await H.d(OPFS.d + n, 10)); //常にハッシュBase64URL@SHA256で指定
+		OPFS.d = Y.B2U(await H.d(OPFS.d + n, 10)); //常にハッシュBase64URL@SHA256で指定
 	};
-	static gDH = (p, d, o) => (d ? d.getDirectoryHandle(p, o) : OPFS.t.getDirectoryHandle(p, o));
+	static gDH = async (p, d, o) => {
+		io(`OPFS gDH 1 p:${p}`, d, o);
+		try {
+			const x = d ? await d.getDirectoryHandle(p, o) : await OPFS.t.getDirectoryHandle(p, o);
+			io(`OPFS gDH 3 p:${p}`, x);
+			return x;
+		} catch (e) {
+			io(e);
+		}
+	};
 	static gFH = (p, d, o) => (d ? d.getFileHandle(p, o) : OPFS.t.getFileHandle(p, o));
-	static mkD = async (p, d) => await OPFS.gDH(p, d, (await OPFS.isEd(p, d)) ? undefined : OPFS.co); //async/await
-	static gDHR = async (p, iN) => {
+	static mkD = async (p, d) => {
+		const a = await OPFS.isEd(p, d);
+		return await OPFS.gDH(p, d, a ? undefined : OPFS.co);
+	}; //async/await
+	static gDHR = async (p, iN = T) => {
 		const s = isArr(p) ? p : p.split(P);
 		let t = OPFS.t;
-		for (const d of s) t = iN ? await OPFS.mkD(d, t) : await OPFS.gDH(d, t);
+		console.log(`OPFS gDHR p:${p}/t:${t}/iN:${iN}`, t);
+		for (const d of s) {
+			console.log(`OPFS gDHR 1 d:${d}/t:${t}/iN${iN}`, t);
+			t = iN ? await OPFS.mkD(d, t) : await OPFS.gDH(d, t);
+			console.log(`OPFS gDHR 2 d:${d}/t:${t}/iN${iN}`, t);
+		}
 		return t;
 	};
-	static mkDir = async (p) => await OPFS.gDHR(p, T);
-	static gPH = async (p) => {
+	static mkDir = async (p, f = T) => await OPFS.gDHR(p, f);
+	static gPH = async (p, f = T) => {
 		const s = isArr(p) ? p : p.split(P);
 		s.pop();
-		return await OPFS.mkDir(s);
+		console.log(`OPFS gPH p:${p} f:${f}`);
+		return await OPFS.mkDir(s, f);
 	};
 	static mkFile = async (p) => {
 		const s = p.split(P),
 			b = s.pop(),
-			h = await OPFS.gPH(p);
-		return await OPFS.gFH(b, h, (await OPFS.isEf(p)) ? undefined : OPFS.co);
+			h = await OPFS.gPH(p, T),
+			a = await OPFS.isEf(p);
+		console.log(`OPFS mkFile h:${h}/p:${p}/a:${a}`);
+		return await OPFS.gFH(b, h, a ? undefined : OPFS.co);
 	}; //async/await
-	static isEd = async (p) => {
+	static isEd = async (p, d) => {
 		try {
-			await OPFS.gDHR(p);
-			return T;
+			console.log(`OPFS isEd 1 p:${p}`);
+			const h = d ? await OPFS.gDH(p, d) : await OPFS.gDHR(p, F); //存在確認
+			console.log(`OPFS isEd 2 p:${p}`, h);
+			return h ? T : F;
 		} catch (e) {
 			io(e);
 		}
@@ -1699,8 +1772,10 @@ class OPFS {
 		try {
 			const s = p.split(P),
 				b = s.pop(),
-				h = await OPFS.gDHR(s);
-			await OPFS.gFH(b, h);
+				h = await OPFS.gPH(p, F); //存在確認
+			console.log(`OPFS isEf 1 p:${p} h:`, h);
+			const a = await OPFS.gFH(b, h);
+			console.log(`OPFS isEf 2 p:${p} fh:`, a, a.createSyncAccessHandle);
 			return T;
 		} catch (e) {
 			io(e);
@@ -1710,43 +1785,62 @@ class OPFS {
 	static rmd = async (p) => {
 		const s = isArr(p) ? p : p.split(P),
 			b = s.pop(),
-			h = (await OPFS.isEd(p)) ? await OPFS.gDHR(s) : N;
+			h = (await OPFS.isEd(p)) ? await OPFS.gPH(p, F) : N;
 		return h ? await h.removeEntry(b, OPFS.rc) : N;
 	};
 	static rmf = async (p) => {
 		const s = isArr(p) ? p : p.split(P),
 			b = s.pop(),
-			h = (await OPFS.isEf(p)) ? await OPFS.gDHR(s) : N;
+			e = await OPFS.isEf(p),
+			h = e ? await OPFS.gPH(p, F) : N;
+		console.log(`OPFS rmf  p:${p}  b:${b} e:${e} h:`, h);
 		return h ? await h.removeEntry(b, OPFS.rc) : N;
 	};
-	static l = async (p = OPFS.t) => {
-		const d = await OPFS.gDHR(p),
-			a = [];
-		for await (const [k, v] of d.entries()) a.push({ k, v });
+	static iD = (h) => h && h.kind === 'directory';
+	static l = async (p = E, i = F, b, e) => {
+		console.log('OPFS l 1 p:', p, i);
+		const r = p ? OPFS.d + P + p : OPFS.d,
+			d = OPFS.iD(p) ? p : await OPFS.gDHR(r),
+			a = isArr(b) ? b : [],
+			c = e ? e : p;
+		console.log('OPFS l 2 p:', p, i, r, d);
+		for await (const [j, v] of d.entries()) {
+			if (OPFS.iD(v)) a.push({ k: c + P + j, p: c, l: await OPFS.l(v, i, a, c + P + j) }); //kはファイル名、vは
+			else {
+				const f = await v.getFile(),
+					p = j.split('.'),
+					h = i ? p.pop() : E,
+					k = c + P + i ? p.join('.') : j;
+				a.push({ k, t: f.type, lm: f.lastModified, h, p: c, s: f.size }); //kはファイル名、vは
+			}
+		}
 		return a;
 	};
-	static g = (n, h) => `${OPFS.d}/${n}.${h}`;
+	static g = (n, h) => `${OPFS.d + P + n}.${h}`;
 	static x = async (p, ab, i) => {
 		const n = (await OPFS.w(OPFS.g(p, Y.B2U(await H.d(ab, 10))), ab)).split(OPFS.d + P)[1];
-		return i ? n.split('.').pop() : n;
+		return i ? n.split('.').pop() : n; //iがTrueの場合、hashのみを返す。
 	}; //データを重複せずに書き込む系、ハッシュ値込みのファイル名を返す,iがTrueの場合はハッシュ値のみ
 	static y = async (n, h) => await OPFS.r(OPFS.g(n, h)); //ファイル名&ハッシュでロード
 	static rmh = async (n, h) => await OPFS.rmf(OPFS.g(n, h)); //ファイル名&ハッシュで削除
 	static w = async (p, ab) => {
-		const dH = await OPFS.mkFile(p), //Write ArrayBuffer
-			aH = await dH.createSyncAccessHandle();
-		aH.write(ab, OPFS.at0);
-		aH.flush();
-		aH.close();
+		io('OPFS.w p:', p);
+		const d = await OPFS.mkFile(p); //Write ArrayBuffer
+		if (d.createSyncAccessHandle) {
+			const h = await d.createSyncAccessHandle();
+			h.write(ab, OPFS.at0);
+			h.flush();
+			h.close();
+		} else {
+			const h = await d.createWritable();
+			await h.write(ab);
+			await h.close();
+		}
 		return p;
 	};
 	static r = async (p) => {
-		const dH = await OPFS.mkFile(p), // read as ArrayBuffer
-			aH = await dH.createSyncAccessHandle(),
-			s = aH.getSize(),
-			d = new DataView(B.u8(s).buffer),
-			b = aH.read(d, OPFS.at0);
-		aH.close();
-		return b;
+		const d = await OPFS.mkFile(p), // read as ArrayBuffer
+			b = await d.getFile();
+		return await b.arrayBuffer();
 	};
 }

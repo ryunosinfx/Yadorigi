@@ -1,11 +1,11 @@
 import { ESWebRTCConnecterU, H } from './ESWebRTCConnecterU.js';
 import { FileUtil } from './ESFileUtil.js';
-const onRecieveFileCB = (name, type, dataAb) => {
-	console.log(name, type, dataAb);
+const onRecieveFileCB = (name, type, dataSize) => {
+	console.log(name, type, dataSize);
 };
 const cb = () => {};
 export class ESFileSender {
-	constructor(logElm, fileElm, settingElms, onSWAC, onHWAC) {
+	constructor(logElm, fileElm, settingElms, onSWAC, onHWAC, onInit) {
 		this.logElm = logElm;
 		this.fileElm = fileElm;
 		this.cacheUL = new Map();
@@ -13,6 +13,10 @@ export class ESFileSender {
 		this.u = new ESWebRTCConnecterU(
 			'EAFileSender',
 			this,
+			async () => {
+				this.onLs(await this.u.ls());
+				onInit(await this.getAssetList());
+			},
 			this.getOnMessage(),
 			this.getOnSettingInfo(settingElms),
 			onSWAC,
@@ -34,6 +38,11 @@ export class ESFileSender {
 		this.onRecieveFile = onRecieveFileCB;
 		this.onStatusChange = cb;
 	}
+	async ls() {
+		const a = await this.u.ls();
+		console.log('ls a;', a);
+		return a;
+	}
 	stop() {
 		this.u.stopWaitAutoConnect();
 	}
@@ -41,24 +50,25 @@ export class ESFileSender {
 		this.u.closeAll();
 	}
 	getOnMessage() {
-		return (targetDeviceName, msg) => {
-			console.log(`☆ESFileSender setOnMessage A targetDeviceName:${targetDeviceName}/msg:`, msg);
-			if (Array.isArray(msg)) {
-				console.log(`☆ESFileSender setOnMessage B targetDeviceName:${targetDeviceName}/msg:`, msg);
-				for (const file of msg) {
-					if (!file || !file.name || !file.type || !file.data) {
-						console.log(`☆ESFileSender setOnMessage C targetDeviceName:${targetDeviceName}/file:`, file);
-						return;
-					}
-					console.log(`☆ESFileSender setOnMessage D targetDeviceName:${targetDeviceName}/file:`, file);
-					const key = JSON.stringify([file.name, file.type]);
-					this.cacheDL.set(key, { ab: file.data, time: Date.now() });
-					this.onRecieveFile(file.name, file.type, file.data);
-				}
+		return (appName, targetDeviceName, msg, isBigData) => {
+			console.log(`☆ESFileSender setOnMessage A ${appName}/targetDeviceName:${targetDeviceName}/msg:`, msg);
+			if (isBigData) {
+				if (Array.isArray(msg)) {
+					console.log(`☆ESFileSender setOnMessage B targetDeviceName:${targetDeviceName}/msg:`, msg);
+					for (const file of msg) this.doParFile(targetDeviceName, file);
+				} else this.doParFile(targetDeviceName, msg);
 				return;
 			}
 			this.log(`☆ESFileSender setOnMessage E targetDeviceName:${targetDeviceName} msg:${msg}`);
 		};
+	}
+	doParFile(targetDeviceName, file) {
+		if (!file || !file.name || !file.type || !file.hash)
+			return console.log(`☆ESFileSender setOnMessage C targetDeviceName:${targetDeviceName}/file:`, file);
+		console.log(`☆ESFileSender setOnMessage D targetDeviceName:${targetDeviceName}/file:`, file);
+		const key = JSON.stringify([file.name, file.type]);
+		this.cacheDL.set(key, { hash: file.h, size: file.s, time: Date.now() });
+		this.onRecieveFile(file.name, file.type, file.size);
 	}
 	getOnSettingInfo(settingElms) {
 		return (AppName, setting) => {
@@ -91,65 +101,55 @@ export class ESFileSender {
 	}
 	async test(name, type) {
 		const fileKey = JSON.stringify([name, type]);
-		const { ab } = this.cacheUL.get(fileKey);
-		if (!ab) {
-			return;
-		}
-		return await this.u.tranTest(console, name, type, ab);
+		const { hash } = this.cacheUL.get(fileKey);
+		return hash ? await this.u.tranTest(console, name, type, hash) : null;
 	}
 	async broadcastMessage(msg) {
-		await this.u.broadcastMessage(msg);
+		await this.u.broadcastMsg(msg);
 	}
 	async send(group, targetDeviceName, name, type) {
 		const fileKey = JSON.stringify([name, type]);
-		const { ab } = this.cacheUL.get(fileKey);
-		if (!ab) {
-			this.log(`send NOT FOUND! name:${name}/type:${type}`, ab);
-			return;
-		}
+		const { hash } = this.cacheUL.get(fileKey);
+		if (!hash) return this.log(`send NOT FOUND! name:${name}/type:${type}`, hash);
 		const connectKey = JSON.stringify([group, targetDeviceName]);
 		const targetSignalingHash = this.connectedList[connectKey];
-		return await this.u.sendBigMessage(targetSignalingHash, name, type, ab);
+		return await this.u.sendBigMsg(targetSignalingHash, name, type, hash);
 	}
-	dl(name, type) {
+	async dl(name, type) {
 		const key = JSON.stringify([name, type]);
-		const { ab } = this.cacheDL.has(key)
+		const { hash, size } = this.cacheDL.has(key)
 			? this.cacheDL.get(key)
 			: this.cacheUL.has(key)
 			? this.cacheUL.get(key)
-			: { ab: null };
-		if (!ab) {
-			this.log(`NOT FOUND! name:${name}/type:${type}`);
-		}
+			: { hash: null, size: 0 };
+		if (!hash) this.log(`NOT FOUND! name:${name}/type:${type}/size:${size}`);
+		const ab = await this.u.load(name, hash);
 		FileUtil.download(name, ab, type);
 	}
-	getAssetList() {
+	async getAssetList() {
 		const uploadeds = [];
 		const downlodables = [];
 		for (const [fileKey, value] of this.cacheDL) {
-			if (!value) {
-				return this.cacheDL.delete(fileKey);
-			}
-			console.log('downlodables fileKey', fileKey);
+			if (!value) return this.cacheDL.delete(fileKey);
+			console.log('getAssetList downlodables fileKey', fileKey);
 			const key = JSON.parse(fileKey);
-			downlodables.push({ name: key[0], type: key[1], size: value.ab.byteLength, time: value.time });
+			downlodables.push({ name: key[0], type: key[1], size: value.size, time: value.time });
 		}
 		for (const [fileKey, value] of this.cacheUL) {
-			if (!value) {
-				return this.cacheUL.delete(fileKey);
-			}
-			console.log('uploadeds fileKey', fileKey);
+			if (!value) return this.cacheUL.delete(fileKey);
+			console.log('getAssetList uploadeds fileKey', fileKey);
 			const key = JSON.parse(fileKey);
-			uploadeds.push({ name: key[0], type: key[1], size: value.ab.byteLength, time: value.time });
+			uploadeds.push({ name: key[0], type: key[1], size: value.size, time: value.time });
 		}
 		return { uploadeds, downlodables };
 	}
-	delete(name, type) {
+	async delete(name, type) {
 		const key = JSON.stringify([name, type]);
+		console.log('delete key', key);
 		return this.cacheDL.has(key)
-			? this.cacheDL.delete(key)
+			? (await this.u.delete(name, this.cacheDL.get(key).hash)) & this.cacheDL.delete(key)
 			: this.cacheUL.has(key)
-			? this.cacheUL.delete(key)
+			? (await this.u.delete(name, this.cacheUL.get(key).hash)) & this.cacheUL.delete(key)
 			: null;
 	}
 	setOnRecieve(callback = onRecieveFileCB) {
@@ -161,16 +161,27 @@ export class ESFileSender {
 	ul() {
 		return new Promise((resolve) => {
 			console.log('ul2', this.fileElm);
-			const f = FileUtil.getOnFileLoad(this.fileElm, (name, type, ab) => {
-				if (!ab) {
-					resolve(false);
-					return;
-				}
-				this.cacheUL.set(JSON.stringify([name, type]), { ab, time: Date.now() });
+			const f = FileUtil.getOnFileLoad(this.fileElm, async (name, type, ab) => {
+				if (!ab) return resolve(false);
+				console.log(`ul! name:${name}/type:${type}/size:${ab.byteLength}`);
+				const hash = await this.u.upload(name, type, ab),
+					size = ab.byteLength;
+				console.log(`ul 2! name:${name}/type:${type}/size:${size}`);
+				this.cacheUL.set(JSON.stringify([name, type]), { hash, size, time: Date.now() });
 				resolve(true);
 			});
 			f();
 		});
+	}
+	onLs(lsResult) {
+		for (const a of lsResult) {
+			const name = a.k,
+				type = a.t,
+				hash = a.h,
+				size = a.s,
+				time = a.lm;
+			this.cacheUL.set(JSON.stringify([name, type]), { hash, size, time });
+		}
 	}
 	async getHash(msg) {
 		return await H.d(typeof msg === 'string' ? msg : JSON.stringify(msg));

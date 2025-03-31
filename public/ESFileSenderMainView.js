@@ -176,6 +176,31 @@ export class ESMainView {
 		const onhWAC = async (n) => {
 			statusSTART.textContent = `-STOP-${n}`;
 		};
+		const listUpdate = (result) => {
+			colCfile03.textContent = JSON.stringify(result);
+			ViewUtil.removeChildren(colCfile03);
+			for (const key in result) {
+				const list = result[key];
+				const b = ViewUtil.add(colCfile03, 'div', { class: `${key}_body` });
+				ViewUtil.add(b, 'h5', { text: key, class: `${key}_title` });
+				const l = ViewUtil.add(b, 'ul', { class: `${key}_title` });
+				for (const file of list) {
+					const text = `name:${file.name} type:${file.type} size:${file.size} `;
+					const li = ViewUtil.add(l, 'li', { class: `${key}_li` });
+					ViewUtil.add(li, 'span', { text, class: `${key}_spam` });
+					const btn0 = ViewUtil.add(li, 'button', { text: 'send' });
+					const btn3 = ViewUtil.add(li, 'button', { text: 'test' });
+					const btn1 = ViewUtil.add(li, 'button', { text: 'download' });
+					const btn2 = ViewUtil.add(li, 'button', { text: 'delete' });
+					ViewUtil.setOnClick(btn1, async () => {
+						vc.dl(file.name, file.type);
+					});
+					ViewUtil.setOnClick(btn0, sendFunc(file));
+					ViewUtil.setOnClick(btn3, testFunc(file));
+					ViewUtil.setOnClick(btn2, deleteFunc(file));
+				}
+			}
+		};
 		const vc = new ViewCommander(
 			colClog,
 			inputCurl,
@@ -185,7 +210,8 @@ export class ESMainView {
 			statusConn,
 			inputCfile,
 			onSWAC,
-			onhWAC
+			onhWAC,
+			listUpdate
 		);
 		const colC3 = ViewUtil.add(rowD, 'div', {}, { margin: '12px', fontSize: '60%' });
 
@@ -215,44 +241,16 @@ export class ESMainView {
 		const testFunc = (file) => () => {
 			vc.testSend(file);
 		};
-		const deleteFunc = (file) => () => {
-			vc.delete(file.name, file.type);
-			listUpdate(vc.getAssetList());
+		const deleteFunc = (file) => async () => {
+			await vc.delete(file.name, file.type);
+			listUpdate(await vc.getAssetList());
 		};
-		const listUpdate = (result) => {
-			colCfile03.textContent = JSON.stringify(result);
-			ViewUtil.removeChildren(colCfile03);
-			for (const key in result) {
-				const list = result[key];
-				const b = ViewUtil.add(colCfile03, 'div', { class: `${key}_body` });
-				ViewUtil.add(b, 'h5', { text: key, class: `${key}_title` });
-				const l = ViewUtil.add(b, 'ul', { class: `${key}_title` });
-				for (const file of list) {
-					const text = `name:${file.name} type:${file.type} size:${file.size} `;
-					const li = ViewUtil.add(l, 'li', { class: `${key}_li` });
-					ViewUtil.add(li, 'span', { text, class: `${key}_spam` });
-					const btn0 = ViewUtil.add(li, 'button', { text: 'send' });
-					const btn3 = ViewUtil.add(li, 'button', { text: 'test' });
-					const btn1 = ViewUtil.add(li, 'button', { text: 'download' });
-					const btn2 = ViewUtil.add(li, 'button', { text: 'delete' });
-					ViewUtil.setOnClick(btn1, async () => {
-						vc.dl(file.name, file.type);
-					});
-					ViewUtil.setOnClick(btn0, sendFunc(file));
-					ViewUtil.setOnClick(btn3, testFunc(file));
-					ViewUtil.setOnClick(btn2, deleteFunc(file));
-				}
-			}
-		};
-		ViewUtil.setOnChange(inputCfile, async () => {
-			const result = await vc.ul();
-			listUpdate(result);
-		});
 		const cbFR = async (name, type, dataAb) => {
 			console.log(name, type, dataAb);
-			const result = await vc.ul();
-			listUpdate(result);
+			await vc.ul();
+			listUpdate(await vc.getAssetList());
 		};
+		ViewUtil.setOnChange(inputCfile, cbFR);
 		vc.setOnRecieveFile(cbFR);
 		const cb = (connectMap) => {
 			this.status.connectMap = connectMap;
@@ -274,7 +272,18 @@ export class ESMainView {
 	}
 }
 class ViewCommander {
-	constructor(logElm, inputCurl, inputCgroup, inputCpasswd, inputCdevice, statusConn, inputCfile, onSWAC, onHWAC) {
+	constructor(
+		logElm,
+		inputCurl,
+		inputCgroup,
+		inputCpasswd,
+		inputCdevice,
+		statusConn,
+		inputCfile,
+		onSWAC,
+		onHWAC,
+		onInit
+	) {
 		this.logElm = logElm;
 		this.inputCurl = inputCurl;
 		this.inputCgroup = inputCgroup;
@@ -292,7 +301,8 @@ class ViewCommander {
 				d: inputCdevice,
 			},
 			onSWAC,
-			onHWAC
+			onHWAC,
+			onInit
 		);
 		if (!this.inputCpasswd.value) {
 			this.inputCpasswd.value = '1234';
@@ -324,17 +334,17 @@ class ViewCommander {
 	async ul() {
 		const result = await this.est.ul();
 		console.log(`ul result:${result}`);
-		return this.est.getAssetList();
+		this.getAssetList();
 	}
 	async getHash() {}
 	getAssetList() {
 		return this.est.getAssetList();
 	}
 	dl(name, type) {
-		this.est.dl(name, type);
+		return this.est.dl(name, type);
 	}
 	delete(name, type) {
-		this.est.delete(name, type);
+		return this.est.delete(name, type);
 	}
 	setOnStatusChange(cb) {
 		this.est.setOnStatusChange(cb);
