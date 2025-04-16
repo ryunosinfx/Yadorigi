@@ -8,12 +8,12 @@ const exts = {
 const PORT = 8087;
 const maxSize = 10000;
 const GASsign = '/macros/s';
-const isSignaling = (req) => {
+const isSignaling = req => {
 	const url = req.url.replace('../', '/');
 	console.log('isSignaling url:', url);
 	return url.indexOf(GASsign) === 0;
 };
-const decodeFrom = (querystring) => {
+const decodeFrom = querystring => {
 	const d = querystring.split('&');
 	const o = {};
 	for (const e of d) {
@@ -23,11 +23,11 @@ const decodeFrom = (querystring) => {
 	d.splice(0, d.length);
 	return o;
 };
-const getForm = (req) =>
-	new Promise((resolve) => {
+const getForm = req =>
+	new Promise(resolve => {
 		const a = [];
 		//POSTデータを受けとる
-		req.on('data', (chunk) => {
+		req.on('data', chunk => {
 			a.push(chunk);
 		}).on('end', () => {
 			const d = a.join('');
@@ -102,14 +102,14 @@ const ContentService = {
 const cache = CacheService.getUserCache();
 const EXPIRE_DURATION = 1000 * 40;
 const WAIT_EXPIRE_DURATION = 1000 * 20;
-const parse = (event) =>
+const parse = event =>
 	!event || !event.parameter
 		? { cmd: null, group: null, data: null }
 		: { group: event.parameter.group, cmd: event.parameter.cmd, data: event.parameter.data };
 let sleep = function (sec = Math.floor(Math.random() * 800) + 200) {
 	const expire = Date.now() + sec;
-	const func = (ms) => ms > expire;
-	return new Promise((resolve) => {
+	const func = ms => ms > expire;
+	return new Promise(resolve => {
 		while (!func(Date.now())) console.log(`sleep: sec:${sec}/expire:${expire}/now:${Date.now()}`);
 		resolve();
 	});
@@ -198,7 +198,7 @@ function doGet(event) {
 /////////ここより下はGAS上では取り除く/////////////////////////////////////////////////
 //GAS上で欠落している機能を組み込んだ処理を追記
 sleep = function (sec = Math.floor(Math.random() * 800) + 200) {
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		setTimeout(() => {
 			resolve();
 		}, sec);
@@ -232,18 +232,18 @@ http.createServer(function (req, res) {
 		if (isSignaling(req)) {
 			return signaling(req, res);
 		}
+		const file = fs.readFileSync(`.${url}`);
+		const responseMessage = file;
 		res.writeHead(200, {
 			'Content-Type': contentType,
 		});
-		const file = fs.readFileSync(`.${url}`);
-		const responseMessage = file;
 		res.end(responseMessage);
 	} catch (e) {
+		console.log(`req e:${e}`);
 		try {
 			res.writeHead(404, {
 				'Content-Type': contentType,
 			});
-			console.log(`req e:${e}`);
 			res.end('NOT FOUND');
 		} catch (e2) {
 			console.log(`req e2:${e2}`);
