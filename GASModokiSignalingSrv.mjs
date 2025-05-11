@@ -8,10 +8,17 @@ const exts = {
 const PORT = 8087;
 const maxSize = 10000;
 const GASsign = '/macros/s';
+const ProxySign = '/proxy';
+const mapProxy = new Map();
 const isSignaling = req => {
 	const url = req.url.replace('../', '/');
 	console.log('isSignaling url:', url);
 	return url.indexOf(GASsign) === 0;
+};
+const isProxy = req => {
+	const url = req.url.replace('../', '/');
+	console.log('isProxy url:', url);
+	return url.indexOf(ProxySign) === 0;
 };
 const decodeFrom = querystring => {
 	const d = querystring.split('&');
@@ -221,6 +228,31 @@ const signaling = async (req, res) => {
 		console.log('!!!!!!!!!!!!!!signaling method:', method, t, parameter);
 	}
 };
+const proxy = async (req, res) => {
+	const method = req.method;
+	if (method === 'GET') {
+		const parameter = decodeFrom(req.url.split('?')[1]);
+		console.log('proxy GET:', parameter);
+		const k = parameter.u;
+		if (mapProxy.has(k)) {
+			const { t, c } = mapProxy.get(k);
+			res.writeHead(200, {
+				'Content-Type': c,
+			});
+			res.end(t);
+			console.log('proxy GET:cache:', k, mapProxy.get(k));
+			return;
+		}
+		const a = await fetch(`https://${parameter.u}`);
+		const t = await a.text();
+		const c = a.headers.get('content-type');
+		mapProxy.set(k, { t, c });
+		res.writeHead(200, {
+			'Content-Type': c,
+		});
+		res.end(t);
+	}
+};
 //
 http.createServer(function (req, res) {
 	const url = req.url.replace('../', '/');
@@ -231,6 +263,8 @@ http.createServer(function (req, res) {
 	try {
 		if (isSignaling(req)) {
 			return signaling(req, res);
+		} else if (isProxy(req)) {
+			return proxy(req, res);
 		}
 		const file = fs.readFileSync(`.${url}`);
 		const responseMessage = file;
