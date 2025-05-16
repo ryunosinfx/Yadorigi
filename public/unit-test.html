@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta http-equiv="content-type" charset="UTF-8" />
+		<title>テスト</title>
+		<link rel="stylesheet" href="/proxy?u=unpkg.com/mocha/mocha.css" />
+		<link rel="stylesheet" href="/proxy?u=unpkg.com/mocha/mocha.css" />
+	</head>
+	<body>
+		<div id="mocha"></div>
+		<script src="/proxy?u=unpkg.com/mocha/mocha.js"></script>
+		<script type="module">
+			// esmoduleで書く
+			import * as chai from '/proxy?u=unpkg.com/chai/chai.js'; // esmoduleでchaiをimport
+			import { UnitTest } from './unit-test.js'; // esmoduleでchaiをimport
+			mocha.setup('bdd');
+			mocha.checkLeaks();
+			UnitTest.init(chai, mocha, describe, it, before, after); // UnitTestクラスの初期化
+			UnitTest.run(); // UnitTestクラスの実行
+		</script>
+	</body>
+</html>
